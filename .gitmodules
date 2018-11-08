@@ -1,3 +1,6 @@
 [submodule "methtools"]
 	path = methtools
 	url = https://github.com/bgruening/methtools.git
+[submodule "galaxytools"]
+	path = galaxytools
+	url = https://github.com/bgruening/galaxytools.git
