@@ -4,3 +4,6 @@
 [submodule "galaxytools"]
 	path = galaxytools
 	url = https://github.com/bgruening/galaxytools.git
+[submodule "tools-iuc"]
+	path = tools-iuc
+	url = https://github.com/galaxyproject/tools-iuc.git
