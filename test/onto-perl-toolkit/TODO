@@ -1,0 +1,52 @@
+TODO
+====
+
+create and integrate owl and obo datatypes
+
+
+INSTALL
+=======
+
+ONTO-Toolkit requires:
+
+1. Galaxy (latest version recommended):
+
+	http://main.g2.bx.psu.edu/
+
+2. ONTO-PERL (version >= 1.37):
+
+	http://search.cpan.org/dist/ONTO-PERL/
+	
+After installing the required software:
+
+1. Copy the '/ontology/*.xml' to '$GALAXY_HOME/tools/'
+
+2. Copy the test data file 'pre_cco_core.obo' to '$GALAXY_HOME/test-data/'
+
+3. Adapt your 'tool_conf.xml' file by adding the 'ONTO-ToolKit' section:
+
+  <section name="OBO Ontology manipulation" id="ONTO-ToolKit">
+    <tool file="ontology/get_ancestor_terms.xml"/>
+    <tool file="ontology/get_child_terms.xml"/>
+    <tool file="ontology/get_descendent_terms.xml"/>
+    <tool file="ontology/get_intersection_ontology_from.xml"/>
+    <tool file="ontology/get_list_intersection_from.xml"/>
+    <tool file="ontology/get_parent_terms_by_relationship_type.xml"/>
+    <tool file="ontology/get_parent_terms.xml"/>
+    <tool file="ontology/get_relationship_types.xml"/>
+    <tool file="ontology/get_subontology_from.xml"/>
+    <tool file="ontology/get_terms_by_relationship_type.xml"/>
+    <tool file="ontology/obo2owl.xml" />
+    <tool file="ontology/obo2rdf.xml" />
+    <tool file="ontology/obo2tran.xml" />
+    <tool file="ontology/term_id_vs_term_def.xml"/>
+    <tool file="ontology/term_id_vs_term_name.xml"/>
+  </section>
+
+4. Restart your Galaxy instance.
+
+Bugs/comments/questions/etc
+===========================
+
+ONTO-Toolkit is regularly updated, please report any bugs or 
+send your comments to erick.antezana -@- gmail.com

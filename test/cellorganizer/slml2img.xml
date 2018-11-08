@@ -1,0 +1,84 @@
+<tool id="slml2img" name="slml2img" version="0.0.1">
+  <description>Generates a synthetic image from a valid SLML model</description>
+  <command interpreter="bash">
+    slml2img.sh $data $options_synthesis $dimensionality $options_spherical_cell $options_microscope $options_sample_method $seed
+  </command>
+
+  <inputs>
+    <!-- select datasets -->
+    <param name="dataset" type="data" label="Select models(s)"/>
+
+    <!-- synthesis option -->
+    <param name="options_synthesis" type="select" label="Synthesis option">
+      <option value="nucleus">nucleus</option>
+      <option value="framework">framework</option>
+      <option value="all" selected="true">all</option>
+    </param>
+
+    <section name="dimensionality" title="Dimensionality Options" expanded="True">
+      <!-- dimensionality -->
+      <conditional name="dimensionality">
+        <param name="dimensionality" type="select" label="dimensionality">
+          <option value="2D" selected="true">2D</option>
+          <option value="3D">3D</option>
+        </param>
+        <when value="2D">
+          <param name="options_spherical_cell" type="boolean" label="spherical_cell" checked="true" />
+        </when>
+        <when value="3D">
+          <!-- options.microscope -->
+          <param name="options_microscope" type="select" label="options.microscope">
+            <option value="none" selected="true">None</option>
+            <option value="SVI">SVI</option>
+          </param>
+
+          <!-- options.sample.method -->
+          <param name="options_sample_method" type="select" label="options.sample.method">
+            <option value="disc" selected="true">disc</option>
+            <option value="sampled">sampled</option>
+          </param>
+        </when>
+       </conditional>
+    </section>
+
+    <section name="other_options" title="Other options" expanded="False">
+      <!-- output options -->
+      <param name="options.tifimages" type="boolean" label="Write TIF image(s)" checked="true" />
+      <param name="options.indexedimage" type="boolean" label="Write indexed image(s)" checked="false" />
+      <param name="options.blenderfile" type="boolean" label="Write Blender file(s)" checked="false" />
+      <param name="options.SBML" type="boolean" label="Write SBML instance(s)" checked="false" />
+
+      <!-- seed for random number generator -->
+      <param name="seed" type="integer" value="3" label="Seed for pseudo-random number generator"/>
+
+      <!-- number of synthesized images -->
+      <param name="number_of_synthesized_images" type="integer" value="1" label="Number of synthesized images"/>
+
+      <!-- image compression -->
+      <param name="compression" type="select" label="Image compression">
+        <option value="lzw" selected="true">LZW</option>
+        <option value="none">No compression</option>
+      </param>
+
+      <param name="options_debug" type="boolean" label="Debug mode" checked="false" />
+      <param name="options_display" type="boolean" label="Display mode" checked="false" />
+      <param name="options_verbose" type="boolean" label="Verbose mode" checked="false" />
+    </section>
+  </inputs>
+  <outputs>
+    <data format="txt" name="output" />
+  </outputs>
+<help>
+
+**Description**
+
+Synthesize image(s) from generative models trained using CellOrganizer.
+
+-----
+
+**Output**
+
+One or more images.
+
+</help>
+</tool>

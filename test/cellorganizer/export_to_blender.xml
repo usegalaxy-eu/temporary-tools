@@ -1,0 +1,31 @@
+<tool id="export_to_blender" name="export_to_blender" version="0.0.1">
+  <description>Exports a 3D synthetic image to a format that can be imported in Blender.</description>
+  <command interpreter="bash">
+    export_to_blender.sh $input $downsample_factor
+  </command>
+  <inputs>
+<param format="zip" name="input" type="data" label="3D images"></param>
+<param name="downsample_factor" type="integer" value="1" label="Downsample factor"/>
+  </inputs>
+  <outputs>
+    <data format="zip" name="output" from_work_dir="output.zip"/>
+  </outputs>
+<help>
+
+**Description**
+
+Exports a 3D synthetic image as a Wavefront .obj file that can be imported to Blender.
+
+-----
+
+**Input**
+
+- 3D synthetic image
+
+-----
+
+**Output**
+
+- a zip file with Wavefront .obj files
+</help>
+</tool>

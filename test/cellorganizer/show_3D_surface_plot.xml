@@ -1,0 +1,33 @@
+<tool id="show_3D_surface_plot" name="show_3D_surface_plot" version="0.0.1">
+  <description>Makes a surface plot from a 3D synthetic image.</description>
+  <command interpreter="bash">
+    show_3D_surface_plot.sh $input $viewanglex $viewangley $alphavalue
+  </command>
+  <inputs>
+    <param format="zip" name="input" type="data" label="3D image"></param>
+    <param name="viewanglex" type="integer" value="20" label="View angle on x-direction"/>
+    <param name="viewangley" type="integer" value="-30" label="View angle on y-direction"/>
+    <param name="alphavalue" type="float" value="0.1" label="alpha-value"/>
+  </inputs>
+  <outputs>
+    <data format="png" name="output" from_work_dir="output.png"/>
+  </outputs>
+<help>
+
+**Description**
+
+Makes PNG file from a surface plot of a 3D synthetic image.
+
+-----
+
+**Input**
+
+- 3D synthetic image
+
+-----
+
+**Output**
+
+- A PNG file.
+</help>
+</tool>

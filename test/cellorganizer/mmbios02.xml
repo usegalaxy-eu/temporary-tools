@@ -1,0 +1,45 @@
+<tool id="mmbios01" name="mmbios01" version="0.0.1">
+  <description>Trains a generative model from a collection of simple geometries.</description>
+  <command interpreter="bash">
+    mmbios02.sh $seed $number_of_simple_geometries $image_size $downsample_factor
+  </command>
+
+  <inputs>
+    <!-- seed for random number generator -->
+    <param name="seed" type="integer" value="3" label="Seed for pseudo-random number generator"/>
+
+    <!-- number of simple geometries -->
+    <param name="number_of_simple_geometries" type="integer" value="25" label="Number of simple geometries"/>
+
+    <!-- simple geometries image size -->
+    <param name="image_size" type="integer" value="256" label="Simple geometries image size"/>
+
+    <!-- number of synthesized images -->
+    <param name="downsample_factor" type="integer" value="1" label="Downsample factor"/>
+  </inputs>
+  <outputs>
+    <data format="txt" name="output" from_work_dir="model.mat"/>
+  </outputs>
+<help>
+
+**Description**
+
+Makes a collection of simple geometries and trains a framework model from that collection.
+
+-----
+
+**Input**
+
+- Seed for pseudo-random generator. Default is 3.
+- Number of simple geometries to generate to train this simple model. Default is 25.
+- Simple geometries image size. Default is 256.
+- Downsample factor. Default is 1 (no downsample). It only downsamples the image in x-direction and y-direction, not z-direction.
+
+-----
+
+**Output**
+
+- A valid CellOrganizer model as a Matlab file.
+
+</help>
+</tool>

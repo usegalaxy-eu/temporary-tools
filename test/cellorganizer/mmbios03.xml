@@ -1,0 +1,44 @@
+<tool id="mmbios03" name="mmbios03" version="0.0.1">
+  <description>Synthesizes an image using a simple geometry as the framework and samples from 3D HeLa TfR model for the protein pattern.</description>
+  <command interpreter="bash">
+    mmbios03.sh $seed $number_of_synthesized_images $number_of_gaussian_objects
+  </command>
+
+  <inputs>
+    <!-- seed for random number generator -->
+    <param name="seed" type="integer" value="3" label="Seed for pseudo-random number generator"/>
+
+    <!-- number of synthesized images -->
+    <param name="number_of_synthesized_images" type="integer" value="1" label="Number of synthesized images"/>
+
+    <!-- number of synthesized images -->
+    <param name="number_of_gaussian_objects" type="integer" value="1" label="Number of Gaussian objects"/>
+  </inputs>
+  <outputs>
+    <data format="zip" name="output" from_work_dir="output.zip"/>
+  </outputs>
+<help>
+
+**Description**
+
+Synthesizes an image using
+
+* simple geometry as the framework
+* Murphy Lab's 3D HeLa TfR model
+
+-----
+
+**Input**
+
+- Seed for pseudo-random generator
+- Number of synthesized images
+- Number of Gaussian objects
+
+-----
+
+**Output**
+
+One or more images as TIF's and Wavefront OBJ files.
+
+</help>
+</tool>

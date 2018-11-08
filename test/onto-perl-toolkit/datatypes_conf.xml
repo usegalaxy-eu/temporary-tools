@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<datatypes>
+    <registration converters_path="lib/galaxy/datatypes/converters">
+        <!-- Start ONTO-PERL tools -->
+        <datatype extension="obo" type="galaxy.datatypes.data:Text"/>
+        <!-- End ONTO-PERL tools -->
+    </registration>
+</datatypes>

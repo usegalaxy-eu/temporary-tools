@@ -1,0 +1,12 @@
+<macros>
+    <xml name="stdio">
+        <stdio>
+          <exit_code level="fatal" range="1:"/>
+        </stdio>
+    </xml>
+    <xml name="citations">
+        <citations>
+            <citation type="doi">10.1016/j.molcel.2013.07.001</citation>
+        </citations>
+    </xml>
+</macros>

@@ -1,0 +1,324 @@
+<tool id="proteomics_search_tandem_2" name="X!Tandem MSMS Search" version="1.0.1">
+    <description>Run an X!Tandem Search - test</description>
+    <requirements>
+        <requirement type="package" version="1.2-github">protk</requirement>
+        <requirement type="package" version="4.6.1">trans_proteomic_pipeline</requirement>
+    </requirements>
+    <stdio>
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+        <regex match="Error:" />
+        <regex match="Exception:" />
+    </stdio>
+    <command>
+        export tpp_root=/usr/local/tools/TPP/default/;
+
+        tandem_search.rb
+
+        #if $database.source_select=="built_in":
+            -d $database.dbkey
+        #else 
+            -d $database.fasta_file
+        #end if
+
+        --threads = "\${GALAXY_SLOTS:-8}"
+        -o $output
+
+        #if $config.config_select == 'false':
+            --var-mods='
+            $config.variable_mods
+            #for $custom_variable_mod in $config.custom_variable_mods:
+                ,${custom_variable_mod.custom_mod}
+            #end for
+            '
+
+            --fix-mods='
+            $config.fixed_mods
+            #for $custom_fix_mod in $config.custom_fix_mods:
+                ,${custom_fix_mod.custom_mod}
+            #end for
+            '
+
+            -r 
+            --enzyme=$config.enzyme 
+            --precursor-ion-tol-units=$config.precursor_tolu 
+            --fragment-ion-tol-units=$config.fragment_tolu
+            -v $config.missed_cleavages 
+            -f $config.fragment_ion_tol 
+            -p $config.precursor_ion_tol 
+            $config.allow_multi_isotope_search 
+            --keep-params-files 
+            --algorithm $config.algorithm 
+            --thresholds-type 
+            $config.thresholds_type 
+            $config.cleavage_semi
+
+            --n-terminal-mod-mass = $config.n_terminal_mod_mass
+            --c-terminal-mod-mass = $config.c_terminal_mod_mass
+            --cleavage-n-terminal-mod-mass = $config.cleavage_n_terminal_mod_mass
+            --cleavage-c-terminal-mod-mass = $config.cleavage_c_terminal_mod_mass
+
+            #if $config.use_contrast_angle.use_contrast_angle_select == 'yes':
+                --contrast-angle $config.use_contrast_angle.contrast_angle
+            #end if
+
+            $config.use_neutral_loss_window
+            --total-peaks $config.total_peaks
+
+            #if $config.save_tandem_output
+                --tandem-output $config.tandem_output
+            #end if
+        #else:
+            --tandem-params $config.config_file
+        #end if
+
+        $input_file
+
+    </command>
+    <inputs>
+        <param name="input_file" type="data" format="mzml" multiple="false" label="MSMS File" help="An mzML file with MS/MS data"/>
+        <conditional name="database">
+            <param name="source_select" type="select" label="Database source">
+                <option value="built_in">Built-In</option>
+                <option value="input_ref" selected="true">Your Upload File</option>
+            </param>
+            <when value="built_in">
+                <param name="dbkey" type="select" format="text" >
+                    <label>Database</label>
+                    <options from_file="pepxml_databases.loc">
+                        <column name="name" index="0" />
+                        <column name="value" index="2" />
+                    </options>
+                </param>
+            </when>
+            <when value="input_ref">
+                <param name="fasta_file" type="data" format="fasta" label="Sequence file in FASTA format" />
+            </when>
+        </conditional>
+        <conditional name="config">
+            <param name="config_select" type="select" label="Use options from configfile?">
+                <option value="false" selected="True">No</option>
+                <option value="true">Yes</option>
+            </param>
+            <when value="false">
+                <!-- the user wants to insert all parameters with the Galaxy UI, that is default -->
+                <param name="variable_mods" format="text" type="select" optional="true" multiple="true" label="Variable Modifications" 
+                    help="Hold the appropriate key while clicking to select multiple items">
+                    <options from_file="tandem_mods.loc">
+                        <column name="name" index="0" />
+                        <column name="value" index="2" />
+                    </options>
+                </param>
+                <repeat name="custom_variable_mods" title="Custom Variable Modifications" 
+                    help="You can specify a modification when present in a motif. For instance, 0.998@N!{P}[ST] is a deamidation modification on N only if it is present in an N[any but P][S or T] motif (N-glycosite).">
+                    <param name="custom_mod" type="text" label="Custom Variable Modification"/>
+                </repeat>
+                <param name="fixed_mods" format="text" type="select" multiple="true" label="Fixed Modifications" 
+                    help="Hold the appropriate key while clicking to select multiple items">
+                    <options from_file="tandem_mods.loc">
+                        <column name="name" index="0" />
+                        <column name="value" index="2" />
+                    </options>
+                </param>
+                <repeat name="custom_fix_mods" title="Custom Fixed Modifications" 
+                    help="You can specify a modification when present in a motif. For instance, 0.998@N!{P}[ST] is a deamidation modification on N only if it is present in an N[any but P][S or T] motif (N-glycosite).">
+                    <param name="custom_mod" type="text" label="Custom Fixed Modification"/>
+                </repeat>
+                <param name="missed_cleavages" type="select" format="text" help="Allow peptides to contain up to this many missed enzyme cleavage sites">
+                    <label>Missed Cleavages Allowed</label>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </param>
+                <param name="enzyme" type="select" format="text">
+                    <label>Enzyme</label>
+                    <option value="Trypsin">Trypsin</option>
+                </param>
+                <param name="fragment_ion_tol" help="Fragment Ion Tolerance in Daltons" type="float" value="0.5" min="0" max="10000" label="Fragment ion tolerance"/>
+                <param name="fragment_tolu" type="select" format="text">
+                    <label>Fragment Ion Tolerance Units</label>
+                    <option value="ppm">ppm</option>
+                    <option value="Da">Da</option>
+                </param>
+
+                <param name="precursor_ion_tol" help="Precursor Ion Tolerance (Da or ppm)" type="float" value="10" min="0" max="10000" label="Precursor ion tolerance"/>
+                <param name="precursor_tolu" type="select" format="text">
+                    <label>Precursor Ion Tolerance Units</label>
+                    <option value="ppm">ppm</option>
+                    <option value="Da">Da</option>
+                </param>
+
+                <param name="cleavage_c_terminal_mod_mass" type="float" value="0.0" min="0" max="10000" label="cleavage C-terminal mass change" help=""/>
+                <param name="cleavage_n_terminal_mod_mass" type="float" value="0.0" min="0" max="10000" label="cleavage N-terminal mass change" help=""/>
+                <param name="c_terminal_mod_mass" type="float" value="0.0" min="0" max="10000" label="C-terminal residue modification mass" help=""/>
+                <param name="n_terminal_mod_mass" type="float" value="0.0" min="0" max="10000" label="N-terminal residue modification mass" help=""/>
+
+                <conditional name="use_contrast_angle">
+                    <param name="use_contrast_angle_select" type="select" label="Use contrast angle">
+                        <option value="no" selected="True">No</option>
+                        <option value="yes">Yes</option>
+                    </param>
+                    <when value="no"/>
+                    <when value="yes">
+                        <!-- check ranges and default -->
+                        <param name="contrast_angle" type="float" value="0.0" min="-360" max="360" label="Contrast angle" help=""/>
+                    </when>
+                </conditional>
+
+                <!-- TODO check default parameters -->
+                <param name="total_peaks" type="integer" value="0" label="Total peaks" help=""/>
+                <param name="use_neutral_loss_window" type="boolean" truevalue="--use-neutral-loss-window" falsevalue="" checked="true"
+                    label="Use neutral loss window" help=""/>
+                <param name="cleavage_semi" type="boolean" truevalue="" falsevalue="--no-cleavage-semi" checked="true"
+                    label="Enable semi-cleavage rules" help="Match peptides where one end or the other does not conform to specified enzyme rule."/>
+                <param name="allow_multi_isotope_search" type="boolean" label="Allow multi-isotope search" 
+                    help="This allows peptide candidates in windows around -1 Da and -2 Da from the acquired mass to be considered. Only applicable when the minus/plus window above is set to less than 0.5 Da. Good for accurate-mass instruments for which the reported precursor mass is not corrected to the monoisotopic mass." truevalue="" falsevalue="--strict-monoisotopic-mass"/>
+
+                <param name="algorithm" label="Use K-Score Alogirthm" type="boolean" 
+                    help="The k-score alogirthm is a Tandem score plug-in implementing the COMET score function as described in the Keller et al. manuscript in Molecular Systems Biology 1:2005.0017." truevalue="kscore" falsevalue="native" checked="true" />
+                <param name="thresholds_type" label="Thresholds" type="select" help="Set various X! Tandem threshold values.">
+                    <option value="isb_kscore">ISB k-Score defaults</option>
+                    <option value="isb_native">ISB native scoring defaults</option>
+                    <option value="tandem_defaults">X! Tandem defaults</option>
+                    <option value="scaffold">Defaults for usage with Scaffold</option>
+                </param>
+            </when>
+            <when value="true">
+                <!-- the user wants to upload a XML config file with all options -->
+                <param name="config_file" type="data" format="xml" label="X!Tandem config file" />
+            </when>
+        </conditional>
+        <param name="save_tandem_output" label="Save X! Tandem XML Output (in addition to PepXML)" type="boolean" />
+    </inputs>
+    <outputs>
+        <data format="raw_pepxml" name="output" metadata_source="input_file" label="X!Tandem_vs_${database.dbkey if $database.has_key('dbkey') else $database.fasta_file.display_name}.${input_file.display_name}.${input_file.display_name}.pepXML"/>
+        <data format="xml" metadata_source="input_file" name="tandem_output" label="X!Tandem_vs_${database.dbkey if $database.has_key('dbkey') else $database.fasta_file.display_name}.${input_file.display_name}.${input_file.display_name}.t.xml">
+            <filter>save_tandem_output</filter>
+        </data>
+    </outputs>
+    <tests>
+        <test>
+            <param name="source_select" value="input_ref"/>
+            <param name="fasta_file" value="bsa.fasta"/>
+            <param name="input_file" value="bsa.mzML"/>
+            <param name="variable_mods" value="15.994915@M"/>
+            <param name="fixed_mods" value="57.021464@C"/>
+            <param name="allow_multi_isotope_search" value="false"/>
+            <output name="output" file="bsa.pepXML" compare="sim_size" delta="600" /> 
+        </test>
+    </tests>
+    <help>
+
+**What it does**
+
+Runs an MS/MS database search using the X!Tandem search engine. Output is in the form of a pepXML file containing identified peptides along with their raw search scores.
+
+----
+
+**References**
+
+Please see http://www.thegpm.org/GPM/references.html for details of references describing the X!Tandem search engine.
+
+<!--
+
+<bioml>
+
+ 
+
+<note type="heading">Spectrum general</note>
+	<note type="input" label="spectrum, fragment monoisotopic mass error units">Da</note>
+	<note type="input" label="spectrum, fragment monoisotopic mass error">0.5</note>
+	<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error plus">10</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error minus">10</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
+	<note type="input" label="spectrum, parent monoisotopic mass isotope error">no</note>
+	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>	
+	<note>values are monoisotopic|average </note>
+
+
+<note type="heading">Spectrum conditioning</note>
+	<note type="input" label="spectrum, dynamic range">100.0</note>
+	<note type="input" label="spectrum, total peaks">50</note> 
+	<note type="input" label="spectrum, use noise suppression">yes</note>
+	<note type="input" label="spectrum, use neutral loss window">no</note>
+	<note type="input" label="spectrum, minimum parent m+h">500.0</note>
+	<note type="input" label="spectrum, minimum fragment mz">150.0</note>
+	<note type="input" label="spectrum, minimum peaks">15</note> 
+	<note type="input" label="spectrum, threads">6</note>
+	<note type="input" label="spectrum, use contrast angle">yes</note>
+	<note type="input" label="spectrum, contrast angle">40</note>
+	
+<note type="heading">Residue modification</note>
+	<note type="input" label="residue, modification mass">57.021464@C,28.031300@[,28.031300@K</note>
+	<note type="input" label="residue, potential modification mass"></note>
+
+<note type="heading">Protein general</note>
+	<note type="input" label="protein, cleavage site">[KR]|{P}</note>
+	<note type="input" label="protein, cleavage semi">no</note>
+	<note type="input" label="protein, cleavage C-terminal mass change">+17.00305</note>
+	<note type="input" label="protein, cleavage N-terminal mass change">+1.00794</note>
+	<note type="input" label="protein, N-terminal residue modification mass">0.0</note>
+	<note type="input" label="protein, C-terminal residue modification mass">0.0</note>
+	<note type="input" label="protein, quick acetyl">no</note>
+	<note type="input" label="protein, quick pyrolidone">no</note>
+	
+<note type="heading">Scoring</note>
+	<note type="input" label="scoring, minimum ion count">4</note>
+	<note type="input" label="scoring, maximum missed cleavage sites">0</note>
+	<note type="input" label="scoring, a ions">no</note>
+	<note type="input" label="scoring, b ions">yes</note>
+	<note type="input" label="scoring, c ions">no</note>
+	<note type="input" label="scoring, x ions">no</note>
+	<note type="input" label="scoring, y ions">yes</note>
+	<note type="input" label="scoring, cyclic permutation">yes</note>  
+	<note type="input" label="spectrum, use conditioning">yes</note>
+
+<note type="heading">model refinement paramters</note>
+		<note type="input" label="refine">no</note>
+		<note type="input" label="refine, cleavage semi">yes</note>
+		<note type="input" label="refine, spectrum synthesis">no</note>
+		<note type="input" label="refine, maximum valid expectation value">0.1</note>
+		<note type="input" label="refine, potential N-terminus modifications"></note>
+		<note type="input" label="refine, potential C-terminus modifications"></note>
+		<note type="input" label="refine, unanticipated cleavage">no</note>
+		<note type="input" label="refine, potential modification mass"></note>
+		<note type="input" label="refine, use potential modifications for full refinement">no</note>
+		<note type="input" label="refine, point mutations">no</note>
+
+
+<note type="heading">Output</note>
+	<note type="input" label="gpmdb, add">no</note>
+	<note type="input" label="gpmdb, anonymous">no</note>
+	<note type="input" label="output, sort results by">spectrum</note>
+		<note>values = protein|spectrum (spectrum is the default)</note>
+	<note type="input" label="output, path hashing">no</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, xsl path">tandem-style.xsl</note>
+	<note type="input" label="output, parameters">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, performance">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, spectra">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, histograms">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, proteins">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, sequences">yes</note>
+		<note>values = yes|no</note>
+	<note type="input" label="output, results">valid</note>
+		<note>values = all|valid|stochastic</note>
+	<note type="input" label="output, maximum valid expectation value">2</note>
+		<note>value is used in the valid|stochastic setting of output, results</note>
+	<note type="input" label="output, histogram column width">30</note>
+		<note>values any integer greater than 0. Setting this to '1' makes cutting and pasting histograms
+		into spread sheet programs easier.</note>
+
+</bioml>
+
+
+-->
+
+    </help>
+</tool>

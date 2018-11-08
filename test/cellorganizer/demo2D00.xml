@@ -1,0 +1,32 @@
+<tool id="demo2D00" name="demo2D00" version="0.0.1">
+  <description>Runs demo2D00 from CellOrganizer</description>
+  <command interpreter="bash">
+    demo2D00.sh $seed $compression
+  </command>
+  <inputs>
+    <!-- seed for random number generator -->
+    <param name="seed" type="integer" value="3" label="Seed for pseudo-random number generator"/>
+
+    <!-- image compression -->
+    <param name="compression" type="select" label="Image compression">
+      <option value="lzw" selected="true">LZW</option>
+      <option value="none">No compression</option>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="tiff" name="output" from_work_dir="output1.tif"/>
+  </outputs>
+<help>
+
+**Description**
+
+Synthesizes 2D HeLa images from generative models trained by Murphy Lab.
+The models used to generate these instances are included CellOrganizer.
+
+-----
+
+**Output**
+
+- One image as a TIF file.
+</help>
+</tool>

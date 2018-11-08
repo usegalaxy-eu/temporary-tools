@@ -1,0 +1,109 @@
+
+<!-- Flexbar tool definition for Galaxy, version 2.5 -->
+<!-- Author: Johannes Roehr -->
+<!-- Modified by Daniel Maticzka as specialized tool for splitting binary barcodes. -->
+
+
+<tool id="flexbar_split_RYYR_bcs" name="Split by binary barcodes" version="2.5">
+
+    <description>using RYYR IUPAC pattern.</description>
+
+    <requirements>
+        <requirement type="package" version="2.5">flexbar</requirement>
+    </requirements>
+
+    <version_command>flexbar --version</version_command>
+
+    <command><![CDATA[
+
+        flexbar
+
+        --threads \${GALAXY_SLOTS:-1}
+
+        --reads $reads
+
+        --reads2 $reads2
+
+        #if $reads.ext == "fastqsanger":
+            --format sanger
+        #end if
+        #if $reads.ext == "fastqsolexa":
+            --format solexa
+        #end if
+        #if $reads.ext == "fastqillumina":
+            --format i1.3
+        #end if
+        #if $reads.ext == "csfasta":
+            --color-space
+        #end if
+        #if $reads.ext == "fastqcssanger":
+            --color-space
+        #end if
+
+        --barcodes $__tool_directory__/RYYR_bcs.fa
+
+        --barcode-reads $bReads
+
+        --barcode-threshold $bThresh
+
+        --max-uncalled $maxUncalled
+        --min-read-length $minReadLen
+
+        > $output
+
+        && mv flexbar_barcode_repA_1.fastq $output_repA_1
+        && mv flexbar_barcode_repA_2.fastq $output_repA_2
+        && mv flexbar_barcode_repB_1.fastq $output_repB_1
+        && mv flexbar_barcode_repB_2.fastq $output_repB_2
+
+        && sleep 20
+
+    ]]></command>
+
+
+    <inputs>
+
+        <param format="fasta,fastq,fastqsanger,fastqsolexa,fastqillumina,csfasta,fastqcssanger" name="reads" type="data" label="Sequencing reads" optional="false"/>
+
+        <param format="fasta,fastq,fastqsanger,fastqsolexa,fastqillumina,csfasta,fastqcssanger" name="reads2" type="data" label="Reads 2" optional="false" help="same format as first read set"/>
+
+        <param format="fasta,fastq,fastqsanger,fastqsolexa,fastqillumina,csfasta,fastqcssanger" name="bReads" type="data" label="Separate barcode reads" optional="false"/>
+
+        <param name="bThresh" size="4" type="integer" value="1" label="Threshold" optional="false" help="allowed mismatches and indels per 10 bases"/>
+
+        <param name="maxUncalled" size="4" type="integer" value="0"  label="Max uncalled" optional="false" help="allowed uncalled bases per read"/>
+
+        <param name="minReadLen"  size="4" type="integer" value="18" label="Minimum read length" optional="false" help="shorter reads are discarded"/>
+
+    </inputs>
+
+    <stdio>
+        <exit_code range="1:" level="fatal" description="Error!" />
+    </stdio>
+
+    <outputs>
+        <data format="txt" name="output" metadata_source="reads"/>
+        <data format="fastq" name="output_repA_1"/>
+        <data format="fastq" name="output_repA_2"/>
+        <data format="fastq" name="output_repB_1"/>
+        <data format="fastq" name="output_repB_2"/>
+    </outputs>
+
+
+    <help>
+
+**Description**
+
+This tool splits paired-end reads according to an external set of barcode reads in RY IUPAC format according to patterns RYYR (replicate A) and YRRY (replicate B) using Flexbar.
+
+.. _project: https://github.com/seqan/flexbar
+
+------
+
+**Reference**
+
+Matthias Dodt, Johannes T. Roehr, Rina Ahmed, Christoph Dieterich: Flexbar — flexible barcode and adapter processing for next-generation sequencing platforms. Biology 2012, 1(3):895-905.
+
+    </help>
+
+</tool>

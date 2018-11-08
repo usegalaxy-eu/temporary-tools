@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<tool name="Convert svg to png" id="it_convert_svg2png" version="0.0.1">
+    <description>Convert svg to png</description>
+    <requirements>
+        <requirement type="package">cairosvg</requirement>	
+    </requirements>
+    <command interpreter="python"><![CDATA[convert_svg2png.py $image_svg $image_png]]></command>
+    <inputs>
+	<param name="image_svg" type="data" format="svg" label="svg image" />
+    </inputs>	
+    <outputs>
+       <data format="png" name="image_png" />
+    </outputs>
+    <help>
+This tool converts svg input image to png format.
+    </help>
+    <citations>
+        <citation type="doi">10.1016/j.jbiotec.2017.07.019</citation>
+    </citations>
+</tool>
+

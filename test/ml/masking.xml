@@ -1,0 +1,76 @@
+<tool id="masking" name="Masking" version="0.0.1">
+    <description>
+        
+    </description>
+    <requirements>
+        <requirement type="package" version="4.12.2">bioconductor-ebimage</requirement>
+        <requirement type="package" version="2.2.2">r-rniftyreg</requirement>
+    </requirements>
+    <stdio>
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+    </stdio>
+    <command><![CDATA[
+        ln -s $infile image.jpg &&
+        Rscript "${masking_script}"
+    ]]>
+    </command>
+    <configfiles>
+        <configfile name="masking_script"><![CDATA[
+##the tool
+##reads a jpeg b/w mask
+##extracts x,y of pixels with value==x
+##writes he (x,y,label) csv-table
+##uses trafo-matrix.csv to transform
+##he (x,y,label) csv-table to msi (x,y,label) csv-table
+##writes msi (x,y,label) csv-table
+
+@R_IMPORTS@
+
+label = "ROI1"
+value = 0
+he.mask.jpg   = "image.jpg"
+he.mask.file  = "$he_mask"
+msi.mask.file = "$msi_mask"
+trafo.matrix.file = "$trafomatrix"
+
+## generate he coordinate lists from ROI masks as (x,y,label) table
+he.mask<-readImage(he.mask.jpg)
+xyl.he <- get.mask.xy(he.mask, value, label)
+write.csv.uw(xyl.he, he.mask.file)
+
+## get msi coordinate list from he coordinate list and trafo matrix
+xyl.msi <- get.msi.mask(he.mask.file, trafo.matrix.file)
+write.csv.uw(xyl.msi, msi.mask.file)
+
+
+    ]]>
+        </configfile>
+    </configfiles>
+    <inputs>
+        <param name="infile" type="data" format="jpg" label="Black/White mask" help="This is your annotated mask image. You can use GIMP for this task."/>
+        <param name="trafomatrix" type="data" format="tabular" label="Your trafo matrix file" help="This file can be produced by the coordinate to trafo tool."/>
+    </inputs>
+    <outputs>
+        <data format="tabular" name="msi_mask" label="${tool.name} on ${on_string}: MSI" />
+        <data format="tabular" name="he_mask" label="${tool.name} on ${on_string}: HE" />
+    </outputs>
+    <tests>
+        <test>
+
+        </test>
+    </tests>
+    <help>
+        <![CDATA[
+
+Masking tool
+
+.. _EBImage: https://bioconductor.org/packages/release/bioc/html/EBImage.html
+
+Based on a script from Ulli Wellner.
+        ]]>
+    </help>
+    <citations>
+        <citation type="doi">10.1093/bioinformatics/btq046</citation>
+    </citations>
+</tool>

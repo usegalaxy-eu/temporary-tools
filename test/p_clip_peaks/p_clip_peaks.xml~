@@ -1,0 +1,57 @@
+<tool id="p_clip_peaks" name="CLIP Peakcaller" version="1.0.0">
+    <description>
+<![CDATA[
+find CLIP peaks in blockbuster data
+]]>
+    </description>
+    <requirements>
+        <requirement type="binary">Rscript</requirement>
+        <requirement type="package" version="5.18.1">perl</requirement>
+    </requirements>
+
+    <command>
+<![CDATA[
+    perl $__tool_directory__/make_gff_from_blockbuster_table.pl
+    $input
+
+    > $gff_output
+]]>
+    </command>
+    <stdio>
+        <!-- Anything other than zero is an error -->
+        <exit_code range="1:" />
+        <exit_code range=":-1" />
+        <!-- In case the return code has not been set propery check stderr too -->
+        <regex match="Error:" />
+        <regex match="Exception:" />
+    </stdio>
+    <inputs> 
+        <param name="input" format="tabular" type="data" label="Blocks from Blockbuster">
+            <help>
+<![CDATA[
+Blockbuster should be called with the "-print 1" option.
+]]>
+            </help>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="gff_output" format="gff"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input" value="cat.blockbuster" ftpye="tabular"/>
+            <output name="gff_output" file="out.gff" />
+        </test>
+    </tests>
+    <help>
+<![CDATA[
+
+**What it does**
+
+Takes Blockbuster blocks as input, identifies peak shaped parts and adds the intervals to a gff file.
+
+]]>
+    </help>
+    <citations>
+    </citations>
+</tool>

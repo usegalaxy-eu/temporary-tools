@@ -1,0 +1,21 @@
+<tool id="sample_from_public_database" name="sample_from_public_database" version="0.0.1">
+  <description>Retrieves a random image from the Murphy Lab public image database.</description>
+  <command interpreter="bash">
+    sample_from_public_database.sh
+  </command>
+  <outputs>
+    <data format="tif" name="output" from_work_dir="output.tif" />
+  </outputs>
+<help>
+
+**Description**
+
+Retrieves a random image from the Murphy Lab public image database.
+
+-----
+
+**Output**
+
+- An OME.tif
+</help>
+</tool>

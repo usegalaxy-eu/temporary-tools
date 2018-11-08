@@ -1,0 +1,30 @@
+<tool id="export_to_vcell" name="export_to_vcell" version="0.0.1">
+  <description>Exports a 2D synthetic image to a format that can be imported in VCell.</description>
+  <command interpreter="bash">
+    export_to_vcell.sh $input
+  </command>
+  <inputs>
+<param format="tif" name="input" type="data" label="2D images"></param>
+  </inputs>
+  <outputs>
+    <data format="tif" name="output" from_work_dir="output.tif"/>
+  </outputs>
+<help>
+
+**Description**
+
+Exports a 2D synthetic image as a indexed image that can be imported to VCell as a geometric model.
+
+-----
+
+**Input**
+
+- 2D synthetic image
+
+-----
+
+**Output**
+
+- An indexed image.
+</help>
+</tool>

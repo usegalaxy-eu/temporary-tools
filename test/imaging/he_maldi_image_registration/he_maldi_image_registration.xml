@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<tool name="HE/ MALDI Image Registration" id="re_he_maldi_image_registration" version="0.0.1">
+    <description>Registration of MALDI and HE Image</description>
+    <requirements>
+        <requirement type="package" version="0.14.1">scikit-image</requirement>
+        <requirement type="package" version="0.23.4">pandas</requirement>
+        <requirement type="package" version="1.15.2">numpy</requirement>
+        <requirement type="package" version="1.1.0">scipy</requirement>
+        <requirement type="package" version="2.0.0">imreg_dft</requirement>
+        <requirement type="package" version="3.4.1">openslide</requirement>
+        <requirement type="package" version="1.1.1">openslide-python</requirement>
+    </requirements>
+    <command interpreter="python"><![CDATA[he_maldi_image_registration.py $tissue_array $binary_img $imgHE $imgMS $warp_matrix]]></command>
+    <inputs>
+        <param name="imgHE" type="data" format="png" label="HE image" />
+        <param name="imgMS" type="data" format="png" label="MALDI Image" />
+        <param name="tissue_array" type="boolean" checked="false" truevalue="--tissue_array" falsevalue="" label="Set to yes if sample is a tissue array" />
+        <param name="binary_img" type="boolean" checked="false" truevalue="--binary_img" falsevalue="" label="Set to yes if MALDI image is binary" />
+    </inputs>
+    <outputs>
+        <data format="csv" name="warp_matrix" />
+    </outputs>
+    <help>
+This tool registrates a MALDI-image with an HE-image and creates a 3x3 warp matrix as csv-output.  
+    </help>
+    <citations>
+        <citation type="doi">10.1016/j.jbiotec.2017.07.019</citation>
+    </citations>
+</tool>

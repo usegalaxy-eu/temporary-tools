@@ -1,0 +1,38 @@
+<tool id="train_3D_vesicular_model" name="train_3D_vesicular_model" version="0.0.1">
+  <description>Trains a vesicular generative model using the Murphy Lab 3D HeLa collection.</description>
+  <command interpreter="bash">
+    train_3D_vesicular_model.sh $hela_dataset $number_of_images $downsample_factor
+  </command>
+
+  <inputs>
+    <!-- 2D HeLa dataset collection -->
+    <param name="hela_dataset" type="select" label="Select 2D HeLa dataset">
+      <option value="LAM" selected="true">LAMP2</option>
+      <option value="Nuc">Nucleoli</option>
+      <option value="Mit">Mitochondria</option>
+      <option value="TfR">TfR</option>
+    </param>
+
+    <!-- seed for random number generator -->
+    <param name="number_of_images" type="integer" value="9" label="Number of images"/>
+
+    <!-- number of synthesized images -->
+    <param name="downsample_factor" type="integer" value="5" label="Downsample factor"/>
+  </inputs>
+  <outputs>
+    <data format="mat" name="output" from_work_dir="model.mat"/>
+  </outputs>
+<help>
+
+**Description**
+
+Trains a vesicular generative model using the Murphy Lab 3D HeLa collection
+
+-----
+
+**Output**
+
+* A valid CellOrganizer model as a Matlab file.
+
+</help>
+</tool>

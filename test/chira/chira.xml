@@ -1,0 +1,123 @@
+<tool id="chira" name="ChiRA" version="1.0">
+    <description>Chimeric Read Annotator</description>
+    <requirements>
+        <requirement type="package" version="0.9.0">pysam</requirement>
+        <requirement type="package" version="2.24">bedtools</requirement>
+        <requirement type="package" version="2.2.6">bowtie2</requirement>
+    </requirements>
+
+    <command interpreter="python"><![CDATA[
+        chira.py 
+        -i "$input" 
+        -s $type
+        -m $min_looplen
+        -tc $tpm_cutoff
+        -sc $score_cutoff
+        -mo $merge_overlap
+        -cs $crg_share
+        -e $em_threshold
+        -so $suboptimal 
+        $hybridize
+        -p \${GALAXY_SLOTS:-1}
+        -o $chira_out.extra_files_path;
+        cp #echo os.path.join($chira_out.extra_files_path, 'miRNA_vs_transcriptome', 'miRNA_vs_transcriptome.loci.pairs')# $chira_out;
+
+    ]]></command>
+
+    <inputs>
+        <param format="fasta,fastq" name="input" type="data" label="Input file"
+               help="Input fasta/fastq file"/>
+
+        <param name="type" type="select" label="Map reads to">
+            <option value="fw">Transcript strand only</option>
+            <option value="rc">Reverse compliment of transcript strand only</option>
+            <option value="both">Both strands</option>
+        </param>
+
+        <param name="min_looplen" type="integer" value="3" label="Minimum loop length"
+               help="Set minimum loop length in case of single RNA duplex"/>
+
+        <param name="tpm_cutoff" type="float" value="0.1" label="TPM cut-off" min="0" max="1"
+               help="Transcripts with less than this percentile TPMs will be discarded in the final output. [0-1.0]"/>
+
+        <param name="score_cutoff" type="float" value="0.1" label="Score cut-off" min="0" max="1"
+               help="Hybrids with less than this score will be discarded in the final output. [0-1.0]"/>
+
+        <param name="merge_overlap" type="float" value="0.7" label="Percent overlap for merging" min="0" max="1"
+               help="Minimum percentage overlap among BED entries inorder to merge. [0-1.0]"/>
+
+        <param name="crg_share" type="float" value="0.7" label="CRG share" min="0" max="1"
+               help="Minimum percentage overlap of a locus on a CRG inorder to merge it into a CRG. [0-1.0]"/>
+
+        <param name="em_threshold" type="float" value="0.01" label="EM convergence threshold" min="0" max="1"
+               help="The maximum difference of transcripts expression between two consecutive iterations
+               of EM algorithm to converge."/>
+
+        <param name="suboptimal" type="float" value="0.7" label="Suboptimal hybrids length" min="0" max="1"
+               help="In case of multimappings, hybrids with total alignment length greater than this % of the
+               longest hybrid are considered."/>
+
+        <param name="hybridize" type="boolean" truevalue="--hybridize" falsevalue="" checked="false"
+            label="Hybridize the predicted chimeras" help="It may take signifincantly long time for hybridization prediction
+            all chimeras. Please consider using a high score cut-off and Suboptimal hybrid length options along with this." />
+
+    </inputs>
+
+    <outputs>
+        <data format="tabular" name="chira_out" label="ChiRA result file on ${on_string}"/>
+    </outputs>
+
+    <help>
+
+.. class:: infomark
+
+**What it does** 
+
+Chimeric read annotator
+
+**Inputs**
+
+ChiRA requires a fasta or fastq file as input
+
+**Output**
+
+ChiRA generates a tabular file containing the following columns.
+
+====== ==========================================================
+Column Description
+------ ----------------------------------------------------------
+     1 Chimera id
+     2 Read id
+     3 Transcript id 1
+     4 Transcript id 2
+     5 Gene id 1
+     6 Gene id 2
+     7 Gene symbol 1
+     8 Gene symbol 2
+     9 Gene biotype 1 (miRNA family id, incase of miRNAs)
+    10 Gene biotype 2
+    11 Start position of read on transcript 1
+    12 End position of read on transcript 1
+    13 Total length of transcript 1
+    14 Start position of read on transcript 2
+    15 End position of read on transcript 2
+    16 Total length of transcript 2
+    17 Genomic locus of part 1
+    18 Genomic locus part 2
+    19 Internal locus id of part 1
+    20 Internal locus id of part 2
+    21 Genomic locus of common read group of part 1
+    22 Genomic locus of common read group of part 2
+    23 Common read group id of part 1
+    24 Common read group id of part 2
+    25 TPM of group 1
+    26 TPM of group 2
+    27 Score of part 1
+    28 Score of part 2
+    29 Total score of chimera
+====== ==========================================================
+
+
+    </help>
+
+</tool>

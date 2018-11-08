@@ -1,0 +1,12 @@
+data/test-data/hisat_input_1_forward.fastq.i
+data/test-data/hisat_output_1.bam.i
+data/hisat_macros.xml.i
+data/hisat.xml.i
+data/test-data/hisat_input_2_reverse.fastq.i
+data/tool-data/hisat_indexes.loc.sample.i
+data/test-data/hisat_input_2_forward.fastq.i
+data/test-data/hisat_output_2.bam.i
+data/tool_data_table_conf.xml.sample.i
+data/test-data/phiX.fa.i
+data/tool_dependencies.xml.i
+data/test-data/hisat_input_1_reverse.fastq.i

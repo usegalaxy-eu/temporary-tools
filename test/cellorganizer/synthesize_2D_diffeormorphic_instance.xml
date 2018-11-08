@@ -1,0 +1,26 @@
+<tool id="synthesize_2D_diffeormorphic_instance" name="synthesize_2D_diffeormorphic_instance" version="0.0.1">
+  <description>Trains a diffeomorphic generative model using the Murphy Lab 2D HeLa collection.</description>
+  <command interpreter="bash">
+    synthesize_2D_diffeormorphic_instance.sh $input
+  </command>
+  <inputs>
+    <!-- 2D HeLa dataset collection -->
+    <param format="mat" name="input" type="data" label="Diffeomorphic model"></param>
+  </inputs>
+  <outputs>
+    <data format="tif" name="output" type="data" from_work_dir="output.tif"/>
+  </outputs>
+<help>
+
+**Description**
+
+Trains a diffeomorphic generative model using the Murphy Lab 2D HeLa collection
+
+-----
+
+**Output**
+
+* A valid CellOrganizer model as a Matlab file.
+
+</help>
+</tool>

@@ -1,0 +1,29 @@
+<tool id="dexseq_annotate" name="Annotate DE(X)Seq result" version="1.0">
+    <command interpreter="python">
+    <![CDATA[
+        dexseq_annotate.py -i $output_table -g $annotation -o $annotated
+    ]]>
+    </command>
+
+    <inputs>
+        <!--
+        <param name="table_select" type="select" label="Select the type of output">
+            <option value="deseq" selected="true">DESeq2</option>
+            <option value="dexseq">DEXSeq</option>
+        </param>
+        -->
+        <param name="output_table" type="data" format="tabular" label="Tabular output of DESeq2 or DEXSeq"/>
+        <param name="annotation" type="data" format="gtf" label="Reference annotation" />
+    </inputs>
+
+    <outputs>
+        <data name="annotated" format="tabular" label="${tool.name} on ${on_string}"/>
+    </outputs>
+  <help>
+
+**What it does**
+
+Annotates the ouput table of DESeq2 or DEXSeq with gene symbols, biotypes, positions etc.
+
+  </help>
+</tool>

@@ -1,0 +1,23 @@
+<tool id="show_shape_space" name="show_shape_space" version="0.0.1">
+  <description>Shows a visual representation of the shape space from a diffeomorphic model.</description>
+  <command interpreter="bash">
+    show_shape_space.sh $input
+  </command>
+  <inputs>
+<param format="mat" name="input" type="data" label="Diffeomorphic model"></param>
+  </inputs>
+  <outputs>
+    <data format="png" name="output" from_work_dir="show_shape_space.png"/>
+  </outputs>
+<help>
+**Description**
+
+Makes PNG file showing of the shape space from a 2D diffeomorphic model trained with CellOrganizer.
+
+-----
+
+**Output**
+
+- A PNG file.
+</help>
+</tool>

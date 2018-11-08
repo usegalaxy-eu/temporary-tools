@@ -1,0 +1,176 @@
+<tool id="proteomics_search_tandem_1" name="X!Tandem MSMS Search" version="1.0.1">
+
+   <requirements>
+    <requirement type="package" version="1.2.2">galaxy_protk</requirement>
+    <requirement type="package">protk</requirement> 
+    <requirement type="package" version="4.6.1">trans_proteomic_pipeline</requirement>
+    <requirement type="package">TPP</requirement>
+    <requirement type="package">tandem</requirement>
+   </requirements>
+
+
+        <stdio>
+            <!-- Anything other than zero is an error -->
+            <exit_code range="1:" />
+            <exit_code range=":-1" />
+            <!-- In case the return code has not been set propery check stderr too -->
+            <regex match="Error:" />
+            <regex match="Exception:" />
+        </stdio>
+
+	<description>Run an X!Tandem Search</description>
+
+	<command>
+export tpp_root=/usr/local/tools/TPP/default/;
+
+		#if $database.source_select=="built_in":
+			tandem_search.rb -d $database.dbkey 
+		#else 
+			tandem_search.rb -d $database.fasta_file
+		#end if
+
+		--var-mods='
+		$variable_mods
+		#for $custom_variable_mod in $custom_variable_mods:
+		,${custom_variable_mod.custom_mod}
+		#end for
+		'
+
+		--fix-mods='
+		$fixed_mods
+		#for $custom_fix_mod in $custom_fix_mods:
+		,${custom_fix_mod.custom_mod}
+		#end for
+		'
+
+		$input_file -o $output -r --enzyme=$enzyme --precursor-ion-tol-units=$precursor_tolu -v $missed_cleavages -f $fragment_ion_tol -p $precursor_ion_tol $allow_multi_isotope_search --keep-params-files --algorithm $algorithm --thresholds-type $thresholds_type $cleavage_semi
+#if $save_tandem_output		
+--tandem-output $tandem_output
+#end if
+	</command>
+
+	<inputs>	
+		<conditional name="database">
+			<param name="source_select" type="select" label="Database source">
+				<option value="built_in">Built-In</option>
+				<option value="input_ref" selected="true">Your Upload File</option>
+			</param>
+			<when value="built_in">
+				<param name="dbkey" type="select" format="text" >
+					<label>Database</label>
+					<options from_file="pepxml_databases.loc">
+						<column name="name" index="0" />
+						<column name="value" index="2" />
+					</options>
+				</param>
+			</when>
+			<when value="input_ref">
+				<param name="fasta_file" type="data" format="fasta" label="Uploaded FASTA file" />
+			</when>
+		</conditional>
+		
+		<param name="input_file" type="data" format="mzml" multiple="false" label="MSMS File" help="An mzML file with MS/MS data"/>
+
+
+		<param name="variable_mods" format="text" type="select" multiple="true" label="Variable Modifications" help="Hold the appropriate key while
+			clicking to select multiple items">
+			<options from_file="tandem_mods.loc">
+				<column name="name" index="0" />
+				<column name="value" index="2" />
+			</options>
+		</param>
+
+		<repeat name="custom_variable_mods" title="Custom Variable Modifications" help="You can specify a modification when present in a motif. For instance, 0.998@N!{P}[ST] is a deamidation modification on N only if it is present in an N[any but P][S or T] motif (N-glycosite).">
+			<param name="custom_mod" type="text">
+			</param>
+		</repeat>
+		
+		
+		<param name="fixed_mods" format="text" type="select" multiple="true" optional="true" label="Fixed Modifications" help="Hold the appropriate key while
+			clicking to select multiple items">
+			<options from_file="tandem_mods.loc">
+				<column name="name" index="0" />
+				<column name="value" index="2" />
+			</options>
+		</param>
+
+		<repeat name="custom_fix_mods" title="Custom Fixed Modifications" help="You can specify a modification when present in a motif. For instance, 0.998@N!{P}[ST] is a deamidation modification on N only if it is present in an N[any but P][S or T] motif (N-glycosite).">
+			<param name="custom_mod" type="text">
+			</param>
+		</repeat>
+		
+		
+
+		<param name="missed_cleavages" type="select" format="text" help="Allow peptides to contain up to this many missed enzyme cleavage sites">
+			<label>Missed Cleavages Allowed</label>
+		    <option value="0">0</option>		
+			<option value="1">1</option>
+			<option value="2">2</option>
+		</param>
+		
+		<param name="enzyme" type="select" format="text">
+		    <label>Enzyme</label>
+		    <option value="Trypsin">Trypsin</option>
+		</param>
+		
+		<param name="fragment_ion_tol" help="Fragment Ion Tolerance in Daltons" type="float" value="0.5" min="0" max="10000" label="Fragment ion tolerance"/>
+
+		<param name="precursor_ion_tol" help="Precursor Ion Tolerance (Da or ppm)" type="float" value="10" min="0" max="10000" label="Precursor ion tolerance"/>
+		<param name="precursor_tolu" type="select" format="text">
+		    <label>Precursor Ion Tolerance Units</label>
+		    <option value="ppm">ppm</option>		
+			<option value="Da">Da</option>
+		</param>
+
+    <param name="cleavage_semi" type="boolean" label="Enable semi-cleavage rules" help="Match peptides where one end or the other does not conform to specified enzyme rule." truevalue="" falsevalue="--no-cleavage-semi" checked="true" />
+		
+		<param name="allow_multi_isotope_search" type="boolean" label="Allow multi-isotope search" help="This allows peptide candidates in windows around -1 Da and -2 Da from the acquired mass to be considered. Only applicable when the minus/plus window above is set to less than 0.5 Da. Good for accurate-mass instruments for which the reported precursor mass is not corrected to the monoisotopic mass." truevalue="" falsevalue="--strict-monoisotopic-mass"/>
+
+    <param name="algorithm" label="Use K-Score Alogirthm" type="boolean" help="The k-score alogirthm is a Tandem score plug-in implementing the COMET score function as described in the Keller et al. manuscript in Molecular Systems Biology 1:2005.0017." truevalue="kscore" falsevalue="native" checked="true" />
+    <param name="thresholds_type" label="Thresholds" type="select" help="Set various X! Tandem threshold values.">
+      <option value="isb_kscore">ISB k-Score defaults</option>
+      <option value="isb_native">ISB native scoring defaults</option>
+      <option value="tandem_defaults">X! Tandem defaults</option>
+      <option value="scaffold">Defaults for usage with Scaffold</option>
+    </param>
+    <param name="save_tandem_output" label="Save X! Tandem XML Output (in addition to PepXML)" type="boolean" />
+
+
+	</inputs>
+
+
+	<outputs>
+		<data format="raw_pepxml" name="output" metadata_source="input_file" label="X!Tandem_vs_${database.dbkey if $database.has_key('dbkey') else $database.fasta_file.display_name}.${input_file.display_name}.${input_file.display_name}.pepXML"/>
+    <data format="t.xml" metadata_source="input_file" name="tandem_output" label="X!Tandem_vs_${database.dbkey if $database.has_key('dbkey') else $database.fasta_file.display_name}.${input_file.display_name}.${input_file.display_name}.t.xml">
+      <filter>save_tandem_output</filter>
+    </data>
+	</outputs>
+
+	<tests>
+    	<test>
+    		<param name="source_select" value="input_ref"/>
+	      	<param name="fasta_file" value="bsa.fasta"/>
+   		   	<param name="input_file" value="bsa.mzML"/>
+      		<param name="variable_mods" value="15.994915@M"/>
+      		<param name="fixed_mods" value="57.021464@C"/>
+      		<param name="allow_multi_isotope_search" value="false"/>
+      		<output name="output" file="bsa.pepXML" compare="sim_size" delta="600" /> 
+    	</test>
+  	</tests>
+
+
+  <help>
+
+**What it does**
+
+Runs an MS/MS database search using the X!Tandem search engine. Output is in the form of a pepXML file containing identified peptides along with their raw search scores.
+
+----
+
+**References**
+
+Please see http://www.thegpm.org/GPM/references.html for details of references describing the X!Tandem search engine.
+
+  </help>
+
+</tool>
