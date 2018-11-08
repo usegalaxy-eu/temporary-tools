@@ -1,0 +1,3 @@
+[submodule "methtools"]
+	path = methtools
+	url = https://github.com/bgruening/methtools.git
