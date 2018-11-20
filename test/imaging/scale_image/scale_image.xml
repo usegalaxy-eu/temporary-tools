@@ -1,4 +1,4 @@
-<tool id="scale_image" name="Scale Image" version="0.1">
+<tool id="scale_image" name="Scale Image" version="0.2">
   <description>Scales image</description>
   <requirements>
     <requirement type="package" version="0.12.3" >scikit-image</requirement>
