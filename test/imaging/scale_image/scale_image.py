@@ -21,7 +21,8 @@ def scale_image(input_file, output_file, scale, order=1):
             interp = 'bicubic'
 
         if ',' in scale:
-            scale = scale.replace('[','').replace(']','').split(',').reverse()
+            scale = scale.replace('[','').replace(']','').split(',')
+            scale.reverse()
             scale = [int(i) for i in scale]
         elif '.' in scale:
             scale = float(scale)
