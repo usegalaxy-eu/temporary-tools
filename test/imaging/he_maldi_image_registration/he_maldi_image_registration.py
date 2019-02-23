@@ -373,7 +373,7 @@ def HE_MALDI_registration(imgHE_org, imgMS_org, warp_matrix, tissue_array, binar
         full_matrix = np.linalg.inv(full_matrix)
 
         #save warp matrix as csv file
-        pd.DataFrame(full_matrix).to_csv(warp_matrix, header = None, index = False)
+        pd.DataFrame(full_matrix).to_csv(warp_matrix, header=None, index=False, sep="\t")
 
 
 if __name__ == "__main__":
