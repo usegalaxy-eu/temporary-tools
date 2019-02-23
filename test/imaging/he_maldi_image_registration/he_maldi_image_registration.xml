@@ -18,7 +18,7 @@
         <param name="binary_img" type="boolean" checked="false" truevalue="--binary_img" falsevalue="" label="Set to yes if MALDI image is binary" />
     </inputs>
     <outputs>
-        <data format="csv" name="warp_matrix" />
+        <data format="tabular" name="warp_matrix" />
     </outputs>
     <help>
 This tool registrates a MALDI-image with an HE-image and creates a 3x3 warp matrix as csv-output.  
