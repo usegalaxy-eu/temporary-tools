@@ -1,0 +1,66 @@
+<tool id="xchem_pose_scoring" name="XChem pose scoring" version="0.1.0">
+    <description>using deep learning</description>
+
+    <requirements>
+        <!--requirement type="package" version="3.0.0">openbabel</requirement-->
+        <!--requirement type="package" version="3.7">python</requirement-->
+        <!-- many other requirements are needed -->
+        <container type="docker">informaticsmatters/deep-app-ubuntu-1604:latest</container>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+    ln -s '$ligands' ligands.sdf &&
+    ln -s '$receptor' receptor.pdb &&
+    python '$__tool_directory__/xchem_deep_score.py' -i ligands.sdf -r receptor.pdb $mock &&
+    cp output.sdf $output
+    ]]></command>
+
+
+    <inputs>
+        <param type="data" name="receptor" format="pdb,mol2" label="Receptor" help="Select a receptor (pdb or mol2 format)."/>
+        <param type="data" name="ligands" format="sdf,mol" label="Ligands" help="Ligands (docked poses) in SDF format)"/>
+        <param type="hidden" name="mock" value="" label="Mock calculations" help="Use random numbers instead of running on GPU"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="sdf" label="XChem pose scoring on ${on_string}"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="receptor" value="receptor.pdb"/>
+            <param name="ligands" value="ligands.sdf"/>
+            <!--param name="mock" value="- -mock"/-->
+            <output name="output" ftype="sdf">
+                <assert_contents>
+                    <has_text text="XChemDeepScore"/>
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+    <help><![CDATA[
+
+.. class:: infomark
+
+This tool performs scoring of docked ligand poses using deep learning.
+It uses the gnina and libmolgrid toolkits to perform the scoring to generate
+a prediction for how good the pose is.
+
+
+-----
+
+.. class:: infomark
+
+**Inputs**
+
+1. The protein receptor to dock into as a file in PDB or Mol2 format.
+2. A set of ligand poses to score in SDF format.
+
+-----
+
+.. class:: infomark
+
+**Outputs**
+
+An SDF file is produced as output. The binding affinity scores are contained within the SDF file
+as the XChemDeepScore property. Values range from 0 (poor affinity) to 1 (high affinity).
+
+    ]]></help>
+</tool>
