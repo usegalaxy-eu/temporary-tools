@@ -10,10 +10,12 @@
     <command detect_errors="exit_code"><![CDATA[
 
     cd /train/fragalysis_test_files/ &&
+    mkdir workdir &&
+    cd workdir &&
 
     cp '$ligands' ligands.sdf &&
     cp '$receptor' receptor.pdb &&
-
+	
     ##mkdir -p /root/train/ &&
     ##ln -s /train/fragalysis_test_files/ /root/train/ &&
 
@@ -21,13 +23,20 @@
     ##apt install sudo -y &&
 
     ## mkdir -p ligands &&
+    cd ../ &&
+    python '$__tool_directory__/transfs.py' -i ./workdir/ligands.sdf -r ./workdir/receptor.pdb -d $distance -w /train/fragalysis_test_files/workdir &&
+    ls -l &&
+    ls -l workdir &&
+    sudo -u ubuntu cp ./workdir/output.sdf '$output' &&
+    head -n 10000 ./workdir/output.sdf &&
 
-    python '$__tool_directory__/transfs.py' -i ligands.sdf -r receptor.pdb -d $distance -w /train/fragalysis_test_files/ &&
-    sudo -u ubuntu cp ./output.sdf '$output' &&
     mkdir -p ./pdb &&
-    cp -r ./receptor*.pdb ./pdb &&
+    cp -r ./workdir/receptor*.pdb ./pdb &&
     tar -cvhf archiv.tar ./pdb &&
-    sudo -u ubuntu cp archiv.tar '$output_receptors'
+    sudo -u ubuntu cp archiv.tar '$output_receptors' &&
+
+    sudo -u ubuntu cp ./workdir/predictions.txt '$predictions' &&
+    sudo -u ubuntu cp ./workdir/inputs.types '$inputs_types'
 
 
     ]]></command>
@@ -40,6 +49,9 @@
     </inputs>
     <outputs>
 	<data name="output" format="sdf" label="XChem pose scoring on ${on_string}"/>
+	<data name="predictions" format="txt" label="Predictions on ${on_string}"/>
+	<data name="inputs_types" format="txt" label="input.types on ${on_string}"/>
+
         <data name="output_receptors" format="tar" label="Receptors ${on_string}"/>
 
         <!--collection name="pdb_files" type="list" label="PDB files with variable number of waters">
