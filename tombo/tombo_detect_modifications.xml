@@ -1,0 +1,116 @@
+<tool id="tombo_detect_modifications" name="Tombo detect modifications" version="@VERSION@">
+    <description>detecting shifts in raw current signal level, indicative of non-canonical bases</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements" />
+    <command detect_errors="exit_code"><![CDATA[
+
+mkdir -p ./fast5s_basedir/ &&
+
+#if $raw_signals.ext == 'fast5.tar.gz':
+    tar -xzf $raw_signals -C ./fast5s_basedir/ &&
+#elif $raw_signals.ext == 'fast5.tar.bz2':
+    tar -xjf $raw_signals -C ./fast5s_basedir/ &&
+#end if
+
+tombo detect_modifications
+    $mode.mode_selector
+    --fast5-basedirs ./fast5s_basedir/
+    --statistics-file-basename tdm_result
+    $canonical_model
+    --processes \${GALAXY_SLOTS:-1}
+
+    #if $fishers_method_context
+        --fishers-method-context $fishers_method_context
+    #end if
+    #if $minimum_test_reads
+        --minimum-test-reads $minimum_test_reads
+    #end if
+    #if str($single_read_threshold).strip():
+        --single-read-threshold '$single_read_threshold'
+    #end if
+    #if str($coverage_dampen_counts).strip():
+        --coverage-dampen-counts $coverage_dampen_counts
+    #end if
+
+&&
+
+ls -l tdm_result* &&
+mv tdm_result* save_result.h5
+
+##  --per-read-statistics-basename PER_READ_STATISTICS_BASENAME
+##                        Base for binary files containing per-read statistics
+##                        from statistical testing. Filenames will be [--per-
+##                        read-statistics-basename].[--alternate-
+##                        bases]?.tombo.per_read_stats
+
+    ]]></command>
+    <inputs>
+        <expand macro="raw_signals" />
+        <conditional name="mode">
+            <param name="mode_selector" type="select" label="Select detection mode">
+                <option value="de_novo">Test for shifts in raw signal against a canonical base model.</option>
+                <option value="alternative_model">Test for shifts in raw signal which match those of a specific known non-canonical base.</option>
+                <option value="model_sample_compare">Test for shifts in raw signal against levels estimated from a canonical/control sample (PCR/IVT) at each reference position.</option>
+                <option value="level_sample_compare">Test for shifts in raw signal against signal level distributions from a canonical/control sample (PCR/IVT) at each reference position.</option>
+                <option value="aggregate_per_read_stats">Aggregate Tombo per-read statistics to produce a genomic base statistics file.</option>
+            </param>
+            <when value="de_novo">
+            </when>
+            <when value="alternative_model">
+            </when>
+        </conditional>
+
+        <param name="canonical_model" type="select" label="Select canonical model">
+            <option value="">Automatically determine from FAST5s</option>
+            <option value="--dna">DNA</option>
+            <option value="--dna">RNA</option>
+        </param>
+
+        <param argument="--fishers-method-context" name="fishers_method_context" type="integer" value="" optional="true"
+            label="Number of context bases up and downstream over which to compute Fisher's method combined p-values"
+            help="Not applicable for alternative model likelihood ratio tests."/>
+        <param argument="--minimum-test-reads" name="minimum_test_reads" type="integer" value="" optional="true"
+            label="Number of reads required at a position to perform significance testing or contribute to model estimation"
+            help=""/>
+        <param argument="--single-read-threshold" name="single_read_threshold" type="text" value="" optional="true"
+            label="P-value threshold when computing fraction of significant reads at each genomic position"
+            help="If two values are provided, statistics between these values are not considered. Default thresholds: DNA:0.15-0.5, RNA:0.05-0.4">
+            <sanitizer>
+                <valid initial="string.digits">
+                    <add value="." />
+                    <add value="-" />
+                </valid>
+            </sanitizer>
+        </param>
+
+        <param argument="--coverage-dampen-counts" name="coverage_dampen_counts" type="text" value="" optional="true"
+            label="Dampen fraction modified estimates for low coverage sites"
+            help="Two parameters are unmodified and modified pseudo read counts. This is equivalent to a beta prior on the fraction estimate. Set to '0 0' to disable dampened fraction estimation. Default: '2 0'">
+            <sanitizer>
+                <valid initial="string.digits">
+                    <add value=" " />
+                </valid>
+            </sanitizer>
+        </param>
+        <param argument="--consensus" type="boolean" truevalue="--consensus" falsevalue="" checked="true" label="Consensus calling mode and output polished sequence" />
+    </inputs>
+
+    <outputs>
+        <data name="output" format="h5" from_work_dir="save_result.h5" label="" />
+    </outputs>
+    <tests>
+        <test>
+            <param name="raw_signals" value="fast5_resquiggle.tar.gz" ftype="fast5.tar.gz" />
+            <param name="canonical_mode" value="--dna" />
+            <param name="mode_selector" value="de_novo" />
+            <output name="output" file="detect_modifications_de_novo.h5" compare="sim_size" />
+        </test>
+    </tests>
+    <help><![CDATA[
+
+
+    ]]></help>
+    <expand macro="citations" />
+</tool>
