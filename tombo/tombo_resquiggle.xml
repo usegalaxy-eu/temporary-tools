@@ -9,7 +9,9 @@
 mkdir -p ./fast5s_raw_basedir/ &&
 
 ## TODO dingle fast5 as output, simply copy it to the folder
-#if $raw_signals.ext == 'fast5.tar.gz':
+#if $raw_signals.ext == 'fast5.tar':
+    tar -xf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+#elif $raw_signals.ext == 'fast5.tar.gz':
     tar -xzf '$raw_signals' -C ./fast5s_raw_basedir/ &&
 #elif $raw_signals.ext == 'fast5.tar.bz2':
     tar -xjf '$raw_signals' -C ./fast5s_raw_basedir/ &&

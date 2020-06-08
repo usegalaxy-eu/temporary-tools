@@ -7,7 +7,7 @@
         </requirements>
     </xml>
     <xml name="raw_signals">
-        <param name="raw_signals" type="data" format="fast5.tar.gz" label="Raw ONT singnals"
+        <param name="raw_signals" type="data" format="fast5.tar.gz,fast5.tar.bz2,fast5.tar" label="Raw ONT signals"
             help="Raw read FAST5 files must contain basecalls. If you do not have basecalls in your Raw reads add them by providing the corresponding FASTQ file."/>
     </xml>
     <xml name="statistics_filename">
