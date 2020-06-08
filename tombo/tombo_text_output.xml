@@ -8,23 +8,27 @@
 
 #if $mode.file_types in ['signal', 'signal_sd', 'dwell', 'difference', 'coverage']:
 
-    mkdir -p ./fast5s_raw_basedir/ &&
-    #if $raw_signals.ext == 'fast5.tar.gz':
-        tar -xzf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+    mkdir -p ./fast5s_basedir/ &&
+    #if $raw_signals.ext == 'fast5.tar':
+        tar -xf '$raw_signals' -C ./fast5s_basedir/ &&
+    #elif $raw_signals.ext == 'fast5.tar.gz':
+        tar -xzf '$raw_signals' -C ./fast5s_basedir/ &&
     #elif $raw_signals.ext == 'fast5.tar.bz2':
-        tar -xjf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+        tar -xjf '$raw_signals' -C ./fast5s_basedir/ &&
     #end if
 
     #if $mode.file_types == 'difference':
         mkdir -p ./fast5s_control_basedir/ &&
-        #if $control_signals.ext == 'fast5.tar.gz':
+        #if $control_signals.ext == 'fast5.tar':
+            tar -xf '$control_signals' -C ./fast5s_control_basedir/ &&
+        #elif $control_signals.ext == 'fast5.tar.gz':
             tar -xzf '$control_signals' -C ./fast5s_control_basedir/ &&
         #elif $control_signals.ext == 'fast5.tar.bz2':
             tar -xjf '$control_signals' -C ./fast5s_control_basedir/ &&
         #end if
     #end if
 
-ls -l ./fast5s_raw_basedir/ &&
+ls -l ./fast5s_basedir/ &&
 
 #end if
 
@@ -32,7 +36,7 @@ tombo text_output browser_files
 
     --file-types $mode.file_types
     #if $mode.file_types in ['signal', 'signal_sd', 'dwell', 'difference', 'coverage']
-        --fast5-basedirs ./fast5s_raw_basedir/
+        --fast5-basedirs ./fast5s_basedir/
         #if $mode.file_types == 'difference':
             --control-fast5-basedirs  ./fast5s_control_basedir/
         #end if
@@ -53,17 +57,18 @@ cat *.wig > combined.wig
     ]]></command>
     <inputs>
 
+        <expand macro="raw_signals" />
         <conditional name="mode">
             <param name="file_types" type="select" label="Choose one or multiple available statistics">
-                <option value="coverage">The coverage level for mapped and validly re-squiggled reads</option>
-                <option value="valid_coverage">The coverage level for reads that are mapped, validly re-squiggled and outside the interval specified by --single-read-threshold specified in a --statistics-filename</option>
-                <option value="dampened_fraction">The estimated fraction of significantly modified reads (non-level_sample_compare modified base detection methods only)</option>
-                <option value="fraction">The raw fraction of significantly modified reads (non-level_sample_compare modified base detection methods only)</option>
-                <option value="statistic">Statistic produced from level_sample_compare method</option>
-                <option value="signal">The mean signal level across all reads mapped to this location</option>
-                <option value="signal_sd">The mean signal standard deviation across all reads mapped to this location (not available unless --include-event-stdev was provided in tombo resquiggle command)</option>
-                <option value="dwell">The mean number of raw observations observed assigned to this location</option>
-                <option value="difference">The difference in normalized signal level between a sample and control set of reads</option>
+                <option value="coverage">coverage: The coverage level for mapped and validly re-squiggled reads</option>
+                <option value="valid_coverage">valid_coverage: The coverage level for reads that are mapped, validly re-squiggled and outside the interval specified by --single-read-threshold specified in a --statistics-filename</option>
+                <option value="dampened_fraction">dampened_fraction: The estimated fraction of significantly modified reads (non-level_sample_compare modified base detection methods only)</option>
+                <option value="fraction">fraction: The raw fraction of significantly modified reads (non-level_sample_compare modified base detection methods only)</option>
+                <option value="statistic">statistic: Statistic produced from level_sample_compare method</option>
+                <option value="signal">signal: The mean signal level across all reads mapped to this location</option>
+                <option value="signal_sd">signal_sd: The mean signal standard deviation across all reads mapped to this location (not available unless --include-event-stdev was provided in tombo resquiggle command)</option>
+                <option value="dwell">dwell: The mean number of raw observations observed assigned to this location</option>
+                <option value="difference">difference: The difference in normalized signal level between a sample and control set of reads</option>
             </param>
             <when value="coverage">
                 <expand macro="statistics_filename" />
@@ -91,7 +96,7 @@ cat *.wig > combined.wig
             </when>
             <when value="difference">
                 <expand macro="raw_signals" />
-                <param name="control_signals" type="data" format="fast5.tar.gz" label="Control ONT singnals" optional="true"
+                <param name="control_signals" type="data" format="fast5.tar.gz,fast5.tar.bz2,fast5.tar" label="Control ONT singnals" optional="true"
                     help="Set of directories containing fast5 files for control reads, containing only canonical nucleotides."/>
             </when>
         </conditional>
@@ -153,6 +158,11 @@ cat *.wig > combined.wig
         </test>
     </tests>
     <help><![CDATA[
+Output Tombo results in text files.
+usage: tombo text_output [-h] {browser_files,signif_sequence_context} ...
+
+        browser_files                 Write text outputs for genome browser visualization and bioinformatic processing (wiggle or bedGraph file format).
+        signif_sequence_context       Write genomic/transcriptomic sequence centered on most modified genomic locations.
 
     ]]></help>
     <expand macro="citations" />
