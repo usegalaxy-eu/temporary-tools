@@ -108,7 +108,7 @@ mv tdm_result* save_result.h5
             </when>
             <when value="model_sample_compare">
                 <expand macro="control_signals" />
-                <param argument="sample_only_estimates" type="boolean" truevalue="--sample-only-estimates" falsevalue="" label="Only use canonical sample to estimate expected signal level and spread." help="Default: Use canonical model to improve estimtates (esp. for low coverage regions) using baysian posterior estimates."/>
+                <param argument="--sample-only-estimates" name="sample_only_estimates" type="boolean" truevalue="--sample-only-estimates" falsevalue="" label="Only use canonical sample to estimate expected signal level and spread." help="Otherwise, use canonical model to improve estimtates (esp. for low coverage regions) using baysian posterior estimates."/>
             </when>
             <when value="level_sample_compare">
                 <expand macro="alternate_signals" />
