@@ -8,11 +8,36 @@
 
 mkdir -p ./fast5s_basedir/ &&
 
-#if $raw_signals.ext == 'fast5.tar.gz':
-    tar -xzf $raw_signals -C ./fast5s_basedir/ &&
+#if $raw_signals.ext == 'fast5.tar':
+    tar -xf '$raw_signals' -C ./fast5s_basedir/ &&
+#elif $raw_signals.ext == 'fast5.tar.gz':
+    tar -xzf '$raw_signals' -C ./fast5s_basedir/ &&
 #elif $raw_signals.ext == 'fast5.tar.bz2':
-    tar -xjf $raw_signals -C ./fast5s_basedir/ &&
+    tar -xjf '$raw_signals' -C ./fast5s_basedir/ &&
 #end if
+
+#if $mode.mode_selector == 'model_sample_compare':
+    mkdir -p ./fast5s_control/ &&
+    #if $mode.control_signals.ext == 'fast5.tar':
+        tar -xf '$mode.control_signals' -C ./fast5s_control/ &&
+    #elif $mode.control_signals.ext == 'fast5.tar.gz':
+        tar -xzf '$mode.control_signals' -C ./fast5s_control/ &&
+    #elif $mode.control_signals.ext == 'fast5.tar.bz2':
+        tar -xjf '$mode.control_signals' -C ./fast5s_control/ &&
+    #end if
+#end if
+
+#if $mode.mode_selector == 'level_sample_compare':
+    mkdir -p ./fast5s_alternate/ &&
+    #if $mode.alternate_signals.ext == 'fast5.tar':
+        tar -xf '$mode.alternate_signals' -C ./fast5s_alternate/ &&
+    #elif $mode.alternate_signals.ext == 'fast5.tar.gz':
+        tar -xzf '$mode.alternate_signals' -C ./fast5s_alternate/ &&
+    #elif $mode.alternate_signals.ext == 'fast5.tar.bz2':
+        tar -xjf '$mode.alternate_signals' -C ./fast5s_alternate/ &&
+    #end if
+#end if
+
 
 tombo detect_modifications
     $mode.mode_selector
@@ -34,6 +59,20 @@ tombo detect_modifications
         --coverage-dampen-counts $coverage_dampen_counts
     #end if
 
+    #if $mode.mode_selector == 'alternative_model':
+        --alternate-bases $mode.alternate_bases
+    #end if
+
+    #if $mode.mode_selector == 'model_sample_compare':
+        $mode.sample_only_estimates
+        --control-fast5-basedirs ./fast5s_control
+    #end if
+
+    #if $mode.mode_selector == 'level_sample_compare':
+        --alternate-fast5-basedirs ./fast5s_alternate
+    #end if
+
+
 &&
 
 ls -l tdm_result* &&
@@ -50,22 +89,38 @@ mv tdm_result* save_result.h5
         <expand macro="raw_signals" />
         <conditional name="mode">
             <param name="mode_selector" type="select" label="Select detection mode">
-                <option value="de_novo">Test for shifts in raw signal against a canonical base model.</option>
-                <option value="alternative_model">Test for shifts in raw signal which match those of a specific known non-canonical base.</option>
-                <option value="model_sample_compare">Test for shifts in raw signal against levels estimated from a canonical/control sample (PCR/IVT) at each reference position.</option>
-                <option value="level_sample_compare">Test for shifts in raw signal against signal level distributions from a canonical/control sample (PCR/IVT) at each reference position.</option>
-                <option value="aggregate_per_read_stats">Aggregate Tombo per-read statistics to produce a genomic base statistics file.</option>
+                <option value="de_novo">de_novo: Test for shifts in raw signal against a canonical base model.</option>
+                <option value="alternative_model">alternative_model: Test for shifts in raw signal which match those of a specific known non-canonical base.</option>
+                <option value="model_sample_compare">model_sample_compare: Test for shifts in raw signal against levels estimated from a canonical/control sample (PCR/IVT) at each reference position.</option>
+                <option value="level_sample_compare">level_sample_compare: Test for shifts in raw signal against signal level distributions from a canonical/control sample (PCR/IVT) at each reference position.</option>
+                <option value="aggregate_per_read_stats">aggregate_per_read_stats: Aggregate Tombo per-read statistics to produce a genomic base statistics file.</option>
             </param>
             <when value="de_novo">
             </when>
             <when value="alternative_model">
+                <param name="alternate_bases" type="select" label="Default non-standard base model for testing">
+                    <option value="5mC">5mC</option>
+                    <option value="6mA">6mA</option>
+                    <option value="dcm">dcm</option>
+                    <option value="dam">dam</option>
+                    <option value="CpG">CpG</option>
+                </param>
+            </when>
+            <when value="model_sample_compare">
+                <expand macro="control_signals" />
+                <param argument="--sample-only-estimates" name="sample_only_estimates" type="boolean" truevalue="--sample-only-estimates" falsevalue="" label="Only use canonical sample to estimate expected signal level and spread." help="Otherwise, use canonical model to improve estimtates (esp. for low coverage regions) using baysian posterior estimates."/>
+            </when>
+            <when value="level_sample_compare">
+                <expand macro="alternate_signals" />
+            </when>
+            <when value="aggregate_per_read_stats">
             </when>
         </conditional>
 
         <param name="canonical_model" type="select" label="Select canonical model">
             <option value="">Automatically determine from FAST5s</option>
             <option value="--dna">DNA</option>
-            <option value="--dna">RNA</option>
+            <option value="--rna">RNA</option>
         </param>
 
         <param argument="--fishers-method-context" name="fishers_method_context" type="integer" value="" optional="true"
@@ -94,7 +149,6 @@ mv tdm_result* save_result.h5
                 </valid>
             </sanitizer>
         </param>
-        <param argument="--consensus" type="boolean" truevalue="--consensus" falsevalue="" checked="true" label="Consensus calling mode and output polished sequence" />
     </inputs>
 
     <outputs>
@@ -109,7 +163,13 @@ mv tdm_result* save_result.h5
         </test>
     </tests>
     <help><![CDATA[
-
+    Perform statistical testing to detect non-standard nucleotides.
+    usage: tombo detect_modifications {de_novo,alternative_model,model_sample_compare,level_sample_compare,aggregate_per_read_stats}
+    de_novo                       Test for shifts in raw signal against a canonical base model.
+    alternative_model             Test for shifts in raw signal which match those of a specific known non-canonical base.
+    model_sample_compare          Test for shifts in raw signal against levels estimated from a canonical/control sample (PCR/IVT) at each reference position.
+    level_sample_compare          Test for shifts in raw signal against signal level distributions from a canonical/control sample (PCR/IVT) at each reference position.
+    aggregate_per_read_stats      Aggregate Tombo per-read statistics to produce a genomic base statistics file.
 
     ]]></help>
     <expand macro="citations" />

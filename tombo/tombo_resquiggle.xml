@@ -86,7 +86,7 @@ mv archiv.tar.gz ../
         <param name="canonical_model" type="select" label="Select canonical model">
             <option value="">Automatically determine from FAST5s</option>
             <option value="--dna">DNA</option>
-            <option value="--dna">RNA</option>
+            <option value="--rna">RNA</option>
         </param>
 
         <param argument="--q-score" name="q_score" type="float" value="" optional="true" label="Q-score" help="Threshold for filtering low quality reads."/>
