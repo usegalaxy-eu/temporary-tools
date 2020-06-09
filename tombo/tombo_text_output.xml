@@ -52,12 +52,15 @@ ls -l ./
 
 &&
 
-cat *.wig > combined.wig
+#if $mode.file_types == 'coverage':
+    cat *.bedgraph > combined.bedwig
+#else:
+    cat *.wig > combined.bedwig
+#end if
 
     ]]></command>
     <inputs>
 
-        <expand macro="raw_signals" />
         <conditional name="mode">
             <param name="file_types" type="select" label="Choose one or multiple available statistics">
                 <option value="coverage">coverage: The coverage level for mapped and validly re-squiggled reads</option>
@@ -104,7 +107,7 @@ cat *.wig > combined.wig
 
     </inputs>
     <outputs>
-        <data name="output" format="wig" from_work_dir="combined.wig" label="" />
+        <data name="output" format="txt" from_work_dir="combined.bedwig" label="" />
     </outputs>
     <tests>
         <test>
