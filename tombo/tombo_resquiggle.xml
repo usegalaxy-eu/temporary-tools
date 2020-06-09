@@ -6,22 +6,22 @@
     <expand macro="requirements" />
     <command detect_errors="exit_code"><![CDATA[
 
-mkdir -p ./fast5s_raw_basedir/ &&
+mkdir -p ./fast5/ &&
 
 ## TODO dingle fast5 as output, simply copy it to the folder
 #if $raw_signals.ext == 'fast5.tar':
-    tar -xf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+    tar -xf '$raw_signals' -C ./fast5/ &&
 #elif $raw_signals.ext == 'fast5.tar.gz':
-    tar -xzf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+    tar -xzf '$raw_signals' -C ./fast5/ &&
 #elif $raw_signals.ext == 'fast5.tar.bz2':
-    tar -xjf '$raw_signals' -C ./fast5s_raw_basedir/ &&
+    tar -xjf '$raw_signals' -C ./fast5/ &&
 #end if
 
 ## Raw read FAST5 files must contain basecalls. Add basecalls from a set of FASTQs to raw read files with the tombo preprocess annotate_raw_with_fastqs command.
 ## If $fastqs are provided we run tombo preprocessing
 #if $fastqs:
     tombo preprocess annotate_raw_with_fastqs
-    --fast5-basedir ./fast5s_raw_basedir/
+    --fast5-basedir ./fast5/
     --fastq-filenames ${' '.join([str($fastq) for $fastq in $fastqs])}
     --processes \${GALAXY_SLOTS:-1}
     &&
@@ -34,7 +34,7 @@ mkdir -p ./fast5s_raw_basedir/ &&
 #end if
 
 tombo resquiggle
-    ./fast5s_raw_basedir/
+    ./fast5/
     genome.fa
 
     ##--skip-index
@@ -58,7 +58,7 @@ tombo resquiggle
 
 ## TODO tar.bz2 support as output ...
 
-cd ./fast5s_raw_basedir/ &&
+cd ./fast5/ &&
 tar cfvz archiv.tar.gz * &&
 mv archiv.tar.gz ../
 
@@ -103,7 +103,7 @@ mv archiv.tar.gz ../
 
     <outputs>
         <data name="output" format_source="raw_signals" from_work_dir="archiv.tar.gz" label="${tool.name} on ${on_string}: fast5" />
-        <data name="index" format="binary" from_work_dir=".fast5s_raw_basedir.RawGenomeCorrected_000.tombo.index" label="${tool.name} on ${on_string}: index" />
+        <data name="index" format="binary" from_work_dir=".fast5.RawGenomeCorrected_000.tombo.index" label="${tool.name} on ${on_string}: index" />
     </outputs>
     <tests>
         <test>
