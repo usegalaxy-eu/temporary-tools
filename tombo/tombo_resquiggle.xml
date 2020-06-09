@@ -22,7 +22,7 @@ mkdir -p ./fast5/ &&
 #if $fastqs:
     tombo preprocess annotate_raw_with_fastqs
     --fast5-basedir ./fast5/
-    --fastq-filenames ${' '.join([str($fastq) for $fastq in $fastqs])}
+    --fastq-filenames $fastqs
     --processes \${GALAXY_SLOTS:-1}
     &&
 #end if
@@ -65,8 +65,8 @@ mv archiv.tar.gz ../
     ]]></command>
     <inputs>
         <expand macro="raw_signals" />
-        <param name="fastqs" type="data" format="fastq" multiple="true" optional="true" label="FASTQ files"
-            help="FASTQ files containing basecalls to be added to raw FAST5 files"/>
+        <param name="fastqs" type="data" format="fastq" optional="true" label="FASTQ files"
+            help="FASTQ file containing basecalls to be added to raw FAST5 files, if provided tombo preprocessing annotate_raw_with_fastqs is invoked."/>
         <conditional name="reference_source">
             <param name="reference_source_selector" type="select" label="Load reference genome or transcriptome from">
                 <option value="cached">Local cache</option>
