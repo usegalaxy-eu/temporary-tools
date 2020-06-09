@@ -6,14 +6,14 @@
     <expand macro="requirements" />
     <command detect_errors="exit_code"><![CDATA[
 
-mkdir -p ./fast5s_basedir/ &&
+mkdir -p ./fast5/ &&
 
 #if $raw_signals.ext == 'fast5.tar':
-    tar -xf '$raw_signals' -C ./fast5s_basedir/ &&
+    tar -xf '$raw_signals' -C ./fast5/ &&
 #elif $raw_signals.ext == 'fast5.tar.gz':
-    tar -xzf '$raw_signals' -C ./fast5s_basedir/ &&
+    tar -xzf '$raw_signals' -C ./fast5/ &&
 #elif $raw_signals.ext == 'fast5.tar.bz2':
-    tar -xjf '$raw_signals' -C ./fast5s_basedir/ &&
+    tar -xjf '$raw_signals' -C ./fast5/ &&
 #end if
 
 #if $mode.mode_selector == 'model_sample_compare':
@@ -41,7 +41,7 @@ mkdir -p ./fast5s_basedir/ &&
 
 tombo detect_modifications
     $mode.mode_selector
-    --fast5-basedirs ./fast5s_basedir/
+    --fast5-basedirs ./fast5/
     --statistics-file-basename tdm_result
     $canonical_model
     --processes \${GALAXY_SLOTS:-1}
