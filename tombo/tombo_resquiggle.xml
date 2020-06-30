@@ -59,7 +59,7 @@ tombo resquiggle
 
 
 cd ./fast5/ &&
-tar cfvz ../archiv.tar.gz 
+tar cfvz ../archiv.tar.gz ./
 
     ]]></command>
     <inputs>
