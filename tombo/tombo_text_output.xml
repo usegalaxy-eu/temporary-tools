@@ -1,5 +1,5 @@
-<tool id="tombo_text_output" name="Tombo text_output" version="@VERSION@">
-    <description>browser </description>
+<tool id="tombo_text_output" name="Tombo create" version="@VERSION@">
+    <description>browser text output </description>
     <macros>
         <import>macros.xml</import>
     </macros>
