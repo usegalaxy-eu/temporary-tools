@@ -21,6 +21,7 @@ mkdir -p ./fast5/ &&
 ## If $fastqs are provided we run tombo preprocessing
 #if $fastqs:
     tombo preprocess annotate_raw_with_fastqs
+    --overwrite    
     --fast5-basedir ./fast5/
     --fastq-filenames $fastqs
     --processes \${GALAXY_SLOTS:-1}
@@ -56,11 +57,9 @@ tombo resquiggle
 
 &&
 
-## TODO tar.bz2 support as output ...
 
 cd ./fast5/ &&
-tar cfvz archiv.tar.gz * &&
-mv archiv.tar.gz ../
+tar cfvz ../archiv.tar.gz ./
 
     ]]></command>
     <inputs>
