@@ -43,7 +43,11 @@ tombo detect_modifications
     $mode.mode_selector
     --fast5-basedirs ./fast5/
     --statistics-file-basename tdm_result
-    $canonical_model
+    
+    #if $mode.mode_selector != 'level_sample_compare':
+        $canonical_model
+    #end if
+
     --processes \${GALAXY_SLOTS:-1}
 
     #if $fishers_method_context
@@ -58,6 +62,9 @@ tombo detect_modifications
     #if str($coverage_dampen_counts).strip():
         --coverage-dampen-counts $coverage_dampen_counts
     #end if
+    #if $multiprocess_region_size
+        --multiprocess-region-size $multiprocess_region_size
+    #end if
 
     #if $mode.mode_selector == 'alternative_model':
         --alternate-bases $mode.alternate_bases
@@ -70,6 +77,7 @@ tombo detect_modifications
 
     #if $mode.mode_selector == 'level_sample_compare':
         --alternate-fast5-basedirs ./fast5s_alternate
+        $store_p_value
     #end if
 
 
@@ -96,6 +104,7 @@ mv tdm_result* save_result.h5
                 <option value="aggregate_per_read_stats">aggregate_per_read_stats: Aggregate Tombo per-read statistics to produce a genomic base statistics file.</option>
             </param>
             <when value="de_novo">
+                <expand macro="canonical_model" />                
             </when>
             <when value="alternative_model">
                 <param name="alternate_bases" type="select" label="Default non-standard base model for testing">
@@ -105,23 +114,21 @@ mv tdm_result* save_result.h5
                     <option value="dam">dam</option>
                     <option value="CpG">CpG</option>
                 </param>
+                <expand macro="canonical_model" />                
             </when>
             <when value="model_sample_compare">
                 <expand macro="control_signals" />
                 <param argument="--sample-only-estimates" name="sample_only_estimates" type="boolean" truevalue="--sample-only-estimates" falsevalue="" label="Only use canonical sample to estimate expected signal level and spread." help="Otherwise, use canonical model to improve estimtates (esp. for low coverage regions) using baysian posterior estimates."/>
+                <expand macro="canonical_model" />                
             </when>
             <when value="level_sample_compare">
                 <expand macro="alternate_signals" />
+                <param argument="--store-p-value" type="boolean" truevalue="--store-p-value" falsevalue="" label="Store p-value instead of effect-size statistic."/>
+
             </when>
             <when value="aggregate_per_read_stats">
             </when>
         </conditional>
-
-        <param name="canonical_model" type="select" label="Select canonical model">
-            <option value="">Automatically determine from FAST5s</option>
-            <option value="--dna">DNA</option>
-            <option value="--rna">RNA</option>
-        </param>
 
         <param argument="--fishers-method-context" name="fishers_method_context" type="integer" value="" optional="true"
             label="Number of context bases up and downstream over which to compute Fisher's method combined p-values"
@@ -149,6 +156,9 @@ mv tdm_result* save_result.h5
                 </valid>
             </sanitizer>
         </param>
+        <param argument="--multiprocess-region-size" name="multiprocess_region_size" type="integer" value="" optional="true"
+            label="Size of regions over which to multiprocesses statistic computation."
+            help="For very deep samples a smaller value is recommmended in order to control memory consumption. Default: 10000"/>
     </inputs>
 
     <outputs>

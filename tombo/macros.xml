@@ -17,7 +17,15 @@
     <xml name="alternate_signals">
         <param name="alternate_signals" type="data" format="fast5.tar.gz,fast5.tar.bz2,fast5.tar" label="Control ONT signals"
             help="FAST5 files for alternate set of reads."/>
-    </xml>    
+    </xml>
+    <xml name="canonical_model">
+        <param name="canonical_model" type="select" label="Select canonical model">
+            <option value="">Automatically determine from FAST5s</option>
+            <option value="--dna">DNA</option>
+            <option value="--rna">RNA</option>
+        </param>
+    </xml>
+
     <xml name="statistics_filename">
         <param argument="--statistics-filename" name="statistics_filename" type="data" format="h5"
             optional="true"
