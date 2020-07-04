@@ -77,7 +77,7 @@ tombo detect_modifications
 
     #if $mode.mode_selector == 'level_sample_compare':
         --alternate-fast5-basedirs ./fast5s_alternate
-        $store_p_value
+        $mode.store_p_value
     #end if
 
 
