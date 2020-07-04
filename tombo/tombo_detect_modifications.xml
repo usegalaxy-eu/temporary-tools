@@ -44,8 +44,8 @@ tombo detect_modifications
     --fast5-basedirs ./fast5/
     --statistics-file-basename tdm_result
     
-    #if $mode.mode_selector != 'level_sample_compare':
-        $canonical_model
+    #if not $mode.mode_selector in ['level_sample_compare', 'aggregate_per_read_stats']:
+        $mode.canonical_model
     #end if
 
     --processes \${GALAXY_SLOTS:-1}
