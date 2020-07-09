@@ -33,7 +33,7 @@
     <inputs>
         <expand macro="raw_signals" />
         <expand macro="control_signals" />
-        <param name="statistics_file" type="data" label="Statistics file to load genomic base anchored statistics"/>
+        <param name="statistics_file" type="data" format="txt" label="Statistics file to load genomic base anchored statistics"/>
     </inputs>
     <outputs>
         <data name="output" format="pdf"/>
