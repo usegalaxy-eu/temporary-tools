@@ -1,4 +1,4 @@
-<tool id="tombo_plot_genome_location" name="Tombo plot genome location" version="@VERSION@">
+<tool id="tombo_plot_genome_locations" name="Tombo plot genome locations" version="@VERSION@">
     <description>Plotting amperage signal from nanopore reads at the locations specified</description>
     <macros>
         <import>macros.xml</import>
