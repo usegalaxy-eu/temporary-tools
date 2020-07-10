@@ -16,26 +16,58 @@
         tar -xjf '$raw_signals' -C ./fast5/ &&
     #end if
 
-    #if $control_signals.ext == 'fast5.tar':
-        tar -xf '$control_signals' -C ./fast5s_control/ &&
-    #elif $control_signals.ext == 'fast5.tar.gz':
-        tar -xzf '$control_signals' -C ./fast5s_control/ &&
-    #elif $control_signals.ext == 'fast5.tar.bz2':
-        tar -xjf '$control_signals' -C ./fast5s_control/ &&
+    #if $include_control.include_control_bool:
+        #if $control_signals.ext == 'fast5.tar':
+            tar -xf '$control_signals' -C ./fast5s_control/ &&
+        #elif $control_signals.ext == 'fast5.tar.gz':
+            tar -xzf '$control_signals' -C ./fast5s_control/ &&
+        #elif $control_signals.ext == 'fast5.tar.bz2':
+            tar -xjf '$control_signals' -C ./fast5s_control/ &&
+        #end if
     #end if
 
     tombo plot most_significant --fast5-basedir ./fast5/
-        --control-fast5-basedirs ./fast5s_control/
-        --plot-standard-model 
-        --num-bases '$num_bases'
+        #if $include_control.include_control_bool:
+            --control-fast5-basedirs ./fast5s_control/ 
+        #end if
         --genome-locations '$genome_locations'
-        --pdf-filename $output
+        --pdf-filename $output 
+        '$model_type'
+        --overplot-threshold '$overplot_threshold'
+        --overplot-type '$overplot_type'
+        --num-bases '$num_bases'
+        --corrected-group '$corrected_group' 
+
+
     ]]></command>
     <inputs>
         <expand macro="raw_signals" />
-        <expand macro="control_signals" />
+        <conditional name="include_control">
+            <param name="include_control_bool" type="boolean" label="Plot control samples? (samples with only canonical nucleotides)"/>
+            <when value="true">
+                <expand macro="control_signals" />
+            </when>
+        </conditional>
+        
         <param name="genome_locations" type="text" label='Genomic locations at which to plot signal.' help='Format locations as "chrm:position[:strand] [chrm2:position2[:strand2] ...]" (strand not applicable for all applications)'/>
+        <param name="model_type" type="select" label="Model to include in plot" optional="true">
+            <option value="--plot-standard-model">Standard model</option>
+            <option value="--plot-alternate-model CpG">CpG model</option>
+            <option value="--plot-alternate-model 6mA">6mA model</option>
+            <option value="--plot-alternate-model dcm">dcm model</option>
+            <option value="--plot-alternate-model 5mC">5mC model</option>
+            <option value="--plot-alternate-model dam">dam model</option>
+        </param>
+        <param name="overplot_threshold" type="integer" value="50"/>
+        <param name="overplot_type" type="select" label="Method for handling locations with coverage above --overplot-threshold">
+            <option value="Downsample" selected="true">Downsample to --overplot-threshold</option>
+            <option value="Boxplot">Boxplot</option>
+            <option value="Quantile">Quantile</option>
+            <option value="Density">Density</option>
+        </param>
         <param name="num_bases" type="integer" value="21"/>
+        <param name="corrected_group" type="text" value="RawGenomeCorrected_000"/>
+        <!-- <param name="basecall-subgroups" >  TODO-->
     </inputs>
     <outputs>
         <data name="output" format="pdf"/>
