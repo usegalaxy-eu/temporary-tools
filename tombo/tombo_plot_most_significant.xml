@@ -27,13 +27,13 @@
     tombo plot most_significant --fast5-basedir ./fast5/
         --control-fast5-basedirs ./fast5s_control/
         --statistics-filename '$statistics_file'
-        --plot-standard-model
+        --plot-standard-model 
         --pdf-filename $output
     ]]></command>
     <inputs>
         <expand macro="raw_signals" />
         <expand macro="control_signals" />
-        <param name="statistics_file" type="data" format="txt" label="Statistics file to load genomic base anchored statistics"/>
+        <param name="statistics_file" type="data" format="h5" label="Statistics file to load genomic base anchored statistics"/>
     </inputs>
     <outputs>
         <data name="output" format="pdf"/>
