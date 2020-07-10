@@ -31,13 +31,12 @@
             --control-fast5-basedirs ./fast5s_control/ 
         #end if
         --genome-locations '$genome_locations'
-        --pdf-filename $output 
+        --pdf-filename '$output' 
         '$model_type'
         --overplot-threshold '$overplot_threshold'
         --overplot-type '$overplot_type'
         --num-bases '$num_bases'
         --corrected-group '$corrected_group' 
-
 
     ]]></command>
     <inputs>
