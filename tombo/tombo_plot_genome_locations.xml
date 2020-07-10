@@ -1,0 +1,47 @@
+<tool id="tombo_plot_genome_location" name="Tombo plot genome location" version="@VERSION@">
+    <description>Plotting amperage signal at the locations deemed most significant by the tombo</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements" />
+    <command detect_errors="exit_code"><![CDATA[
+    mkdir -p ./fast5/ &&
+    mkdir -p ./fast5s_control/ &&
+
+    #if $raw_signals.ext == 'fast5.tar':
+        tar -xf '$raw_signals' -C ./fast5/ &&
+    #elif $raw_signals.ext == 'fast5.tar.gz':
+        tar -xzf '$raw_signals' -C ./fast5/ &&
+    #elif $raw_signals.ext == 'fast5.tar.bz2':
+        tar -xjf '$raw_signals' -C ./fast5/ &&
+    #end if
+
+    #if $control_signals.ext == 'fast5.tar':
+        tar -xf '$control_signals' -C ./fast5s_control/ &&
+    #elif $control_signals.ext == 'fast5.tar.gz':
+        tar -xzf '$control_signals' -C ./fast5s_control/ &&
+    #elif $control_signals.ext == 'fast5.tar.bz2':
+        tar -xjf '$control_signals' -C ./fast5s_control/ &&
+    #end if
+
+    tombo plot most_significant --fast5-basedir ./fast5/
+        --control-fast5-basedirs ./fast5s_control/
+        --plot-standard-model 
+        --num-bases '$num_bases'
+        --genome-locations '$genome_locations'
+        --pdf-filename $output
+    ]]></command>
+    <inputs>
+        <expand macro="raw_signals" />
+        <expand macro="control_signals" />
+        <param name="genome_locations" type="text" label='Genomic locations at which to plot signal.' help='Format locations as "chrm:position[:strand] [chrm2:position2[:strand2] ...]" (strand not applicable for all applications)'/>
+        <param name="num_bases" type="integer" value="21"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="pdf"/>
+    </outputs>
+    <help><![CDATA[
+    Plot most significant regions of difference in amperage signal
+    ]]></help>
+    <expand macro="citations" />
+</tool>
