@@ -1,5 +1,5 @@
 <tool id="tombo_plot_genome_location" name="Tombo plot genome location" version="@VERSION@">
-    <description>Plotting amperage signal at the locations deemed most significant by the tombo</description>
+    <description>Plotting amperage signal from nanopore reads at the locations specified</description>
     <macros>
         <import>macros.xml</import>
     </macros>
@@ -41,7 +41,7 @@
         <data name="output" format="pdf"/>
     </outputs>
     <help><![CDATA[
-    Plot most significant regions of difference in amperage signal
+    Plot amperage signal of nanopore reads in specified regions
     ]]></help>
     <expand macro="citations" />
 </tool>
