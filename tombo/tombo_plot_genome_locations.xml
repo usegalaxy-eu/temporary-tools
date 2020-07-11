@@ -26,7 +26,7 @@
         #end if
     #end if
 
-    tombo plot most_significant --fast5-basedir ./fast5/
+    tombo plot genome_locations --fast5-basedir ./fast5/
         #if $include_control.include_control_bool:
             --control-fast5-basedirs ./fast5s_control/ 
         #end if
