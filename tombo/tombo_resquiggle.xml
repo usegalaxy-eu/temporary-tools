@@ -40,6 +40,7 @@ tombo resquiggle
 
     ##--skip-index
     --overwrite
+    --include-event-stdev
     $canonical_model
     --processes \${GALAXY_SLOTS:-1}
     #if $q_score
