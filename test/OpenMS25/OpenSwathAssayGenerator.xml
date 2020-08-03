@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--This is a configuration file for the integration of a tools into Galaxy (https://galaxyproject.org/). This file was automatically generated using CTDConverter.-->
+<!--Proposed Tool Section: [Targeted Experiments]-->
+<tool id="OpenSwathAssayGenerator" name="OpenSwathAssayGenerator" version="@TOOL_VERSION@+galaxy@GALAXY_VERSION@">
+  <description>Generates assays according to different models for a specific TraML</description>
+  <macros>
+    <token name="@EXECUTABLE@">OpenSwathAssayGenerator</token>
+    <import>macros.xml</import>
+    <import>macros_autotest.xml</import>
+    <import>macros_test.xml</import>
+  </macros>
+  <expand macro="requirements"/>
+  <expand macro="stdio"/>
+  <command detect_errors="exit_code"><![CDATA[@QUOTE_FOO@
+@EXT_FOO@
+#import re
+
+## Preprocessing
+mkdir in &&
+ln -s '$in' 'in/${re.sub("[^\w\-_]", "_", $in.element_identifier)}.$gxy2omsext($in.ext)' &&
+mkdir out &&
+#if $swath_windows_file:
+  mkdir swath_windows_file &&
+  ln -s '$swath_windows_file' 'swath_windows_file/${re.sub("[^\w\-_]", "_", $swath_windows_file.element_identifier)}.$gxy2omsext($swath_windows_file.ext)' &&
+#end if
+#if $unimod_file:
+  mkdir unimod_file &&
+  ln -s '$unimod_file' 'unimod_file/${re.sub("[^\w\-_]", "_", $unimod_file.element_identifier)}.$gxy2omsext($unimod_file.ext)' &&
+#end if
+
+## Main program call
+
+set -o pipefail &&
+export PYTHONPATH='$__tool_directory__/CTDopts' &&
+@EXECUTABLE@ -write_ctd ./ &&
+python3 '$__tool_directory__/fill_ctd.py' '@EXECUTABLE@.ctd' '$args_json' &&
+@EXECUTABLE@ -ini @EXECUTABLE@.ctd
+-in
+'in/${re.sub("[^\w\-_]", "_", $in.element_identifier)}.$gxy2omsext($in.ext)'
+-out
+'out/output.${out_type}'
+#if $swath_windows_file:
+  -swath_windows_file
+  'swath_windows_file/${re.sub("[^\w\-_]", "_", $swath_windows_file.element_identifier)}.$gxy2omsext($swath_windows_file.ext)'
+#end if
+#if $unimod_file:
+  -unimod_file
+  'unimod_file/${re.sub("[^\w\-_]", "_", $unimod_file.element_identifier)}.$gxy2omsext($unimod_file.ext)'
+#end if
+
+## Postprocessing
+&& mv 'out/output.${out_type}' '$out']]></command>
+  <configfiles>
+    <inputs name="args_json" data_style="paths"/>
+  </configfiles>
+  <inputs>
+    <param name="in" argument="-in" type="data" format="mrm,pqp,tabular,traml" optional="false" label="Input file" help=" select mrm,pqp,tabular,traml data sets(s)"/>
+    <param name="out_type" argument="-out_type" display="radio" type="select" optional="false" label="Output file type -- default: determined from file extension or content" help="">
+      <option value="tsv">tabular (tsv)</option>
+      <option value="pqp">pqp</option>
+      <option value="TraML">traml</option>
+      <expand macro="list_string_san"/>
+    </param>
+    <param name="min_transitions" argument="-min_transitions" type="integer" optional="true" value="6" label="minimal number of transitions" help=""/>
+    <param name="max_transitions" argument="-max_transitions" type="integer" optional="true" value="6" label="maximal number of transitions" help=""/>
+    <param name="allowed_fragment_types" argument="-allowed_fragment_types" type="text" optional="true" value="b,y" label="allowed fragment types" help="">
+      <expand macro="list_string_san"/>
+    </param>
+    <param name="allowed_fragment_charges" argument="-allowed_fragment_charges" type="text" optional="true" value="1,2,3,4" label="allowed fragment charge states" help="">
+      <expand macro="list_string_san"/>
+    </param>
+    <param name="enable_detection_specific_losses" argument="-enable_detection_specific_losses" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="set this flag if specific neutral losses for detection fragment ions should be allowed" help=""/>
+    <param name="enable_detection_unspecific_losses" argument="-enable_detection_unspecific_losses" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed" help=""/>
+    <param name="precursor_mz_threshold" argument="-precursor_mz_threshold" type="float" optional="true" value="0.025" label="MZ threshold in Thomson for precursor ion selection" help=""/>
+    <param name="precursor_lower_mz_limit" argument="-precursor_lower_mz_limit" type="float" optional="true" value="400.0" label="lower MZ limit for precursor ions" help=""/>
+    <param name="precursor_upper_mz_limit" argument="-precursor_upper_mz_limit" type="float" optional="true" value="1200.0" label="upper MZ limit for precursor ions" help=""/>
+    <param name="product_mz_threshold" argument="-product_mz_threshold" type="float" optional="true" value="0.025" label="MZ threshold in Thomson for fragment ion annotation" help=""/>
+    <param name="product_lower_mz_limit" argument="-product_lower_mz_limit" type="float" optional="true" value="350.0" label="lower MZ limit for fragment ions" help=""/>
+    <param name="product_upper_mz_limit" argument="-product_upper_mz_limit" type="float" optional="true" value="2000.0" label="upper MZ limit for fragment ions" help=""/>
+    <param name="swath_windows_file" argument="-swath_windows_file" type="data" format="txt" optional="true" label="Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \newline 400 425 \newline" help="Note that the first line is a header and will be skipped select txt data sets(s)"/>
+    <param name="unimod_file" argument="-unimod_file" type="data" format="xml" optional="true" label="(Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability" help=" select xml data sets(s)"/>
+    <param name="enable_ipf" argument="-enable_ipf" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="IPF: set this flag if identification transitions should be generated for IPF" help="Note: Requires setting 'unimod_file'"/>
+    <param name="threads" argument="-threads" type="hidden" value="${GALAXY_SLOTS:-1}">
+      <sanitizer>
+        <valid initial="string.printable"/>
+      </sanitizer>
+    </param>
+    <expand macro="adv_opts_macro">
+      <param name="max_num_alternative_localizations" argument="-max_num_alternative_localizations" type="integer" optional="true" value="10000" label="IPF: maximum number of site-localization permutations" help=""/>
+      <param name="disable_identification_ms2_precursors" argument="-disable_identification_ms2_precursors" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="IPF: set this flag if MS2-level precursor ions for identification should not be allowed for extraction of the precursor signal from the fragment ion data (MS2-level)" help=""/>
+      <param name="disable_identification_specific_losses" argument="-disable_identification_specific_losses" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="IPF: set this flag if specific neutral losses for identification fragment ions should not be allowed" help=""/>
+      <param name="enable_identification_unspecific_losses" argument="-enable_identification_unspecific_losses" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed" help=""/>
+      <param name="enable_swath_specifity" argument="-enable_swath_specifity" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="IPF: set this flag if identification transitions without precursor specificity" help="(i.e. across whole precursor isolation window instead of precursor MZ) should be generated"/>
+      <param name="log" argument="-log" type="hidden" value="log.txt">
+        <expand macro="list_string_san"/>
+        <sanitizer>
+          <valid initial="string.printable"/>
+        </sanitizer>
+      </param>
+      <param name="no_progress" argument="-no_progress" type="hidden" value="true">
+        <sanitizer>
+          <valid initial="string.printable"/>
+        </sanitizer>
+      </param>
+      <param name="force" argument="-force" type="boolean" optional="true" truevalue="true" falsevalue="false" checked="false" label="Overwrite tool specific checks" help=""/>
+      <param name="test" argument="-test" type="hidden" value="false">
+        <sanitizer>
+          <valid initial="string.printable"/>
+        </sanitizer>
+      </param>
+    </expand>
+  </inputs>
+  <outputs>
+    <data name="out" label="${tool.name} on ${on_string}: out">
+      <change_format>
+        <when input="out_type" value="tsv" format="tabular"/>
+        <when input="out_type" value="pqp" format="pqp"/>
+        <when input="out_type" value="TraML" format="traml"/>
+      </change_format>
+    </data>
+  </outputs>
+  <tests>
+    <expand macro="autotest_OpenSwathAssayGenerator"/>
+    <expand macro="manutest_OpenSwathAssayGenerator"/>
+  </tests>
+  <help><![CDATA[Generates assays according to different models for a specific TraML
+
+
+For more information, visit http://www.openms.de/documentation/TOPP_OpenSwathAssayGenerator.html]]></help>
+  <expand macro="references"/>
+</tool>
+
