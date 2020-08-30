@@ -1,0 +1,46 @@
+<tool id="pyiron_meta" name="PyIron" version="0.2.5">
+    <description>meta tools</description>
+    <requirements>
+        <requirement type="package" version="0.2.5">pyiron</requirement>
+        <requirement type="package" version="2019.06.05">lammps</requirement>
+    </requirements>
+    <version_command></version_command>
+    <command>
+    <![CDATA[
+
+        export HOME=`pwd` &&
+        echo -e "[DEFAULT]\nTOP_LEVEL_DIRS = /data/dnb02/galaxy_db/job_working_directory/\nRESOURCE_PATHS = /data/db/databases/pyiron/0.2.2" > \$HOME/.pyiron &&
+
+        python -m pyiron.base.job.reloadfile -i '$infile' -o '$outfile'
+
+    ]]>
+    </command>
+    <inputs>
+        <param name="infile" format="h5" type="data" label="Input HDF5 file" />
+    </inputs>
+    <outputs>
+        <data name="outfile" format="h5" metadata_source="infile" />
+    </outputs>
+    <tests>
+        <test>
+            <param name="infile" value="1.bed"/>
+            <param name="num_lines" value="10"/>
+            <output name="outfile" file="tail_results1.bed"/>
+        </test>
+        <test>
+            <param name="infile" value="1.bed"/>
+            <param name="num_lines" value="10"/>
+            <param name="complement" value="+"/>
+            <output name="outfile" file="tail_results2.bed"/>
+        </test>
+    </tests>
+    <help>
+<![CDATA[
+**What it does**
+
+Runs PyIron jobs.
+]]>
+    </help>
+    <citations>
+    </citations>
+</tool>
