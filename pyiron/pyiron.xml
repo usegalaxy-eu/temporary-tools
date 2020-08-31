@@ -9,7 +9,7 @@
     <![CDATA[
 
         export PYIRONDISABLE="True" &&
-        export PYIRONRESOURCEPATHS=$(python -c "import pyiron; print(\"/\".join(pyiron.__file__.split(\"/\")[0:-5] + [\"share\", \"pyiron\"]));") &&
+        export PYIRONRESOURCEPATHS=$(python -c 'import pyiron; print("/".join(pyiron.__file__.split("/")[0:-5] + ["share", "pyiron"]));') &&
         python -m pyiron.cli reloadfile -i '$infile' -o '$outfile'
 
     ]]>
