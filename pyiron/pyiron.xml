@@ -5,11 +5,11 @@
         <requirement type="package" version="2020.03.03">lammps</requirement>
     </requirements>
     <version_command></version_command>
-    <command>
+    <command detect_errors="exit_code">
     <![CDATA[
 
-        export PYIRONDISABLE="True" &&
-        export PYIRONRESOURCEPATHS=$(python -c 'import pyiron; print("/".join(pyiron.__file__.split("/")[0:-5] + ["share", "pyiron"]));') &&
+        export PYIRONPROJECTPATHS=\$(pwd) &&
+        export PYIRONRESOURCEPATHS=\$(dirname \$(readlink -e \$(which pyiron)))/../share/pyiron &&
         python -m pyiron.cli reloadfile -i '$infile' -o '$outfile'
 
     ]]>
