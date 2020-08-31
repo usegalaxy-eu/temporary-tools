@@ -8,8 +8,10 @@
     <command detect_errors="exit_code">
     <![CDATA[
 
+        export PYIRONDISABLE="True" &&
         export PYIRONPROJECTPATHS=\$(pwd) &&
         export PYIRONRESOURCEPATHS=\$(dirname \$(readlink -e \$(which pyiron)))/../share/pyiron &&
+
         python -m pyiron.cli reloadfile -i '$infile' -o '$outfile'
 
     ]]>
