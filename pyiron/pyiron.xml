@@ -8,10 +8,8 @@
     <command detect_errors="exit_code">
     <![CDATA[
 
-        export PYIRONPROJECTPATHS=$(pwd) &&
+        export PYIRONPROJECTPATHS=\$(pwd) &&
         export PYIRONRESOURCEPATHS=\$(dirname \$(readlink -e \$(which pyiron)))/../share/pyiron &&
-
-        ####$(python -c 'import pyiron; print("/".join(pyiron.__file__.split("/")[0:-5] + ["share", "pyiron"]));') &&
         python -m pyiron.cli reloadfile -i '$infile' -o '$outfile'
 
     ]]>
