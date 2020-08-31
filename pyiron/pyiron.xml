@@ -8,9 +8,8 @@
     <command>
     <![CDATA[
 
-        export HOME=`pwd` &&
-        echo -e "[DEFAULT]\nTOP_LEVEL_DIRS = /data/\nRESOURCE_PATHS = /usr/local/tools/_conda/envs/" > \$HOME/.pyiron &&
-
+        export PYIRONDISABLE="True" &&
+        export PYIRONRESOURCEPATHS="/usr/local/tools/_conda/envs/" &&
         python -m pyiron.cli reloadfile -i '$infile' -o '$outfile'
 
     ]]>
