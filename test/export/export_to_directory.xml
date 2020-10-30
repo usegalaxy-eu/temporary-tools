@@ -1,0 +1,28 @@
+<tool id="directory_uri" name="Export datasets" version="1.0.0">
+    <description>to different data storages</description>
+    <command><![CDATA[
+        python '$__tool_directory__/export_to_directory.py'
+            --file_sources '$file_sources'
+            --directory_uri '$d_uri'
+            --infiles
+            #for $filepath in $infiles:
+                '$filepath'
+            #end for
+            --names
+            #for $name in $infiles:
+                '$name.element_identifier'
+            #end for
+
+    ]]></command>
+    <inputs>
+        <param name="infiles" type="data" format="txt,binary" multiple="true" label="Choose your datasets"/>
+        <param type="directory_uri" name="d_uri" label="Directory URI" />
+    </inputs>
+    <outputs>
+    </outputs>
+    <configfiles>
+        <file_sources name="file_sources" />
+    </configfiles>
+    <tests>
+    </tests>
+</tool>
