@@ -10,8 +10,14 @@
             #end for
             --names
             #for $name in $infiles:
-                '$name.element_identifier'
+                #if $name.ext == 'vcf_bgzip':
+                    #set file_ext = 'vcf.bz'
+                #else:
+                    #set file_ext = $name.ext
+                #end if
+                '${name.element_identifier}.${file_ext}'
             #end for
+            > '$out'
 
     ]]></command>
     <inputs>
@@ -19,6 +25,7 @@
         <param type="directory_uri" name="d_uri" label="Directory URI" />
     </inputs>
     <outputs>
+        <data name="out" format="txt" label="Export logs"/>
     </outputs>
     <configfiles>
         <file_sources name="file_sources" />

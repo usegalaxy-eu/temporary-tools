@@ -22,6 +22,7 @@ def main(argv=None):
     args = _parser().parse_args(argv)
     file_sources = get_file_sources(args.file_sources)
     directory_uri = args.directory_uri
+    counter = 0
     for real_data_path, name in zip(args.infiles, args.names):
         if directory_uri.endswith("/"):
             target_uri = directory_uri + name
@@ -29,9 +30,11 @@ def main(argv=None):
             target_uri = directory_uri + "/" + name
         file_source_path = file_sources.get_file_source_path(target_uri)
         if os.path.exists(file_source_path.path):
-            sys.exit(f'Error: File "{file_source_path.path}" already exists. Aborting.')
+            print(f'Error: File "{file_source_path.path}" already exists. Aborting.')
         file_source = file_source_path.file_source
         file_source.write_from(file_source_path.path, real_data_path)
+        counter += 1
+    print(f'In total {counter} files have been exported.\n')
 
 
 def _parser():
