@@ -1,0 +1,90 @@
+<tool id="interactive_tool_fairdom_send" name="Send data to" version="@VERSION@.0">
+    <description>FairDom Hub</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <expand macro="requirements" />
+    <command detect_errors="aggressive">
+<![CDATA[
+
+export fairdom_user_password='bjoernfairdom' &&
+
+#if str($upload.upload_select) == 'link':
+    wget -c --no-check-certificate -O ./local_file '$upload.link' &&
+    file -b --mime-type ./local_file > ./content_type &&
+    cat ./content_type &&
+#else:
+    file -b --mime-type '$upload.input' > ./content_type &&
+    cat ./content_type &&
+#end if
+
+python '$__tool_directory__/send.py'
+    --url 'http://193.197.73.91'
+    --user bag
+    --title '$title'
+    --description '$description'
+    --password "\$fairdom_user_password"
+    --assay_id $assay_id
+    --project_id $project_id
+    #if str($upload.upload_select) == 'link':
+        --input ./local_file
+        --original_filename '$upload.original_filename'
+        --content_type `cat ./content_type`
+    #else
+        --input '$upload.input'
+    #end if
+
+    > '$result'
+
+]]>
+    </command>
+    <inputs>
+        <conditional name="upload">
+            <param name="upload_select" type="select" label="What do you want to upload?" help="">
+                <option value="history">File from your history</option>
+                <option value="link">Link</option>
+            </param>
+            <when value="history">
+                <param argument="--input" type="data" format="txt" label="Data that you want to send" />
+            </when>
+            <when value="link">
+                <param name="link" type="text" label="Link to upload" help="" />
+                <param argument="--original_filename" type="text" value=""  label="file name" help="">
+                    <validator type="expression" message="Filename can not be empty.">value.strip()</validator>
+                </param>
+            </when>
+        </conditional>
+        <param argument="--title" type="text" value="" label="Title of your dataset" help="">
+            <validator type="expression" message="Title can not be empty.">value.strip()</validator>
+        </param>
+        <param argument="--description" type="text" value="" label="Description of your dataset" help="">
+            <validator type="expression" message="Description can not be empty.">value.strip()</validator>
+        </param>
+        <param argument="--assay_id" type="integer" value="" label="Assay ID" help="" />
+        <param argument="--project_id" type="integer" value="" label="Project ID" help="" />
+    </inputs>
+    <outputs>
+        <data format="html" name="result"/>
+    </outputs>
+    <tests>
+        <test>
+            <!--param name="sensitivity" value="0"/>
+            <param name="matrix" value="BLOSUM62"/>
+            <param name="comp-based-stat" value="1"/>
+            <param name="masking" value="1"/>
+            <param name="id" value="0"/>
+            <param name="query_cover" value="0"/>
+            <param name="block_size" value="2"/-->
+        </test>
+    </tests>
+    <help>
+<![CDATA[
+
+**What it does**
+
+Transfer data to Seek.
+
+]]>
+    </help>
+    <expand macro="citations" />
+</tool>
