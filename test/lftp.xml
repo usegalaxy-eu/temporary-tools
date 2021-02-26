@@ -1,0 +1,60 @@
+<tool id="lftp" name="downloads" version="4.9.2">
+    <description>via lftps</description>
+    <requirements>
+        <requirement type="package" version="4.9.2">lftp</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+    mkdir ./outputs &&
+    cd ./outputs &&
+    xargs -I {}
+    lftp -c 'set net:idle 10;
+         set net:max-retries 0;
+         set net:reconnect-interval-base 3;
+         set net:reconnect-interval-max 3;
+         pget -n 10 -c "{}"'
+         < '$urls' | true
+]]>
+    </command>
+    <inputs>
+        <param name="urls" type="data" format="txt,tabular" label="File with URLs" help="List of URLs (one per line)."/>
+    </inputs>
+    <outputs>
+        <collection name="downloads" type="list" label="${tool.name} on ${on_string}">
+            <discover_datasets pattern="__name__" directory="outputs" visible="false" auto_format="true"/>
+        </collection>
+    </outputs>
+    <tests>
+        <test>
+            <param name="urls" value="urls.txt"/>
+            <output_collection name="downloads" type="list">
+                <element name="ERR4204119_1.fastq.gz">
+                    <assert_contents>
+                        <has_size value="10020563" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="ERR4204119_2.fastq.gz">
+                    <assert_contents>
+                        <has_size value="10833542" delta="100"/>
+                    </assert_contents>
+                </element>
+                <element name="ERR4204121_1.fastq.gz">
+                    <assert_contents>
+                        <has_size value="43298442" delta="100"/>
+                    </assert_contents>
+                </element>
+            </output_collection>
+        </test>
+    </tests>
+    <help><![CDATA[
+
+.. class:: infomark
+
+**What this tool does**
+
+This tool downloads a list ir URLs via lftp and creates a collection of files.
+
+]]>
+    </help>
+    <citations>
+    </citations>
+</tool>
