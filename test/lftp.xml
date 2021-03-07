@@ -9,6 +9,7 @@
     xargs -I {}
     lftp -c 'set net:idle 10;
          set net:max-retries 0;
+         set ftp:nop-interval 10;
          set net:reconnect-interval-base 3;
          set net:reconnect-interval-max 3;
          pget -n 10 -c "{}"'
