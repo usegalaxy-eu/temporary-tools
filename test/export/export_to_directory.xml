@@ -10,7 +10,7 @@
                 #silent $fpaths.append($infile)
                 #set $fname = $infile.element_identifier
                 #if $infile.ext == 'vcf_bgzip':
-                    #set $fname = $fname + '.vcf.bz'
+                    #set $fname = $fname + '.vcf.gz'
                 #else:
                     #set $fname = $fname + '.' + $infile.ext
                 #end if
