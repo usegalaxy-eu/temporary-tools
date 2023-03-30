@@ -1,0 +1,70 @@
+<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="v3.2.4">
+	<configfiles>
+		<configfile name="index"><![CDATA[
+<html>
+	<body>
+		<a href="https://clin.iobio.io/genes=${genes}&species=Human&build=${refgen_version}&affectedSibs=&unaffectedSibs=&rel0=proband&sex0=${proband_sex}&vcf0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/display&tbi0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.metadata.tabix_index)}/display&bam0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display&bai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.metadata.bam_index)}/display&sample0=proband&affectedStatus0=${proband_affected}
+#if str($input_type.input_type_selector) == "trio"#&rel1=father&sex1=male&vcf1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/display&tbi1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.metadata.tabix_index)}/display&bam1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display&bai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.metadata.bam_index)}/display&sample1=father&affectedStatus1=${input_type.father.affected}&rel2=mother&sex2=female&vcf2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/display&tbi2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.metadata.tabix_index)}/display&bam2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display&bai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.metadata.bam_index)}/display&sample2=mother&affectedStatus2=${input_type.mother.affected}
+#end if
+>Click here to go to CLIN.IOBIO</a>
+
+            ]]></configfile>
+	</configfiles>
+	<command>cat '$index' | tr -d '\n' > output.html</command>
+    <inputs>
+        <param name="proband_bam" type="data" format="bam,cram" label="Proband BAM file"/>
+        <param name="proband_vcf" type="data" format="vcf,vcf_bgzip" label="Proband VCF file"/>
+        <param name="proband_sex" type="select" display="radio" label="Proband sex">
+            <option value="male" selected="true">Male</option>
+            <option value="female">Female</option>
+        </param>
+        <param name="proband_affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="true" label="Is the proband affected?"/>
+        <conditional name="input_type">
+            <param name="input_type_selector" type="select" display="radio" label="Single/Trio analysis">
+                <option value="single" selected="true">Single</option>
+                <option value="trio">Trio</option>
+            </param>
+            <when value="trio">
+                <section name="father" title="Father input">
+                    <param name="bam" type="data" format="bam,cram" label="Father BAM file"/>
+                    <param name="vcf" type="data" format="vcf,vcf_bgzip" label="Father VCF file"/>
+                    <param name="affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="false" label="Is the father affected?"/>
+                </section>
+                <section name="mother" title="Mother input">
+                    <param name="bam" type="data" format="bam,cram" label="Mother BAM file"/>
+                    <param name="vcf" type="data" format="vcf,vcf_bgzip" label="Mother VCF file"/>
+                    <param name="affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="false" label="Is the mother affected?"/>
+                </section>
+            </when>
+        </conditional>
+        <param name="genes" type="text" value="PDHA1,ARHGAP8,RAI1,PLXNA1,SCN8A,SMARCA2" size="100x5" label="Genes of interest" help=""/>
+        <param name="refgen_version" type="select" label="Select reference genome version">
+            <option value="GRCh38" selected="true">GRCh38</option>
+            <option value="GRCh37">GRCh37</option>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="outfile" format="html" />
+    </outputs>
+    <tests>
+    </tests>
+    <help><![CDATA[
+    Clin.iobio provides a comprehensive and guided workflow to review sequencing data and report impactful variants. Clin.iobio also helps prioritize variants based on multiple integrated gene:disease association algorithms and knowledge bases.
+
+    Required inputs:
+
+    1. Proband BAM file
+    2. Proband VCF file
+
+    Optional inputs (trio analysis):
+
+    1. Father & Mother BAM file
+    2. Father & Mother VCF file
+
+    The `iobio project`_ is developed by the `Marth lab`_ at the `University of Utah Center for Genetic Discovery`_.
+
+    .. _iobio project: https://iobio.io
+    .. _Marth lab: https://marthlab.org/
+    .. _University of Utah Center for Genetic Discovery: https://ucgd.genetics.utah.edu/
+    ]]></help>
+</tool>
