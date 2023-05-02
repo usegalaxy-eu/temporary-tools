@@ -1,4 +1,4 @@
-<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="v3.2.4">
+<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="3.2.4+galaxy0">
 	<configfiles>
 		<configfile name="index"><![CDATA[
 <html>
@@ -11,7 +11,7 @@
 
             ]]></configfile>
 	</configfiles>
-	<command>cat '$index' | tr -d '\n' > output.html</command>
+	<command>cat '$index' | tr -d '\n' > '$outfile'</command>
     <inputs>
         <param name="proband_bam" type="data" format="bam,cram" label="Proband BAM file"/>
         <param name="proband_vcf" type="data" format="vcf,vcf_bgzip" label="Proband VCF file"/>
