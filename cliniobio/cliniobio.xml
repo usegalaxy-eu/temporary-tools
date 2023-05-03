@@ -1,4 +1,4 @@
-<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="3.2.4+galaxy0">
+<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="3.2.4+galaxy1">
 	<configfiles>
 		<configfile name="index"><![CDATA[
 <html>
