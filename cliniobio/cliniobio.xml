@@ -1,14 +1,41 @@
-<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="3.2.4+galaxy1">
+<tool id="clin_iobio_display_generation" name="clin.iobio visualisation" version="3.2.4+galaxy2">
 	<configfiles>
 		<configfile name="index"><![CDATA[
 <html>
 	<body>
-		<a href="https://clin.iobio.io/?genes=${genes}&species=Human&build=${refgen_version}&affectedSibs=&unaffectedSibs=&rel0=proband&sex0=${proband_sex}&vcf0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/display&tbi0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.metadata.tabix_index)}/display&bam0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display&bai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.metadata.bam_index)}/display&sample0=proband&affectedStatus0=${proband_affected}
-#if str($input_type.input_type_selector) == "trio"#&rel1=father&sex1=male&vcf1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/display&tbi1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.metadata.tabix_index)}/display&bam1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display&bai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.metadata.bam_index)}/display&sample1=father&affectedStatus1=${input_type.father.affected}&rel2=mother&sex2=female&vcf2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/display&tbi2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.metadata.tabix_index)}/display&bam2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display&bai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.metadata.bam_index)}/display&sample2=mother&affectedStatus2=${input_type.mother.affected}
+		<a href="https://clin.iobio.io/?genes=${genes}
+&species=Human
+&build=${refgen_version}
+&affectedSibs=
+&unaffectedSibs=
+&rel0=proband
+&sex0=${proband_sex}
+&vcf0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/display
+&tbi0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/metadata_file?metadata_file=tabix_index
+&bam0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display
+&bai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/metadata_file?metadata_file=bam_index
+&sample0=proband
+&affectedStatus0=${proband_affected}
+#if str($input_type.input_type_selector) == "trio"#
+&rel1=father
+&sex1=male
+&vcf1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/display
+&tbi1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/metadata_file?metadata_file=tabix_index
+&bam1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display
+&bai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/metadata_file?metadata_file=bam_index
+&sample1=father
+&affectedStatus1=${input_type.father.affected}
+&rel2=mother
+&sex2=female
+&vcf2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/display
+&tbi2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/metadata_file?metadata_file=tabix_index
+&bam2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display
+&bai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/metadata_file?metadata_file=bam_index
+&sample2=mother
+&affectedStatus2=${input_type.mother.affected}
 #end if
->Click here to go to CLIN.IOBIO</a>
+">Click here to go to CLIN.IOBIO</a>
 </body></html>
-
             ]]></configfile>
 	</configfiles>
 	<command>cat '$index' | tr -d '\n' > '$outfile'</command>
