@@ -1,4 +1,4 @@
-<tool id="clin_iobio_display_generation_iframe" name="clin.iobio visualisation (iframe test)" version="3.2.4+galaxy2">
+<tool id="clin_iobio_display_generation_iframe" name="clin.iobio visualisation (iframe test)" version="3.2.4+galaxy3">
 	<configfiles>
 		<configfile name="index"><![CDATA[
 <html>
