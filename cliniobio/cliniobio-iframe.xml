@@ -12,7 +12,7 @@
 &sex0=${proband_sex}
 &vcf0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/display
 &tbi0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_vcf.id)}/metadata_file%3Fmetadata_file=%3Dtabix_index
-#if str($proband_bam.format) == "bam"
+#if str( $proband_bam.ext.endswith('bam') )#
 &bam0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display
 &bai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/metadata_file%3Fmetadata_file=%3Dbam_index
 #else
@@ -21,12 +21,12 @@
 #end if
 &sample0=proband
 &affectedStatus0=${proband_affected}
-#if str($input_type.input_type_selector) == "trio"#
+#if str( $input_type.input_type_selector ) == "trio"#
 &rel1=father
 &sex1=male
 &vcf1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/display
 &tbi1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.vcf.id)}/metadata_file%3Fmetadata_file=%3Dtabix_index
-#if str($input_type.father.bam.format) == "bam"
+#if str( $input_type.father.bam.ext.endswith('bam') )#
 &bam1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display
 &bai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/metadata_file%3Fmetadata_file=%3Dbam_index
 #else
@@ -39,7 +39,7 @@
 &sex2=female
 &vcf2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/display
 &tbi2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.vcf.id)}/metadata_file%3Fmetadata_file=%3Dtabix_index
-#if str($input_type.mother.bam.format) == "bam"
+#if str( $input_type.mother.bam.ext.endswith('bam') )#
 &bam2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display
 &bai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/metadata_file%3Fmetadata_file=%3Dbam_index
 #else
