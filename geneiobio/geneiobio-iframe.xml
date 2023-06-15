@@ -1,9 +1,9 @@
-<tool id="clin_iobio_display_generation_iframe" name="clin.iobio visualisation (iframe test)" version="3.2.4+galaxy4">
+<tool id="gene_iobio_display_generation_iframe" name="gene.iobio visualisation (iframe test)" version="3.2.4+galaxy0">
 	<configfiles>
 		<configfile name="index"><![CDATA[
 <html>
 	<body>
-		<iframe src="https://clin.iobio.io/?genes=${genes}
+		<iframe src="https://gene.iobio.io/?genes=${genes}
 &species=Human
 &build=${refgen_version}
 &affectedSibs=
@@ -19,7 +19,7 @@
 &cram0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display
 &cai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
-&sample0=proband
+&sample0=${proband_name}
 &affectedStatus0=${proband_affected}
 #if str( $input_type.input_type_selector ) == "trio"#
 &rel1=father
@@ -33,7 +33,7 @@
 &cram1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display
 &cai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
-&sample1=father
+&sample1=${input_type.father.name}
 &affectedStatus1=${input_type.father.affected}
 &rel2=mother
 &sex2=female
@@ -46,7 +46,7 @@
 &cram2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display
 &cai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
-&sample2=mother
+&sample2=${input_type.mother.name}
 &affectedStatus2=${input_type.mother.affected}
 #end if
 " style="width: 100%; height: 900px;"></iframe>
@@ -55,13 +55,14 @@
 	</configfiles>
 	<command>cat '$index' | tr -d '\n' > '$outfile'</command>
     <inputs>
-        <param name="proband_bam" type="data" format="bam,cram" label="Proband BAM file"/>
         <param name="proband_vcf" type="data" format="vcf,vcf_bgzip" label="Proband VCF file"/>
+        <param name="proband_bam" type="data" format="bam,cram" label="Proband BAM file" optional="true"/>
         <param name="proband_sex" type="select" display="radio" label="Proband sex">
             <option value="male" selected="true">Male</option>
             <option value="female">Female</option>
         </param>
         <param name="proband_affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="true" label="Is the proband affected?"/>
+        <param name="proband_name" type="text" value="C" label="Proband sample name" help="The sample names are listed in the columns of the VCF."/>
         <conditional name="input_type">
             <param name="input_type_selector" type="select" display="radio" label="Single/Trio analysis">
                 <option value="single" selected="true">Single</option>
@@ -69,18 +70,20 @@
             </param>
             <when value="trio">
                 <section name="father" title="Father input">
-                    <param name="bam" type="data" format="bam,cram" label="Father BAM file"/>
                     <param name="vcf" type="data" format="vcf,vcf_bgzip" label="Father VCF file"/>
+                    <param name="bam" type="data" format="bam,cram" label="Father BAM file" optional="true"/>
                     <param name="affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="false" label="Is the father affected?"/>
+                    <param name="name" type="text" value="F" label="Father sample name" help="The sample names are listed in the columns of the VCF."/>
                 </section>
                 <section name="mother" title="Mother input">
-                    <param name="bam" type="data" format="bam,cram" label="Mother BAM file"/>
                     <param name="vcf" type="data" format="vcf,vcf_bgzip" label="Mother VCF file"/>
+                    <param name="bam" type="data" format="bam,cram" label="Mother BAM file" optional="true"/>
                     <param name="affected" type="boolean" truevalue="affected" falsevalue="unaffected" checked="false" label="Is the mother affected?"/>
+                    <param name="name" type="text" value="M" label="Mother sample name" help="The sample names are listed in the columns of the VCF."/>
                 </section>
             </when>
         </conditional>
-        <param name="genes" type="text" value="PDHA1,ARHGAP8,RAI1,PLXNA1,SCN8A,SMARCA2" size="100x5" label="Genes of interest" help=""/>
+        <param name="genes" type="text" value="PDHA1,ARHGAP8,RAI1,PLXNA1,SCN8A,SMARCA2" size="100x5" label="Genes of interest" help="Provide the genes as a comma seperated line. This line can be empty and genes can be selected interactively using gene.iobio."/>
         <param name="refgen_version" type="select" label="Select reference genome version">
             <option value="GRCh38" selected="true">GRCh38</option>
             <option value="GRCh37">GRCh37</option>
@@ -92,17 +95,17 @@
     <tests>
     </tests>
     <help><![CDATA[
-    Clin.iobio provides a comprehensive and guided workflow to review sequencing data and report impactful variants. Clin.iobio also helps prioritize variants based on multiple integrated gene:disease association algorithms and knowledge bases.
+    Gene.iobio provides a report of impactful variants. Gene.iobio also helps prioritize variants based on multiple integrated gene:disease association algorithms and knowledge bases.
 
     Required inputs:
 
-    1. Proband BAM file
-    2. Proband VCF file
+    1. Proband VCF file
 
     Optional inputs (trio analysis):
 
-    1. Father & Mother BAM file
-    2. Father & Mother VCF file
+    1. Proband BAM file
+    2. Father & Mother BAM file
+    3. Father & Mother VCF file
 
     The `iobio project`_ is developed by the `Marth lab`_ at the `University of Utah Center for Genetic Discovery`_.
 
