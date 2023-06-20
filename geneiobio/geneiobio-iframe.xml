@@ -15,7 +15,7 @@
 #if $proband_bam.ext == 'bam':
 &bam0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display
 &bai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/metadata_file%3Fmetadata_file%3Dbam_index
-#else
+#elif $proband_bam.ext == 'cram':
 &cram0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/display
 &cai0=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($proband_bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
@@ -29,7 +29,7 @@
 #if $input_type.father.bam.ext == 'bam':
 &bam1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display
 &bai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/metadata_file%3Fmetadata_file%3Dbam_index
-#else
+#elif $input_type.father.bam.ext == 'cram':
 &cram1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/display
 &cai1=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.father.bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
@@ -42,7 +42,7 @@
 #if $input_type.mother.bam.ext == 'bam':
 &bam2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display
 &bai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/metadata_file%3Fmetadata_file%3Dbam_index
-#else
+#elif $input_type.mother.bam.ext == 'cram':
 &cram2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/display
 &cai2=${__app__.config.galaxy_infrastructure_url}/api/datasets/${__app__.security.encode_id($input_type.mother.bam.id)}/metadata_file%3Fmetadata_file%3Dcram_index
 #end if
