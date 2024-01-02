@@ -1,0 +1,25 @@
+<tool id="demultiplex_by_primers" name="Demultiplex FASTA file by primers" version="1.0" profile="22.05">
+    <description>Prefixes the readname with the primer name</description>
+    <requirements>
+        <requirement type="package" version="1.2.11">obitools</requirement>
+    </requirements>
+    <command detect_errors="aggressive">
+        <![CDATA[
+            python '${__tool_directory__}/demultiplex_by_primers.py'
+                -i '$input_fasta'
+                -p '$input_primers'
+                -o '$output'
+        ]]>
+    </command>
+    <inputs>
+        <param format="tabular" name="input_primers" type="data" label="Primer table of all samples" />
+        <param format="fasta" name="input_fasta" type="data" label="Input fasta file of reads to demultiplex" />
+    </inputs>
+    <outputs>
+        <data format="fasta" name="output" label="Demultiplexed on ${on_string}: Demultiplexed reads" />
+    </outputs>
+    <help><![CDATA[
+        TODO: Fill in help.
+    ]]></help>
+</tool>
+

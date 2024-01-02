@@ -1,0 +1,26 @@
+<tool id="motu_abundance_matrix" name="mOTU abundance matrix" version="1.0" profile="22.05">
+    <description>Generates a matrix over mOTU clusters and sample abundances</description>
+    <requirements>
+        <requirement type="package" version="3.11.5">python</requirement>
+    </requirements>
+    <command detect_errors="aggressive">
+<![CDATA[
+python '${__tool_directory__}/motu_abundance_matrix.py'
+    -ic '$input_cluster_uc'
+    -ib '$input_blast'
+    -ot '$output_motu_matrix'
+    -ob '$output_blast_cluster'
+]]>
+    </command>
+    <inputs>
+        <param format="tabular" name="input_cluster_uc" type="data" label="tabular cluster file of VSEARCH -uc setting" help="tabular file. VSEARCH cluster format from the -uc settings"/>
+        <param format="tabular" name="input_blast" type="data" label="blast file" help="blast file in outfmt 6 with the following entries: std staxids sscinames"/>
+     </inputs>
+    <outputs>
+        <data format="tabular" name="output_motu_matrix" />
+        <data format="tabular" name="output_blast_cluster" />
+    </outputs>
+    <help><![CDATA[
+        Generates a matrix over mOTU clusters and sample abundances.
+    ]]></help>
+</tool>

@@ -1,0 +1,30 @@
+<tool id="readname_changer" name="Add FASTQ dataset name" version="0.2.0" profile="22.05">
+    <description>into read names</description>
+    <requirements>
+        <requirement type="package" version="3.11.5">python</requirement>
+    </requirements>
+    <command detect_errors="aggressive">
+<![CDATA[
+    #set name = $input.name
+    #for part in $input.name.split(' '):
+        #if part.split('.')[-1] in ['gz', 'fastq']
+            #set name = part
+            #break
+        #end if
+    #end for
+    python '${__tool_directory__}/readname_changer.py'
+        -i '$input'
+        -n '$name'
+        -o '$output'
+]]>
+    </command>
+    <inputs>
+        <param format="fastqsanger" name="input" type="data" label="Fastq data to rename Read Names" />
+     </inputs>
+    <outputs>
+        <data format="fastqsanger" name="output" type="data" label="${tool.name} on ${on_string}: Changed Read Names" />
+    </outputs>
+    <help><![CDATA[
+    Add the FASTQ dataset name into the read names of the same file.
+    ]]></help>
+</tool>

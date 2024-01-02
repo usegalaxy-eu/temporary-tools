@@ -1,0 +1,36 @@
+<tool id="trim_fasta_header" name="Trim fasta header" version="0.1.0" profile="22.05">
+    <description>Removes everything after the first whitespace in the header line</description>
+    <requirements>
+        <requirement type="package" version="3.11.5">python</requirement>
+    </requirements>
+    <version_command>echo "0.1.0"</version_command>
+    <command detect_errors="aggressive">
+python '${__tool_directory__}/trim_fasta_header.py'
+    '${input}'
+    '${output}'
+    </command>
+    <inputs>
+        <param name="input" type="data" format="fasta" label="Input sequences" />
+    </inputs>
+    <outputs>
+        <data name="output" label="${tool.name} on ${on_string}" format_source="input" />
+    </outputs>
+    <help>
+**Example**
+
+If the original data looks like this::
+
+    &gt;Seq1&lt;SPACE&gt;a=1&lt;SPACE&gt;b=2&lt;TAB&gt;c=3;d=4
+    CGAGCACGTCGTCGTA
+    &gt;Seq2;a=3&lt;TAB&gt;b=5&lt;SPACE&gt;e=12
+    TGCAGCATGCCGTCGTCTAGCAGA
+
+This will result in the following output::
+
+    >Seq1
+    CGAGCACGTCGTCGTA
+    >Seq1;a=3
+    TGCAGCATGCCGTCGTCTAGCAGA
+    </help>
+</tool>
+

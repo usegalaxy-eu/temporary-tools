@@ -1,0 +1,106 @@
+<tool id="index_read_filter" name="index_read_filter" version="0.3.0" profile="22.05">
+    <description>Filter paired-end reads based on quality and matching of i7- and i5-indices</description>
+    <version_command>
+        echo "index_read_filter.py version 0.3.0"
+    </version_command>
+    <requirements>
+        <requirement type="package" version="1.19.4">numpy</requirement>
+        <requirement type="package" version="1.78">biopython</requirement>
+    </requirements>
+    <command detect_errors="aggressive">
+<![CDATA[
+        #if $readtype.files_or_collection == "files"
+            #set r1_ext = $readtype.forward.extension
+            #set r2_ext = $readtype.reverse.extension
+            ln -s '$readtype.forward' 'fastq_r1.$r1_ext' &&
+            ln -s '$readtype.reverse' 'fastq_r2.$r2_ext' &&
+        #elif $readtype.files_or_collection == "collection"
+            #set r1_ext = $readtype.reads_collection.forward.extension
+            #set r2_ext = $readtype.reads_collection.reverse.extension
+            ln -s '$readtype.reads_collection.forward' 'fastq_r1.$r1_ext' &&
+            ln -s '$readtype.reads_collection.reverse' 'fastq_r2.$r2_ext' &&
+        #end if
+
+        #if $index_readtype.files_or_collection == "files"
+            #set i7_ext = $index_readtype.i7.extension
+            #set i5_ext = $index_readtype.i5.extension
+            ln -s '$index_readtype.i7' 'fastq_i7.$i7_ext' &&
+            ln -s '$index_readtype.i5' 'fastq_i5.$i5_ext' &&
+        #elif $index_readtype.files_or_collection == "collection"
+            #set i7_ext = $index_readtype.index_collection.forward.extension
+            #set i5_ext = $index_readtype.index_collection.reverse.extension
+            ln -s '$index_readtype.index_collection.forward' 'fastq_i7.$i7_ext' &&
+            ln -s '$index_readtype.index_collection.reverse' 'fastq_i5.$i5_ext' &&
+        #end if
+
+        python '${__tool_directory__}/index_read_filter.py'
+        -ss '${sample_sheet}'
+        -i7 'fastq_i7.$i7_ext'
+        -i5 'fastq_i5.$i5_ext'
+        -fwd 'fastq_r1.$r1_ext'
+        -rev 'fastq_r2.$r2_ext'
+        -q ${quality}
+        ${discard_misassignments}
+        -out_fwd 'fastq_out_r1.$r1_ext'
+        -out_rev 'fastq_out_r2.$r2_ext'
+        &&
+
+        #if $readtype.files_or_collection == "files"
+            mv 'fastq_out_r1.$r1_ext' '${out_forward}' &&
+            mv 'fastq_out_r2.$r2_ext' '${out_reverse}'
+        #elif $readtype.files_or_collection == "collection"
+            mv 'fastq_out_r1.$r1_ext' '${out_collection.forward}' &&
+            mv 'fastq_out_r2.$r2_ext' '${out_collection.reverse}'
+        #end if
+    ]]></command>
+    <inputs>
+        <param name="sample_sheet" format="csv" type="data" label="Primer table with each row giving i7 and i5 index combinations used in the experiment"/>
+        <conditional name="index_readtype">
+            <param name="files_or_collection" type="select" label="Index sequences data structure">
+                <option value="files">Individual</option>
+                <option value="collection">Paired collection</option>
+            </param>
+            <when value="files">
+                <param format="fastqsanger.gz" name="i7" type="data" label="i7 index sequences" />
+                <param format="fastqsanger.gz" name="i5" type="data" label="i5 index sequences" />
+            </when>
+            <when value="collection">
+                <param format="fastqsanger.gz" name="index_collection" type="data_collection" collection_type="paired" label="i7 and i5 index sequences" />
+            </when>
+        </conditional>
+        <conditional name="readtype">
+            <param name="files_or_collection" type="select" label="Input reads data structure">
+                <option value="files">Individual</option>
+                <option value="collection">Paired collection</option>
+            </param>
+            <when value="files">
+                <param format="fastqsanger.gz" name="forward" type="data" label="forward paired-end sequences" />
+                <param format="fastqsanger.gz" name="reverse" type="data" label="reverse paired-end sequences" />
+            </when>
+            <when value="collection">
+                <param format="fastqsanger.gz" name="reads_collection" type="data_collection" collection_type="paired" label="Paired reads" />
+            </when>
+        </conditional>
+        <param name="quality" type="integer" value="30" min="0" max="40" label="Mean quality threshold to filter index sequences" />
+        <param name="discard_misassignments" type="boolean" truevalue="-ma" falsevalue="" checked="false" label="Discard read pairs if the indices are no valid pair based on the sample sheet" />
+    </inputs>
+    <outputs>
+        <data name="out_forward" label="${tool.name} on ${readtype.forward.name} (forward)" format_source="forward">
+            <filter>readtype['files_or_collection'] == "files"</filter>
+        </data>
+        <data name="out_reverse" label="${tool.name} on ${readtype.reverse.name} (reverse)" format_source="reverse">
+            <filter>readtype['files_or_collection'] == "files"</filter>
+        </data>
+        <collection name="out_collection" type="paired" label="${tool.name} on ${on_string}">
+            <filter>readtype['files_or_collection'] == "collection"</filter>
+            <data name="forward" label="${tool.name} on ${readtype.reads_collection.forward.name} (forward)" format_source="reads_collection['forward']" />
+            <data name="reverse" label="${tool.name} on ${readtype.reads_collection.reverse.name} (reverse)" format_source="reads_collection['reverse']" />
+        </collection>
+    </outputs>
+    <help><![CDATA[
+        Sample_sheet file must be a two-column CSV file without header.
+        First column represents i7 indices and second column contains i5 indices.
+        Each row stands for an accepted pairing of i7- and i5-indices.
+    ]]></help>
+</tool>
+

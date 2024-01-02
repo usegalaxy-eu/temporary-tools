@@ -1,0 +1,28 @@
+<tool id="mOTU_table_generator" name="mOTU table generator" version="1.0" profile="22.05">
+    <description>Generates a mOTU table and a with cluster named blast file</description>
+    <requirements>
+        <requirement type="package" version="3.11.5">python</requirement>
+    </requirements>
+    <command detect_errors="aggressive">
+    <![CDATA[
+python '${__tool_directory__}/mOTU_table_generator.py'
+    -i '$input_cluster_fast'
+    -ib '$input_blast'
+    -o '$output_mOTUR'
+    -ob '$output_blast'
+        ]]>
+    </command>
+    <inputs>
+        <param format="tabular" name="input_cluster_fast" type="data" label="tabular cluster file of USEARCH cluster_fast" help="tabular file. USEARCH cluster format from the -cluster_fast -uc settings"/>
+        <param format="tabular" name="input_blast" type="data" label="Blast tabular input"
+            help="Needs the following entrys: qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames"/>
+     </inputs>
+    <outputs>
+        <data format="tabular" name="output_mOTUR" />
+        <data format="tabular" name="output_blast" />
+    </outputs>
+    <help><![CDATA[
+        Generates a mOTU table and a with cluster named blast file.  
+    ]]>
+    </help>
+</tool>
