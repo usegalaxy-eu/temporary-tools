@@ -47,7 +47,7 @@ History
     - JB2 seems to set defaults wisely.
     - not yet ideal for users who need fine grained track control.
     - synteny (paf + reference) now working
-    - rehomed at https://github.com/fubar2/temporary-tools/tree/master/jbrowse2 while IUC reviews are slowly sorted out.
+    - rehomed at https://github.com/usegalaxy-eu/temporary-tools while IUC reviews are slowly sorted out.
 
 
 Wrapper License (MIT/BSD Style)
