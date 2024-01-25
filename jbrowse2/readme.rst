@@ -30,17 +30,24 @@ From the newly unzipped directory where that file can be found, and with Python3
 
 will open the preconfigured browser using the default web browser application.
 
+That webserver code is separately under the Apache 2 license copied in this repository. See below for this code's MIT license.
+
 History
 =======
 
 - 2.10.0+galaxy2
 
     - UPDATED existing JBrowse1.16.11 code to JBrowse 2.10.0
+    - was working well enough for VGP when previous PR discovered
+        - too late to backport all the fixes
+        - working default session and some other ideas copied instead.
     - seems to work well with defaults.
     - need to document and implement track settings by running the browser locally.
     - works well enough to be useful in workflows such as TreeValGal.
     - JB2 seems to set defaults wisely.
     - not yet ideal for users who need fine grained track control.
+    - synteny (paf + reference) now working
+    - rehomed at https://github.com/fubar2/temporary-tools/tree/master/jbrowse2 while IUC reviews are slowly sorted out.
 
 
 Wrapper License (MIT/BSD Style)
