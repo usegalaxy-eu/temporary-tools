@@ -18,7 +18,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("jbrowse")
 
-JB2VER = "v2.10.0"
+JB2VER = "v2.10.1"
 # version pinned for cloning
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -375,7 +375,6 @@ def metadata_from_node(node):
 
 class JbrowseConnector(object):
     def __init__(self, outdir, genomes):
-        self.usejson = True
         self.giURL = GALAXY_INFRASTRUCTURE_URL
         self.outdir = outdir
         os.makedirs(self.outdir, exist_ok=True)
@@ -459,10 +458,10 @@ class JbrowseConnector(object):
                 self.genome_name = (
                     genome_name  # first one for all tracks - other than paf
                 )
-            if self.config_json.get("assemblies", None):
-                self.config_json["assemblies"] += assemblies
-            else:
-                self.config_json["assemblies"] = assemblies
+        if self.config_json.get("assemblies", None):
+            self.config_json["assemblies"] += assemblies
+        else:
+            self.config_json["assemblies"] = assemblies
 
     def make_assembly(self, fapath, gname):
         hashData = [
@@ -728,6 +727,14 @@ class JbrowseConnector(object):
         os.unlink(gff3)
 
     def add_bigwig(self, data, trackData):
+        """ "type": "LinearWiggleDisplay",
+        "configuration": {},
+        "selectedRendering": "",
+        "resolution": 1,
+        "posColor": "rgb(228, 26, 28)",
+        "negColor": "rgb(255, 255, 51)",
+        "constraints": {}
+        """
         url = "%s.bigwig" % trackData["label"]
         # slashes in names cause path trouble
         dest = os.path.join(self.outdir, url)
@@ -757,7 +764,7 @@ class JbrowseConnector(object):
         trackDict["style"] = style_json
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
-        logging.debug("#### wig trackData=%s" % str(trackData))
+        logging.info("#### wig trackData=%s" % str(trackData))
 
     def add_bam(self, data, trackData, bamOpts, bam_index=None, **kwargs):
         tId = trackData["label"]
@@ -931,12 +938,12 @@ class JbrowseConnector(object):
             },
             "displays": [
                 {
-                    "type": "LinearPileupDisplay",
-                    "displayId": "%s-LinearPileupDisplay" % tId,
-                },
-                {
                     "type": "LinearBasicDisplay",
                     "displayId": "%s-LinearBasicDisplay" % tId,
+                },
+                {
+                    "type": "LinearPileupDisplay",
+                    "displayId": "%s-LinearPileupDisplay" % tId,
                 },
                 {"type": "LinearArcDisplay", "displayId": "%s-LinearArcDisplay" % tId},
             ],
@@ -950,11 +957,11 @@ class JbrowseConnector(object):
         tname = trackData["name"]
         tId = trackData["label"]
         pgname = pafOpts["genome_label"]
-        if len(pgname.split() > 1):
+        if len(pgname.split()) > 1:
             pgname = pgname.split()[
                 0
             ]  # trouble from spacey names in command lines avoidance
-        asstrack, gname = self.make_assembly(pafOpts["genome"], pgname)
+        asstrack = self.make_assembly(pafOpts["genome"], pgname)
         self.genome_names.append(pgname)
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"].append(asstrack)
@@ -962,7 +969,6 @@ class JbrowseConnector(object):
             self.config_json["assemblies"] = [
                 asstrack,
             ]
-
         url = "%s.paf" % (trackData["label"])
         dest = "%s/%s" % (self.outdir, url)
         self.symlink_or_copy(os.path.realpath(data), dest)
@@ -976,6 +982,16 @@ class JbrowseConnector(object):
                 "pafLocation": {"uri": url},
                 "assemblyNames": [self.genome_name, pgname],
             },
+            # "displays": [
+                # {
+                    # "type": "LinearSyntenyDisplay",
+                    # "displayId": "%s-LinearSyntenyDisplay" % tId,
+                # },
+                # {
+                    # "type": "DotPlotDisplay",
+                    # "displayId": "%s-DotPlotDisplay" % tId,
+                # },
+            # ],
         }
         style_json = self._prepare_track_style(trackDict)
         trackDict["style"] = style_json
@@ -1131,6 +1147,10 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext == "vcf":
                 self.add_vcf(dataset_path, outputTrackConfig)
+            elif dataset_ext == "paf":
+                self.add_paf(
+                    dataset_path, outputTrackConfig, track["conf"]["options"]["synteny"]
+                )
             else:
                 log.warn("Do not know how to handle %s", dataset_ext)
             # Return non-human label for use in other fields
@@ -1148,6 +1168,8 @@ class JbrowseConnector(object):
         track_types = {}
         with open(self.config_json_file, "r") as config_file:
             config_json = json.load(config_file)
+        if self.config_json:
+            config_json.update(self.config_json)
 
         for track_conf in self.tracksToAdd:
             track_types[track_conf["trackId"]] = track_conf["type"]
@@ -1173,15 +1195,25 @@ class JbrowseConnector(object):
 
         refName = None
         if data.get("defaultLocation", ""):
-            loc_match = re.search(r"^(\w+):(\d+)\.+(\d+)$", data["defaultLocation"])
+            ddl = data["defaultLocation"]
+            loc_match = re.search(
+                r"^([^:]+):(\d+)\.+(\d+)$", ddl
+            )
             if loc_match:
                 refName = loc_match.group(1)
                 start = int(loc_match.group(2))
                 end = int(loc_match.group(3))
+            else:
+                logging.info(
+                    "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
+                    % ddl
+                )
         elif self.genome_name is not None:
-            refName = self.genome_name
             start = 0
             end = 10000  # Booh, hard coded! waiting for https://github.com/GMOD/jbrowse-components/issues/2708
+            logging.info(
+                "@@@ no defaultlocation found for default session - please add one"
+            )
 
         if refName is not None:
             # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
@@ -1195,8 +1227,17 @@ class JbrowseConnector(object):
                 }
             ]
 
+            logging.info(
+                "@@@ defaultlocation %s for default session"
+                % view_json["displayedRegions"]
+            )
+        else:
+            logging.info(
+                "@@@ no contig name found for default session - please add one!"
+            )
         session_name = data.get("session_name", "New session")
-
+        for key, value in mapped_chars.items():
+            session_name = session_name.replace(value, key)
         # Merge with possibly existing defaultSession (if upgrading a jbrowse instance)
         session_json = {}
         if "defaultSession" in config_json:
@@ -1210,9 +1251,10 @@ class JbrowseConnector(object):
         session_json["views"].append(view_json)
 
         config_json["defaultSession"] = session_json
+        self.config_json.update(config_json)
 
         with open(self.config_json_file, "w") as config_file:
-            json.dump(config_json, config_file, indent=2)
+            json.dump(self.config_json, config_file, indent=2)
 
     def add_general_configuration(self, data):
         """
@@ -1220,11 +1262,13 @@ class JbrowseConnector(object):
         """
 
         config_path = self.config_json_file
-        config_json = {}
         if os.path.exists(config_path):
             with open(config_path, "r") as config_file:
                 config_json = json.load(config_file)
-
+        else:
+            config_json = {}
+        if self.config_json:
+            config_json.update(self.config_json)
         config_data = {}
 
         config_data["disableAnalytics"] = data.get("analytics", "false") == "true"
@@ -1241,9 +1285,9 @@ class JbrowseConnector(object):
         if not config_json.get("configuration", None):
             config_json["configuration"] = {}
         config_json["configuration"].update(config_data)
-
+        self.config_json.update(config_json)
         with open(config_path, "w") as config_file:
-            json.dump(config_json, config_file, indent=2)
+            json.dump(self.config_json, config_file, indent=2)
 
     def clone_jbrowse(self):
         """Clone a JBrowse directory into a destination directory."""
@@ -1384,6 +1428,15 @@ if __name__ == "__main__":
             }
 
         track_conf["conf"] = etree_to_dict(track.find("options"))
+        track_conf["category"] = track.attrib["cat"]
+        track_conf["format"] = track.attrib["format"]
+        try:
+            # Only pertains to gff3 + blastxml. TODO?
+            track_conf["style"] = {t.tag: t.text for t in track.find("options/style")}
+        except TypeError:
+            track_conf["style"] = {}
+            pass
+        track_conf["conf"] = etree_to_dict(track.find("options"))
         keys = jc.process_annotations(track_conf)
 
         if keys:
@@ -1399,36 +1452,26 @@ if __name__ == "__main__":
                     default_session_data["style_labels"][key] = track_conf.get(
                         "style_labels", None
                     )
-
-        default_session_data["defaultLocation"] = root.find(
-            "metadata/general/defaultLocation"
-        ).text
-        default_session_data["session_name"] = root.find(
-            "metadata/general/session_name"
-        ).text
-
-        general_data = {
-            "analytics": root.find("metadata/general/analytics").text,
-            "primary_color": root.find("metadata/general/primary_color").text,
-            "secondary_color": root.find("metadata/general/secondary_color").text,
-            "tertiary_color": root.find("metadata/general/tertiary_color").text,
-            "quaternary_color": root.find("metadata/general/quaternary_color").text,
-            "font_size": root.find("metadata/general/font_size").text,
-        }
-        track_conf["category"] = track.attrib["cat"]
-        track_conf["format"] = track.attrib["format"]
-        try:
-            # Only pertains to gff3 + blastxml. TODO?
-            track_conf["style"] = {t.tag: t.text for t in track.find("options/style")}
-        except TypeError:
-            track_conf["style"] = {}
-            pass
-        track_conf["conf"] = etree_to_dict(track.find("options"))
-        jc.add_general_configuration(general_data)
-    x = open(args.xml, "r").read()
-    jc.config_json["tracks"] = jc.tracksToAdd
-    if jc.usejson:
-        jc.write_config()
+    default_session_data["defaultLocation"] = root.find(
+        "metadata/general/defaultLocation"
+    ).text
+    default_session_data["session_name"] = root.find(
+        "metadata/general/session_name"
+    ).text
+    general_data = {
+        "analytics": root.find("metadata/general/analytics").text,
+        "primary_color": root.find("metadata/general/primary_color").text,
+        "secondary_color": root.find("metadata/general/secondary_color").text,
+        "tertiary_color": root.find("metadata/general/tertiary_color").text,
+        "quaternary_color": root.find("metadata/general/quaternary_color").text,
+        "font_size": root.find("metadata/general/font_size").text,
+    }
+    jc.add_general_configuration(general_data)
+    trackconf = jc.config_json.get("tracks", None)
+    if trackconf:
+        jc.config_json["tracks"].update(jc.tracksToAdd)
+    else:
+        jc.config_json["tracks"] = jc.tracksToAdd
+    jc.write_config()
     jc.add_default_session(default_session_data)
-
     # jc.text_index() not sure what broke here.
