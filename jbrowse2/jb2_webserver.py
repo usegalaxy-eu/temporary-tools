@@ -169,7 +169,9 @@ if __name__ == "__main__":
         help=f"Port to listen on (default: {DEFAULT_PORT})",
     )
     parser.add_argument(
-        "--bind", default="0.0.0.0", help="IP address to bind to (default: 0.0.0.0)"
+        "--bind",
+        default="0.0.0.0",
+        help="IP address to bind to (default: 0.0.0.0)",
     )
     args = parser.parse_args()
 

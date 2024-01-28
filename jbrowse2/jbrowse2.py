@@ -458,6 +458,10 @@ class JbrowseConnector(object):
                 self.genome_name = (
                     genome_name  # first one for all tracks - other than paf
                 )
+                self.genome_firstcontig = None
+                fl = open(fapath, "r").readline().strip().split(">", 1)
+                if len(fl) > 1:
+                    self.genome_firstcontig = fl[1].strip()
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
@@ -560,7 +564,7 @@ class JbrowseConnector(object):
         # can be served - if public.
         # dsId = trackData["metadata"]["dataset_id"]
         # url = "%s/api/datasets/%s/display?to_ext=hic " % (self.giURL, dsId)
-        hname = trackData["label"]
+        hname = trackData["name"]
         dest = os.path.join(self.outdir, hname)
         cmd = ["cp", data, dest]
         # these can be very big.
@@ -648,7 +652,10 @@ class JbrowseConnector(object):
                     "type": "LinearBasicDisplay",
                     "displayId": "%s-LinearBasicDisplay" % tId,
                 },
-                {"type": "LinearArcDisplay", "displayId": "%s-LinearArcDisplay" % tId},
+                {
+                    "type": "LinearArcDisplay",
+                    "displayId": "%s-LinearArcDisplay" % tId,
+                },
             ],
         }
         style_json = self._prepare_track_style(trackDict)
@@ -717,7 +724,10 @@ class JbrowseConnector(object):
                     "type": "LinearBasicDisplay",
                     "displayId": "%s-LinearBasicDisplay" % tId,
                 },
-                {"type": "LinearArcDisplay", "displayId": "%s-LinearArcDisplay" % tId},
+                {
+                    "type": "LinearArcDisplay",
+                    "displayId": "%s-LinearArcDisplay" % tId,
+                },
             ],
         }
         style_json = self._prepare_track_style(trackDict)
@@ -906,7 +916,10 @@ class JbrowseConnector(object):
                     "type": "LinearBasicDisplay",
                     "displayId": "%s-LinearBasicDisplay" % tId,
                 },
-                {"type": "LinearArcDisplay", "displayId": "%s-LinearArcDisplay" % tId},
+                {
+                    "type": "LinearArcDisplay",
+                    "displayId": "%s-LinearArcDisplay" % tId,
+                },
             ],
         }
         style_json = self._prepare_track_style(trackDict)
@@ -945,7 +958,10 @@ class JbrowseConnector(object):
                     "type": "LinearPileupDisplay",
                     "displayId": "%s-LinearPileupDisplay" % tId,
                 },
-                {"type": "LinearArcDisplay", "displayId": "%s-LinearArcDisplay" % tId},
+                {
+                    "type": "LinearArcDisplay",
+                    "displayId": "%s-LinearArcDisplay" % tId,
+                },
             ],
         }
         style_json = self._prepare_track_style(trackDict)
@@ -983,14 +999,14 @@ class JbrowseConnector(object):
                 "assemblyNames": [self.genome_name, pgname],
             },
             # "displays": [
-                # {
-                    # "type": "LinearSyntenyDisplay",
-                    # "displayId": "%s-LinearSyntenyDisplay" % tId,
-                # },
-                # {
-                    # "type": "DotPlotDisplay",
-                    # "displayId": "%s-DotPlotDisplay" % tId,
-                # },
+            # {
+            # "type": "LinearSyntenyDisplay",
+            # "displayId": "%s-LinearSyntenyDisplay" % tId,
+            # },
+            # {
+            # "type": "DotPlotDisplay",
+            # "displayId": "%s-DotPlotDisplay" % tId,
+            # },
             # ],
         }
         style_json = self._prepare_track_style(trackDict)
@@ -1143,13 +1159,17 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext == "blastxml":
                 self.add_blastxml(
-                    dataset_path, outputTrackConfig, track["conf"]["options"]["blast"]
+                    dataset_path,
+                    outputTrackConfig,
+                    track["conf"]["options"]["blast"],
                 )
             elif dataset_ext == "vcf":
                 self.add_vcf(dataset_path, outputTrackConfig)
             elif dataset_ext == "paf":
                 self.add_paf(
-                    dataset_path, outputTrackConfig, track["conf"]["options"]["synteny"]
+                    dataset_path,
+                    outputTrackConfig,
+                    track["conf"]["options"]["synteny"],
                 )
             else:
                 log.warn("Do not know how to handle %s", dataset_ext)
@@ -1194,43 +1214,42 @@ class JbrowseConnector(object):
         view_json = {"type": "LinearGenomeView", "tracks": tracks_data}
 
         refName = None
+        drdict = {
+            "reversed": False,
+            "assemblyName": self.genome_name,
+            "start": 0,
+            "end": 100000,
+        }
+
         if data.get("defaultLocation", ""):
             ddl = data["defaultLocation"]
-            loc_match = re.search(
-                r"^([^:]+):(\d+)\.+(\d+)$", ddl
-            )
+            loc_match = re.search(r"^([^:]+):(\d*)\.*(\d*)$", ddl)
             if loc_match:
                 refName = loc_match.group(1)
-                start = int(loc_match.group(2))
-                end = int(loc_match.group(3))
+                drdict["refName"] = refName
+                if loc_match.group(2) > "":
+                    drdict["start"] = int(loc_match.group(2))
+                if loc_match.group(3) > "":
+                    drdict["end"] = int(loc_match.group(3))
             else:
                 logging.info(
                     "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
                     % ddl
                 )
-        elif self.genome_name is not None:
-            start = 0
-            end = 10000  # Booh, hard coded! waiting for https://github.com/GMOD/jbrowse-components/issues/2708
+        elif self.genome_firstcontig is not None:
+            drdict["refName"] = self.genome_firstcontig
             logging.info(
-                "@@@ no defaultlocation found for default session - please add one"
+                "@@@ no defaultlocation found for default session - using %s as first contig found"
+                % self.genome_firstcontig
             )
 
-        if refName is not None:
+        if drdict.get("refName", None):
             # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
             view_json["displayedRegions"] = [
-                {
-                    "refName": refName,
-                    "start": start,
-                    "end": end,
-                    "reversed": False,
-                    "assemblyName": self.genome_name,
-                }
+                drdict,
             ]
 
-            logging.info(
-                "@@@ defaultlocation %s for default session"
-                % view_json["displayedRegions"]
-            )
+            logging.info("@@@ defaultlocation %s for default session" % drdict)
         else:
             logging.info(
                 "@@@ no contig name found for default session - please add one!"
@@ -1307,12 +1326,19 @@ class JbrowseConnector(object):
         ]:
             cmd = ["rm", "-rf", os.path.join(self.outdir, fn)]
             self.subprocess_check_call(cmd)
-        cmd = ["cp", os.path.join(INSTALLED_TO, "jb2_webserver.py"), self.outdir]
+        cmd = [
+            "cp",
+            os.path.join(INSTALLED_TO, "jb2_webserver.py"),
+            self.outdir,
+        ]
         self.subprocess_check_call(cmd)
 
 
 def parse_style_conf(item):
-    if "type" in item.attrib and item.attrib["type"] in ["boolean", "integer"]:
+    if "type" in item.attrib and item.attrib["type"] in [
+        "boolean",
+        "integer",
+    ]:
         if item.attrib["type"] == "boolean":
             return item.text in ("yes", "true", "True")
         elif item.attrib["type"] == "integer":
@@ -1379,7 +1405,10 @@ if __name__ == "__main__":
             for x in track.findall("files/trackFile"):
                 if is_multi_bigwig:
                     multi_bigwig_paths.append(
-                        (x.attrib["label"], os.path.realpath(x.attrib["path"]))
+                        (
+                            x.attrib["label"],
+                            os.path.realpath(x.attrib["path"]),
+                        )
                     )
                 else:
                     if trackfiles:
