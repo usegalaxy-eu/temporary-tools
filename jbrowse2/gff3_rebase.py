@@ -65,7 +65,10 @@ def feature_lambda(feature_list, test, test_kwargs, subfeatures=True):
 
         if hasattr(feature, "sub_features"):
             for x in feature_lambda(
-                feature.sub_features, test, test_kwargs, subfeatures=subfeatures
+                feature.sub_features,
+                test,
+                test_kwargs,
+                subfeatures=subfeatures,
             ):
                 yield x
 
@@ -197,7 +200,9 @@ if __name__ == "__main__":
         help="Child GFF3 annotations to rebase against parent",
     )
     parser.add_argument(
-        "--interpro", action="store_true", help="Interpro specific modifications"
+        "--interpro",
+        action="store_true",
+        help="Interpro specific modifications",
     )
     parser.add_argument(
         "--protein2dna",

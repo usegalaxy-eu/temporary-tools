@@ -16,7 +16,9 @@ blast hits. This tool aims to fill that "gap".
 """
 
 
-def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=False):
+def blastxml2gff3(
+    blastxml, min_gap=3, trim=False, trim_end=False, include_seq=False
+):
     from Bio.Blast import NCBIXML
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
@@ -32,7 +34,7 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
 
         recid = record.query
         if " " in recid:
-            recid = recid[0: recid.index(" ")]
+            recid = recid[0 : recid.index(" ")]
 
         rec = SeqRecord(Seq("ACTG"), id=recid)
         for idx_hit, hit in enumerate(record.alignments):
@@ -72,7 +74,7 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
                     qualifiers["blast_" + prop] = getattr(hsp, prop, None)
 
                 desc = hit.title.split(" >")[0]
-                qualifiers["description"] = desc[desc.index(" "):]
+                qualifiers["description"] = desc[desc.index(" ") :]
 
                 # This required a fair bit of sketching out/match to figure out
                 # the first time.
@@ -84,7 +86,9 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
                 # may be longer than the parent feature, so we use the supplied
                 # subject/hit length to calculate the real ending of the target
                 # protein.
-                parent_match_end = hsp.query_start + hit.length + hsp.query.count("-")
+                parent_match_end = (
+                    hsp.query_start + hit.length + hsp.query.count("-")
+                )
 
                 # If we trim the left end, we need to trim without losing information.
                 used_parent_match_start = parent_match_start
@@ -98,7 +102,9 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
 
                 # The ``match`` feature will hold one or more ``match_part``s
                 top_feature = SeqFeature(
-                    SimpleLocation(used_parent_match_start, parent_match_end, strand=0),
+                    SimpleLocation(
+                        used_parent_match_start, parent_match_end, strand=0
+                    ),
                     type=match_type,
                     qualifiers=qualifiers,
                 )
@@ -114,10 +120,14 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
                     )
                 ):
                     part_qualifiers["Gap"] = cigar
-                    part_qualifiers["ID"] = qualifiers["ID"] + (".%s" % idx_part)
+                    part_qualifiers["ID"] = qualifiers["ID"] + (
+                        ".%s" % idx_part
+                    )
 
                     # Otherwise, we have to account for the subject start's location
-                    match_part_start = parent_match_start + hsp.sbjct_start + start - 1
+                    match_part_start = (
+                        parent_match_start + hsp.sbjct_start + start - 1
+                    )
 
                     # We used to use hsp.align_length here, but that includes
                     # gaps in the parent sequence
@@ -128,7 +138,9 @@ def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=F
 
                     top_feature.sub_features.append(
                         SeqFeature(
-                            SimpleLocation(match_part_start, match_part_end, strand=1),
+                            SimpleLocation(
+                                match_part_start, match_part_end, strand=1
+                            ),
                             type="match_part",
                             qualifiers=copy.deepcopy(part_qualifiers),
                         )
@@ -161,9 +173,9 @@ def __remove_query_gaps(query, match, subject):
     fm = ""
     fs = ""
     for position in re.finditer("-", query):
-        fq += query[prev: position.start()]
-        fm += match[prev: position.start()]
-        fs += subject[prev: position.start()]
+        fq += query[prev : position.start()]
+        fm += match[prev : position.start()]
+        fs += subject[prev : position.start()]
         prev = position.start() + 1
     fq += query[prev:]
     fm += match[prev:]
@@ -202,7 +214,11 @@ def generate_parts(query, match, subject, ignore_under=3):
         region_m.append(m)
         region_s.append(s)
 
-        if mismatch_count >= ignore_under and region_start != -1 and region_end != -1:
+        if (
+            mismatch_count >= ignore_under
+            and region_start != -1
+            and region_end != -1
+        ):
             region_q = region_q[0:-ignore_under]
             region_m = region_m[0:-ignore_under]
             region_s = region_s[0:-ignore_under]
@@ -238,7 +254,9 @@ def _qms_to_matches(query, match, subject, strict_m=True):
             else:
                 ret = "X"
         else:
-            log.warn("Bad data: \n\t%s\n\t%s\n\t%s\n" % (query, match, subject))
+            log.warn(
+                "Bad data: \n\t%s\n\t%s\n\t%s\n" % (query, match, subject)
+            )
 
         if strict_m:
             if ret == "=" or ret == "X":
@@ -290,9 +308,13 @@ if __name__ == "__main__":
         help="Trim blast hits to be only as long as the parent feature",
     )
     parser.add_argument(
-        "--trim_end", action="store_true", help="Cut blast results off at end of gene"
+        "--trim_end",
+        action="store_true",
+        help="Cut blast results off at end of gene",
     )
-    parser.add_argument("--include_seq", action="store_true", help="Include sequence")
+    parser.add_argument(
+        "--include_seq", action="store_true", help="Include sequence"
+    )
     args = parser.parse_args()
 
     for rec in blastxml2gff3(**vars(args)):

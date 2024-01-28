@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_1" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@.1" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -781,38 +781,36 @@ JBrowse installations straight from Galaxy. It allows you to build up a JBrowse 
 about how to run the command line tools to format your data, and which
 options need to be supplied and where.
 
-The JBrowse-in-Galaxy tool is maintained by `the Galaxy IUC
-<https://github.com/galaxyproject/tools-iuc/issues>`__, who you can help you
+The JBrowse-in-Galaxy tool has been rejected by `a Galaxy IUC
+<https://github.com/galaxyproject/tools-iuc/issues>`__, reviewer.
+It is maintained by who you can help you
 with missing features or bugs in the tool.
 
 Options
 -------
 
-The first option you encounter is the **Reference sequence(s)** to use. This option
-now accepts multiple fasta files, allowing you to build JBrowse2
-instances that contain data for multiple genomes or chrosomomes
-(generally known as "landmark features" in gff3 terminology.)
+**Reference or Assembly**
 
-**Track Groups** represent a set of tracks in a single category. These
-can be used to let your users understand relationships between large
-groups of tracks.
+Choose either a built-in or select one from your history.
+
+Track coordinates and contig names *must* match this reference precisely
+or they will not display.
+
+**Track Groups** represent a set of tracks in a single category.
 
 Annotation Tracks
 -----------------
 
-There are a few different types of tracks supported, each with their own
-set of options:
-
 GFF3/BED
 ~~~~~~~~
 
-These are standard feature tracks. They usually highlight genes,
-mRNAs and other features of interest along a genomic region.
+Standard feature tracks. They usually highlight genes, mRNAs and other features of interest along a genomic region.
 
 When these contain tens of millions of features, such as repeat regions from a VGP assembly, displaying one at a time leads
 to extremely slow loading times when a large region is in view, unless the "LinearPileupDisplay" display option is
 selected for that track in the styling options section. The default is LinearBasicDisplay, which shows all details and works
-well for relatively sparse bed files.
+well for relatively sparse bed files. A better option is to make a bigwig track using a set of windows based on the
+lengths of each assembly or reference contig.
 
 BAM Pileups
 ~~~~~~~~~~~

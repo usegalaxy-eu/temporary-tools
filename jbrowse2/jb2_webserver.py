@@ -44,7 +44,9 @@ from http.server import SimpleHTTPRequestHandler
 DEFAULT_PORT = 8080
 
 
-def copy_byte_range(infile, outfile, start=None, stop=None, bufsize=16 * 1024):
+def copy_byte_range(
+    infile, outfile, start=None, stop=None, bufsize=16 * 1024
+):
     """Like shutil.copyfileobj, but only copy a range of the streams.
 
     Both start and stop are inclusive.
@@ -129,7 +131,9 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             last = file_len - 1
         response_length = last - first + 1
 
-        self.send_header("Content-Range", "bytes %s-%s/%s" % (first, last, file_len))
+        self.send_header(
+            "Content-Range", "bytes %s-%s/%s" % (first, last, file_len)
+        )
         self.send_header("Content-Length", str(response_length))
         self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
         self.end_headers()
@@ -169,7 +173,9 @@ if __name__ == "__main__":
         help=f"Port to listen on (default: {DEFAULT_PORT})",
     )
     parser.add_argument(
-        "--bind", default="0.0.0.0", help="IP address to bind to (default: 0.0.0.0)"
+        "--bind",
+        default="0.0.0.0",
+        help="IP address to bind to (default: 0.0.0.0)",
     )
     args = parser.parse_args()
 
