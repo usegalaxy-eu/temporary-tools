@@ -16,9 +16,7 @@ blast hits. This tool aims to fill that "gap".
 """
 
 
-def blastxml2gff3(
-    blastxml, min_gap=3, trim=False, trim_end=False, include_seq=False
-):
+def blastxml2gff3(blastxml, min_gap=3, trim=False, trim_end=False, include_seq=False):
     from Bio.Blast import NCBIXML
     from Bio.Seq import Seq
     from Bio.SeqRecord import SeqRecord
@@ -86,9 +84,7 @@ def blastxml2gff3(
                 # may be longer than the parent feature, so we use the supplied
                 # subject/hit length to calculate the real ending of the target
                 # protein.
-                parent_match_end = (
-                    hsp.query_start + hit.length + hsp.query.count("-")
-                )
+                parent_match_end = hsp.query_start + hit.length + hsp.query.count("-")
 
                 # If we trim the left end, we need to trim without losing information.
                 used_parent_match_start = parent_match_start
@@ -102,9 +98,7 @@ def blastxml2gff3(
 
                 # The ``match`` feature will hold one or more ``match_part``s
                 top_feature = SeqFeature(
-                    SimpleLocation(
-                        used_parent_match_start, parent_match_end, strand=0
-                    ),
+                    SimpleLocation(used_parent_match_start, parent_match_end, strand=0),
                     type=match_type,
                     qualifiers=qualifiers,
                 )
@@ -120,14 +114,10 @@ def blastxml2gff3(
                     )
                 ):
                     part_qualifiers["Gap"] = cigar
-                    part_qualifiers["ID"] = qualifiers["ID"] + (
-                        ".%s" % idx_part
-                    )
+                    part_qualifiers["ID"] = qualifiers["ID"] + (".%s" % idx_part)
 
                     # Otherwise, we have to account for the subject start's location
-                    match_part_start = (
-                        parent_match_start + hsp.sbjct_start + start - 1
-                    )
+                    match_part_start = parent_match_start + hsp.sbjct_start + start - 1
 
                     # We used to use hsp.align_length here, but that includes
                     # gaps in the parent sequence
@@ -138,9 +128,7 @@ def blastxml2gff3(
 
                     top_feature.sub_features.append(
                         SeqFeature(
-                            SimpleLocation(
-                                match_part_start, match_part_end, strand=1
-                            ),
+                            SimpleLocation(match_part_start, match_part_end, strand=1),
                             type="match_part",
                             qualifiers=copy.deepcopy(part_qualifiers),
                         )
@@ -214,11 +202,7 @@ def generate_parts(query, match, subject, ignore_under=3):
         region_m.append(m)
         region_s.append(s)
 
-        if (
-            mismatch_count >= ignore_under
-            and region_start != -1
-            and region_end != -1
-        ):
+        if mismatch_count >= ignore_under and region_start != -1 and region_end != -1:
             region_q = region_q[0:-ignore_under]
             region_m = region_m[0:-ignore_under]
             region_s = region_s[0:-ignore_under]
@@ -254,9 +238,7 @@ def _qms_to_matches(query, match, subject, strict_m=True):
             else:
                 ret = "X"
         else:
-            log.warn(
-                "Bad data: \n\t%s\n\t%s\n\t%s\n" % (query, match, subject)
-            )
+            log.warn("Bad data: \n\t%s\n\t%s\n\t%s\n" % (query, match, subject))
 
         if strict_m:
             if ret == "=" or ret == "X":
@@ -312,9 +294,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Cut blast results off at end of gene",
     )
-    parser.add_argument(
-        "--include_seq", action="store_true", help="Include sequence"
-    )
+    parser.add_argument("--include_seq", action="store_true", help="Include sequence")
     args = parser.parse_args()
 
     for rec in blastxml2gff3(**vars(args)):
