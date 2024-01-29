@@ -1,6 +1,7 @@
+import argparse
 import os
 
-from jbrowse2 import jbrowseConnector
+from jbrowse2 import jbrowseConnector as jbC
 
 
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
         genome_paths = [f.path for f in dirList if f.name.startswith('genome') and f.is_file()]
         if len(genome_paths) > 0:
             genome_fnames = [os.path.basename(x).split('_')[2:] for x in genome_paths]  # expect genome_1_genomename.fasta etc
-            jc = JbrowseConnector(
+            jc = jbC(
                 outdir=args.outdir,
                 genomes=[
                     {

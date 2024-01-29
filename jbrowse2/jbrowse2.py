@@ -1089,7 +1089,7 @@ class JbrowseConnector(object):
             else:
                 rest_url = ""
             outputTrackConfig["trackset"] = track.get("trackset", {})
-            outputTrackConfig["label"] = '%s_%i_%s" % (dataset_ext, i, track_human_label)
+            outputTrackConfig["label"] = "%s_%i_%s" % (dataset_ext, i, track_human_label)
             outputTrackConfig["metadata"] = extra_metadata
             outputTrackConfig["name"] = track_human_label
 
