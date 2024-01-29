@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@.1" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_2" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -186,6 +186,7 @@ cp '$output.files_path/index.html' '$output'
 </root>
 ]]></configfile>
     </configfiles>
+
     <inputs>
         <conditional name="reference_genome">
             <param help="Built-in references" label="Reference genome to display" name="genome_type_select" type="select">
