@@ -3,7 +3,6 @@
 import argparse
 import binascii
 import datetime
-import hashlib
 import json
 import logging
 import os
@@ -468,13 +467,8 @@ class JbrowseConnector(object):
             self.config_json["assemblies"] = assemblies
 
     def make_assembly(self, fapath, gname):
-        hashData = [
-            fapath,
-            gname,
-        ]
-        hashData = "|".join(hashData).encode("utf-8")
-        ghash = hashlib.md5(hashData).hexdigest()
-        faname = ghash + ".fa.gz"
+
+        faname = gname + ".fa.gz"
         fadest = os.path.join(self.outdir, faname)
         cmd = "bgzip -i -c %s -I %s.gzi > %s && samtools faidx %s" % (
             fapath,
@@ -1095,18 +1089,7 @@ class JbrowseConnector(object):
             else:
                 rest_url = ""
             outputTrackConfig["trackset"] = track.get("trackset", {})
-            # I chose to use track['category'] instead of 'category' here. This
-            # is intentional. This way re-running the tool on a different date
-            # will not generate different hashes and make comparison of outputs
-            # much simpler.
-            hashData = [
-                str(dataset_path),
-                track_human_label,
-                track["category"],
-                rest_url,
-            ]
-            hashData = "|".join(hashData).encode("utf-8")
-            outputTrackConfig["label"] = hashlib.md5(hashData).hexdigest() + "_%s" % i
+            outputTrackConfig["label"] = '%s_%i_%s" % (dataset_ext, i, track_human_label)
             outputTrackConfig["metadata"] = extra_metadata
             outputTrackConfig["name"] = track_human_label
 
