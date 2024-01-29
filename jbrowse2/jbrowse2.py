@@ -819,10 +819,10 @@ class JbrowseConnector(object):
 
     def add_vcf(self, data, trackData):
         tId = trackData["label"]
-        url = "%s/api/datasets/%s/display" % (
-            self.giURL,
-            trackData["metadata"]["dataset_id"],
-        )
+        # url = "%s/api/datasets/%s/display" % (
+            # self.giURL,
+            # trackData["metadata"]["dataset_id"],
+        # )
         url = "%s.vcf.gz" % tId
         dest = "%s/%s" % (self.outdir, url)
         cmd = "bgzip -c %s  > %s" % (data, dest)
@@ -1336,7 +1336,6 @@ if __name__ == "__main__":
     parser.add_argument("--outdir", help="Output directory", default="out")
     parser.add_argument("--version", "-V", action="version", version="%(prog)s 2.0.1")
     args = parser.parse_args()
-
     tree = ET.parse(args.xml)
     root = tree.getroot()
 
