@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_2" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_3" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -31,17 +31,20 @@ cp '$output.files_path/index.html' '$output'
     <metadata>
         <genomes>
             #if str($reference_genome.genome_type_select) == "indexed":
-              <genome path="${reference_genome.genomes.fields.path}" label="${reference_genome.genomes.fields.name}">
-                  <metadata />
+              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}">
+                  <metadata>
+                     <dataset
+                      dname = "${reference_genome.genome.name}" />
+                  </metadata>
               </genome>
             #else
-              <genome path="$reference_genome.genome" label="${reference_genome.genome.element_identifier}">
+              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}">
                 <metadata>
                   <dataset id="${__app__.security.encode_id($reference_genome.genome.id)}" hid="${reference_genome.genome.hid}"
                       size="${reference_genome.genome.get_size(nice_size=True)}"
                       edam_format="${reference_genome.genome.datatype.edam_format}"
                       file_ext="${reference_genome.genome.ext}"
-                      dname = "${reference_genome.genome.element_identifier}" />
+                      dname = "${reference_genome.genome.name}" />
                   <history id="${__app__.security.encode_id($reference_genome.genome.history_id)}"
                       #if $reference_genome.genome.history.user:
                       user_email="${reference_genome.genome.history.user.email}"
@@ -165,7 +168,7 @@ cp '$output.files_path/index.html' '$output'
             #else if str($track.data_format.data_format_select) == "synteny":
                 <synteny>
                     <genome>${track.data_format.synteny_genome}</genome>
-                    <genome_label>${track.data_format.synteny_genome.element_identifier}</genome_label>
+                    <genome_label>${track.data_format.synteny_genome.name}</genome_label>
                 </synteny>
             #else if str($track.data_format.data_format_select) == "hic":
                 <hic>
@@ -371,7 +374,7 @@ cp '$output.files_path/index.html' '$output'
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
-        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.element_identifier"/>
+        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.name"/>
     </outputs>
     <tests>
          <test>
