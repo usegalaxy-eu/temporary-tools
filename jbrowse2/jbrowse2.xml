@@ -235,8 +235,8 @@ cp '$output.files_path/index.html' '$output'
                         <option value="gene_calls" selected="true">GFF/GFF3/BED feature track</option>
                         <option value="hic">HiC (compressed binary) track. Existing cool format must be converted to binary hic - hic_matrix will NOT work.</option>
                         <option value="maf">Multiple alignment format track. Reference name must match the MAF name exactly to work correctly</option>
+                        <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
                         <option value="sparql">SPARQL</option>
-                        <option value="synteny">Synteny track with PAF data</option>
                        <option value="vcf">VCF SNP annotation</option>
                     </param>
                     <when value="blast">
@@ -302,7 +302,7 @@ cp '$output.files_path/index.html' '$output'
                         <expand macro="input_conditional" label="BigWig Track Data" format="bigwig" />
                         <expand macro="track_visibility" />
                     </when>
-                    <when value="synteny">
+                    <when value="paf">
                         <param label="Comparison genome sequence" help="Paf must use this as the reference to map the real reference sequence"
                             format="fasta"
                             name="synteny_genome"
