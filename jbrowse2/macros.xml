@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <macros>
-    <token name="@TOOL_VERSION@">2.10.0</token>
+    <token name="@TOOL_VERSION@">2.10.1</token>
     <xml name = "edamInc">
         <edam_topics>
             <edam_topic>topic_3307</edam_topic>
@@ -14,8 +14,8 @@
     <xml name="requirements">
         <requirements>
             <requirement type="package" version="@TOOL_VERSION@">jbrowse2</requirement>
-            <requirement type="package" version="1.82">biopython</requirement>
-            <requirement type="package" version="0.7.0">bcbio-gff</requirement>
+            <requirement type="package" version="1.81">biopython</requirement>
+            <requirement type="package" version="0.7.1">bcbio-gff</requirement>
             <requirement type="package" version="1.19">samtools</requirement>
             <requirement type="package" version="6.0.1">pyyaml</requirement>
             <requirement type="package" version="1.11">tabix</requirement>

@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@.1" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_3" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -31,17 +31,20 @@ cp '$output.files_path/index.html' '$output'
     <metadata>
         <genomes>
             #if str($reference_genome.genome_type_select) == "indexed":
-              <genome path="${reference_genome.genomes.fields.path}" label="${reference_genome.genomes.fields.name}">
-                  <metadata />
+              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}">
+                  <metadata>
+                     <dataset
+                      dname = "${reference_genome.genome.name}" />
+                  </metadata>
               </genome>
             #else
-              <genome path="$reference_genome.genome" label="${reference_genome.genome.element_identifier}">
+              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}">
                 <metadata>
                   <dataset id="${__app__.security.encode_id($reference_genome.genome.id)}" hid="${reference_genome.genome.hid}"
                       size="${reference_genome.genome.get_size(nice_size=True)}"
                       edam_format="${reference_genome.genome.datatype.edam_format}"
                       file_ext="${reference_genome.genome.ext}"
-                      dname = "${reference_genome.genome.element_identifier}" />
+                      dname = "${reference_genome.genome.name}" />
                   <history id="${__app__.security.encode_id($reference_genome.genome.history_id)}"
                       #if $reference_genome.genome.history.user:
                       user_email="${reference_genome.genome.history.user.email}"
@@ -165,7 +168,7 @@ cp '$output.files_path/index.html' '$output'
             #else if str($track.data_format.data_format_select) == "synteny":
                 <synteny>
                     <genome>${track.data_format.synteny_genome}</genome>
-                    <genome_label>${track.data_format.synteny_genome.element_identifier}</genome_label>
+                    <genome_label>${track.data_format.synteny_genome.name}</genome_label>
                 </synteny>
             #else if str($track.data_format.data_format_select) == "hic":
                 <hic>
@@ -186,6 +189,7 @@ cp '$output.files_path/index.html' '$output'
 </root>
 ]]></configfile>
     </configfiles>
+
     <inputs>
         <conditional name="reference_genome">
             <param help="Built-in references" label="Reference genome to display" name="genome_type_select" type="select">
@@ -226,15 +230,15 @@ cp '$output.files_path/index.html' '$output'
                     <param type="select" label="Track Type" name="data_format_select">
                         <option value="pileup">BAM Pileup track</option>
                         <option value="wiggle">BigWig track</option>
-                        <!-- <option value="blast">Blast XML track - converted to GFF</option> -->
+                        <option value="blast">Blast XML track - converted to GFF</option>
                         <option value="cram">CRAM</option>
                         <option value="gene_calls" selected="true">GFF/GFF3/BED feature track</option>
                         <option value="hic">HiC (compressed binary) track. Existing cool format must be converted to binary hic - hic_matrix will NOT work.</option>
+                        <option value="maf">Multiple alignment format track. Reference name must match the MAF name exactly to work correctly</option>
+                        <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
                         <option value="sparql">SPARQL</option>
-                        <option value="synteny">Synteny track with PAF data</option>
                        <option value="vcf">VCF SNP annotation</option>
                     </param>
-                    <!--
                     <when value="blast">
                         <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml" />
 
@@ -257,7 +261,7 @@ cp '$output.files_path/index.html' '$output'
                             truevalue="true"
                             falsevalue="false" />
                         <expand macro="track_visibility" />
-                    </when> -->
+                    </when>
                     <when value="vcf">
                         <expand macro="input_conditional" label="SNP Track Data" format="vcf,vcf_bgzip" />
                         <expand macro="track_styling_vcf"/>
@@ -290,24 +294,24 @@ cp '$output.files_path/index.html' '$output'
                         <expand macro="input_conditional" label="CRAM Track Data" format="cram" />
                         <expand macro="track_visibility" />
                     </when>
+                    <when value="maf">
+                        <expand macro="input_conditional" label="MAF Track Data" format="maf" />
+                        <expand macro="track_visibility" />
+                    </when>
                     <when value="wiggle">
                         <expand macro="input_conditional" label="BigWig Track Data" format="bigwig" />
                         <expand macro="track_visibility" />
-
                     </when>
-
-                    <when value="synteny">
+                    <when value="paf">
                         <param label="Comparison genome sequence" help="Paf must use this as the reference to map the real reference sequence"
                             format="fasta"
                             name="synteny_genome"
                             type="data" />
-
                         <expand macro="input_conditional" label="Synteny data" format="paf" help="Make paf with minimap2 mapping real reference onto desired syntenic reference"/>
                         <expand macro="track_visibility" />
                     </when>
 
                     <when value="hic">
-                        <!-- TODO no hic datatype by default, but input for hicConvertFormat? hic_matrix datatype on .eu -->
                         <expand macro="input_conditional" label="HiC data" format="hic" />
                         <expand macro="track_visibility" />
                     </when>
@@ -370,7 +374,7 @@ cp '$output.files_path/index.html' '$output'
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
-        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.element_identifier"/>
+        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.name"/>
     </outputs>
     <tests>
          <test>
