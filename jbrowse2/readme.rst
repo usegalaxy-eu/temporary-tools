@@ -1,8 +1,10 @@
 JBrowse2 in Galaxy
 ==================
 
-    JBrowse2 is a fast, embeddable genome browser built completely with
-    JavaScript and HTML5
+.. image:: jbrowse8.png
+
+JBrowse2 is a fast, embeddable genome browser built completely with
+JavaScript and HTML5
 
 Thus, it makes an ideal fit with Galaxy, especially for use as a
 workflow summary. E.g. annotate a genome, then visualise all of the

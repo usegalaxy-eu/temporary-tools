@@ -303,7 +303,7 @@ cp '$output.files_path/index.html' '$output'
                         <expand macro="track_visibility" />
                     </when>
                     <when value="paf">
-                        <param label="Comparison genome sequence" help="Paf must use this as the reference to map the real reference sequence"
+                        <param label="Comparison genome sequence" help="Paf from this as the reference, using the real reference as the reads to map"
                             format="fasta"
                             name="synteny_genome"
                             type="data" />
