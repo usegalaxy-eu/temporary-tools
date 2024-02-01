@@ -941,7 +941,7 @@ class JbrowseConnector(object):
     def _sort_gff(self, data, dest):
         # Only index if not already done
         if not os.path.exists(dest + ".gz"):
-            cmd = "jbrowse sort-gff %s | bgzip -c > %s.gz" % (
+            cmd = "jbrowse sort-gff '%s' | bgzip -c > '%s.gz'" % (
                 data,
                 dest,
             )  # "gff3sort.pl --precise '%s' | grep -v \"^$\" > '%s'"
@@ -953,7 +953,7 @@ class JbrowseConnector(object):
     def _sort_bed(self, data, dest):
         # Only index if not already done
         if not os.path.exists(dest):
-            cmd = "sort -k1,1 -k2,2n %s | bgzip -c > %s" % (data, dest)
+            cmd = "sort -k1,1 -k2,2n '%s' | bgzip -c > '%s'" % (data, dest)
             self.subprocess_popen(cmd)
             cmd = ["tabix", "-f", "-p", "bed", dest]
             self.subprocess_check_call(cmd)
