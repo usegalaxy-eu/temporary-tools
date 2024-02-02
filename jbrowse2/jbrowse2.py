@@ -1282,7 +1282,7 @@ class JbrowseConnector(object):
 
         if data.get("defaultLocation", ""):
             ddl = data["defaultLocation"]
-            loc_match = re.search(r"^([^:]+):(\d*)\.*(\d*)$", ddl)
+            loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
             if loc_match:
                 refName = loc_match.group(1)
                 drdict["refName"] = refName
