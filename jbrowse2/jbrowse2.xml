@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_3" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_4" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -173,6 +173,9 @@ cp '$output.files_path/index.html' '$output'
             #else if str($track.data_format.data_format_select) == "hic":
                 <hic>
                 </hic>
+            #else if str($track.data_format.data_format_select) == "cool":
+                <cool>
+                </cool>
             #else if str($track.data_format.data_format_select) == "sparql":
                 <label>${track.data_format.label}</label>
                 <sparql>
@@ -231,6 +234,7 @@ cp '$output.files_path/index.html' '$output'
                         <option value="pileup">BAM Pileup track</option>
                         <option value="wiggle">BigWig track</option>
                         <option value="blast">Blast XML track - converted to GFF</option>
+                        <option value="cool">cool/mcool/scool data in hdf5 data</option>
                         <option value="cram">CRAM</option>
                         <option value="gene_calls" selected="true">GFF/GFF3/BED feature track</option>
                         <option value="hic">HiC (compressed binary) track. Existing cool format must be converted to binary hic - hic_matrix will NOT work.</option>
@@ -315,7 +319,10 @@ cp '$output.files_path/index.html' '$output'
                         <expand macro="input_conditional" label="HiC data" format="hic" />
                         <expand macro="track_visibility" />
                     </when>
-
+                    <when value="cool">
+                        <expand macro="input_conditional" label="HiC data in cool/mcool/scool format" format="cool,mcool,scool" />
+                        <expand macro="track_visibility" />
+                    </when>
                     <when value="sparql">
                         <param type="text" label="SPARQL Server URL" name="url" />
                         <param type="text" label="Track Label" name="label" value="SPARQL Genes" />

@@ -1,6 +1,12 @@
 JBrowse2 in Galaxy
 ==================
 
+Added Feb 3: cool/mcool -> hic 
+
+.. image:: dm4_in_jb2.png
+
+Other tracks
+
 .. image:: jbrowse8.png
 
 JBrowse2 is a fast, embeddable genome browser built completely with
