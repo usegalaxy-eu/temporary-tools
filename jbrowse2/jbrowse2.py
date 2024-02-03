@@ -1148,7 +1148,6 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
-                hictempd = tempfile.mkdtemp()
                 hic_path = os.path.join(
                     self.outdir, "%s_%d_%s.hic" % (track_human_label, i, dataset_ext)
                 )
@@ -1159,8 +1158,6 @@ class JbrowseConnector(object):
                         "-f",
                         "--output-fmt",
                         "hic",
-                        "--tmpdir",
-                        hictempd,
                         dataset_path,
                         hic_path,
                     ]
@@ -1169,7 +1166,6 @@ class JbrowseConnector(object):
                     hic_path,
                     outputTrackConfig,
                 )
-                shutil.rmtree(hictempd)
             elif dataset_ext in ("bed",):
                 self.add_bed(
                     dataset_path,
