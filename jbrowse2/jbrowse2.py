@@ -459,9 +459,13 @@ class JbrowseConnector(object):
                     genome_name  # first one for all tracks - other than paf
                 )
                 self.genome_firstcontig = None
-                fl = open(fapath, "r").readline().strip().split(">", 1)
+                fl = open(fapath, "r").readline().strip().split(">")
                 if len(fl) > 1:
-                    self.genome_firstcontig = fl[1].strip()
+                    fl = fl[1]
+                    if len(fl.split()) > 1:
+                        self.genome_firstcontig = fl.split()[0].strip()
+                    else:
+                        self.genome_firstcontig = fl
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
