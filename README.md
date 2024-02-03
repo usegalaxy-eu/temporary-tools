@@ -2,6 +2,8 @@
 
 A largely independent fork of the jbrowse1 tool. 
 
+![image](https://github.com/fubar2/temporary-tools/assets/6016266/11af8cb0-8be9-499a-8fb7-81ca86b42b63)
+
 ![jbrowse8](https://github.com/fubar2/temporary-tools/assets/6016266/14e38190-f3c6-452d-9ad8-e4cd602b656e)
 
 Currently works for:
