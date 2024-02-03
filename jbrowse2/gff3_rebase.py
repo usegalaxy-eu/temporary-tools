@@ -117,7 +117,7 @@ def __update_feature_location(feature, parent, protein2dna):
         start *= 3
         end *= 3
 
-    if parent.location.strand !=None and parent.location.strand >= 0:
+    if parent.location.strand != None and parent.location.strand >= 0:
         ns = parent.location.start + start
         ne = parent.location.start + end
         st = +1
@@ -137,7 +137,7 @@ def __update_feature_location(feature, parent, protein2dna):
     if ne < 0:
         ne %= 3
     if ns > ne:
-        ne, ns = ns, ne # dunno why but sometimes happens
+        ne, ns = ns, ne  # dunno why but sometimes happens
     feature.location = FeatureLocation(ns, ne, strand=st)
 
     if hasattr(feature, "sub_features"):
