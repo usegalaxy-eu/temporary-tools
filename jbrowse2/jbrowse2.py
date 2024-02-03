@@ -1283,9 +1283,9 @@ class JbrowseConnector(object):
                 refName = loc_match.group(1)
                 drdict["refName"] = refName
                 if loc_match.group(2) > "":
-                    drdict["start"] = loc_match.group(2)
+                    drdict["start"] = int(loc_match.group(2).replace(',',''))
                 if loc_match.group(3) > "":
-                    drdict["end"] = loc_match.group(3)
+                    drdict["end"] = int(loc_match.group(3).replace(',',''))
             else:
                 logging.info(
                     "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
