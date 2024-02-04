@@ -1279,6 +1279,7 @@ class JbrowseConnector(object):
         if data.get("defaultLocation", ""):
             ddl = data["defaultLocation"]
             loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
+            # allow commas like 100,000 but ignore as integer
             if loc_match:
                 refName = loc_match.group(1)
                 drdict["refName"] = refName
@@ -1291,12 +1292,6 @@ class JbrowseConnector(object):
                     "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
                     % ddl
                 )
-        elif self.genome_firstcontig is not None:
-            drdict["refName"] = self.genome_firstcontig
-            logging.info(
-                "@@@ no defaultlocation found for default session - using %s as first contig found"
-                % self.genome_firstcontig
-            )
 
         if drdict.get("refName", None):
             # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
