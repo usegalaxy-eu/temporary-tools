@@ -165,11 +165,11 @@ cp '$output.files_path/index.html' '$output'
                     <match>${track.data_format.match_part.name}</match>
                   #end if
                 </gff>
-            #else if str($track.data_format.data_format_select) == "synteny":
-                <synteny>
+            #else if str($track.data_format.data_format_select) == "paf":
+                <paf>
                     <genome>${track.data_format.synteny_genome}</genome>
                     <genome_label>${track.data_format.synteny_genome.name}</genome_label>
-                </synteny>
+                </paf>
             #else if str($track.data_format.data_format_select) == "hic":
                 <hic>
                 </hic>

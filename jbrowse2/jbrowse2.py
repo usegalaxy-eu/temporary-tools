@@ -1224,7 +1224,7 @@ class JbrowseConnector(object):
                 self.add_paf(
                     dataset_path,
                     outputTrackConfig,
-                    track["conf"]["options"]["synteny"],
+                    track["conf"]["options"]["paf"],
                 )
             else:
                 log.warn("Do not know how to handle %s", dataset_ext)
