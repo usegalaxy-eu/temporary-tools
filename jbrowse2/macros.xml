@@ -29,7 +29,7 @@
     <token name="@ATTRIBUTION@"><![CDATA[
 **Attribution**
 This Galaxy tool relies on the JBrowse2, maintained by the GMOD Community. The Galaxy wrapper is maintained by Ross Lazarus
-until the IUC have their own.
+until the IUC complete their own.
 ]]>
     </token>
     <xml name="genome_selector"
