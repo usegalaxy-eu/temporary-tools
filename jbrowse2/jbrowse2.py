@@ -564,7 +564,7 @@ class JbrowseConnector(object):
         # can be served - if public.
         # dsId = trackData["metadata"]["dataset_id"]
         # url = "%s/api/datasets/%s/display?to_ext=hic " % (self.giURL, dsId)
-        hname =  trackData['hic_url']
+        hname = trackData["hic_url"]
         floc = {
             "uri": hname,
         }
@@ -770,7 +770,6 @@ class JbrowseConnector(object):
         trackDict["style"] = style_json
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
-        logging.info("#### wig trackData=%s" % str(trackData))
 
     def add_bam(self, data, trackData, bamOpts, bam_index=None, **kwargs):
         tId = trackData["label"]
@@ -1149,9 +1148,7 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
                 hic_url = "%s_%d.hic" % (track_human_label, i)
-                hic_path = os.path.join(
-                    self.outdir, hic_url
-                )
+                hic_path = os.path.join(self.outdir, hic_url)
                 self.subprocess_check_call(
                     [
                         "hictk",
@@ -1163,7 +1160,7 @@ class JbrowseConnector(object):
                         hic_path,
                     ]
                 )
-                outputTrackConfig['hic_url'] = hic_url
+                outputTrackConfig["hic_url"] = hic_url
                 self.add_hic(
                     hic_path,
                     outputTrackConfig,
@@ -1290,7 +1287,8 @@ class JbrowseConnector(object):
                     "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
                     % ddl
                 )
-
+        else:
+            drdict["refName"] = self.genome_firstcontig
         if drdict.get("refName", None):
             # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
             view_json["displayedRegions"] = [
