@@ -564,11 +564,7 @@ class JbrowseConnector(object):
         # can be served - if public.
         # dsId = trackData["metadata"]["dataset_id"]
         # url = "%s/api/datasets/%s/display?to_ext=hic " % (self.giURL, dsId)
-        hname = trackData["name"]
-        dest = os.path.join(self.outdir, hname)
-        cmd = ["cp", data, dest]
-        # these can be very big.
-        self.subprocess_check_call(cmd)
+        hname = trackData["hic_url"]
         floc = {
             "uri": hname,
         }
@@ -774,7 +770,6 @@ class JbrowseConnector(object):
         trackDict["style"] = style_json
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
-        logging.info("#### wig trackData=%s" % str(trackData))
 
     def add_bam(self, data, trackData, bamOpts, bam_index=None, **kwargs):
         tId = trackData["label"]
@@ -1152,9 +1147,8 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
-                hic_path = os.path.join(
-                    self.outdir, "%s_%d_%s.hic" % (track_human_label, i, dataset_ext)
-                )
+                hic_url = "%s_%d.hic" % (track_human_label, i)
+                hic_path = os.path.join(self.outdir, hic_url)
                 self.subprocess_check_call(
                     [
                         "hictk",
@@ -1166,6 +1160,7 @@ class JbrowseConnector(object):
                         hic_path,
                     ]
                 )
+                outputTrackConfig["hic_url"] = hic_url
                 self.add_hic(
                     hic_path,
                     outputTrackConfig,
@@ -1227,7 +1222,7 @@ class JbrowseConnector(object):
                     track["conf"]["options"]["paf"],
                 )
             else:
-                log.warn("Do not know how to handle %s", dataset_ext)
+                logging.warn("Do not know how to handle %s", dataset_ext)
             # Return non-human label for use in other fields
             yield outputTrackConfig["label"]
 
@@ -1284,15 +1279,16 @@ class JbrowseConnector(object):
                 refName = loc_match.group(1)
                 drdict["refName"] = refName
                 if loc_match.group(2) > "":
-                    drdict["start"] = int(loc_match.group(2).replace(',',''))
+                    drdict["start"] = int(loc_match.group(2).replace(",", ""))
                 if loc_match.group(3) > "":
-                    drdict["end"] = int(loc_match.group(3).replace(',',''))
+                    drdict["end"] = int(loc_match.group(3).replace(",", ""))
             else:
                 logging.info(
                     "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
                     % ddl
                 )
-
+        else:
+            drdict["refName"] = self.genome_firstcontig
         if drdict.get("refName", None):
             # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
             view_json["displayedRegions"] = [

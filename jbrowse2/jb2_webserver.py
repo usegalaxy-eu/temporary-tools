@@ -1,4 +1,5 @@
-#!/usr/bin/env python3# spec: simplest python web server with range support and multithreading that takes root path,
+#!/usr/bin/env python3
+# spec: simplest python web server with range support and multithreading that takes root path,
 # port and bind address as command line arguments; by default uses the current dir as webroot,
 # port 8000 and bind address of 0.0.0.0
 # borrowed from https://github.com/danvk/RangeHTTPServer
