@@ -1141,7 +1141,7 @@ class JbrowseConnector(object):
                     dataset_ext,
                     outputTrackConfig,
                 )
-            elif dataset_ext in ("hic",):
+            elif dataset_ext in ("hic","juicebox_hic"):
                 self.add_hic(
                     dataset_path,
                     outputTrackConfig,
