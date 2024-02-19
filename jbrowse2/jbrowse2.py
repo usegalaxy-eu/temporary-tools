@@ -1119,6 +1119,7 @@ class JbrowseConnector(object):
             # Unsanitize labels (element_identifiers are always sanitized by Galaxy)
             for key, value in mapped_chars.items():
                 track_human_label = track_human_label.replace(value, key)
+            track_human_label = track_human_label.replace(" ","_")
             outputTrackConfig = {
                 "category": category,
                 "style": {},
@@ -1141,13 +1142,13 @@ class JbrowseConnector(object):
                     dataset_ext,
                     outputTrackConfig,
                 )
-            elif dataset_ext in ("hic",):
+            elif dataset_ext in ("hic","juicebox_hic"):
                 self.add_hic(
                     dataset_path,
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
-                hic_url = "%s_%d.hic" % (track_human_label, i)
+                hic_url = "%s_%d.juicebox_hic" % (track_human_label, i)
                 hic_path = os.path.join(self.outdir, hic_url)
                 self.subprocess_check_call(
                     [

@@ -234,11 +234,11 @@ cp '$output.files_path/index.html' '$output'
                         <option value="pileup">BAM Pileup track</option>
                         <option value="wiggle">BigWig track</option>
                         <option value="blast">Blast XML track - converted to GFF</option>
-                        <option value="cool">cool/mcool/scool data in hdf5 data</option>
+                        <option value="cool">HiC as cool/mcool/scool format files</option>
                         <option value="cram">CRAM</option>
                         <option value="gene_calls" selected="true">GFF/GFF3/BED feature track</option>
-                        <option value="hic">HiC (compressed binary) track. Existing cool format must be converted to binary hic - hic_matrix will NOT work.</option>
-                        <option value="maf">Multiple alignment format track. Reference name must match the MAF name exactly to work correctly</option>
+                        <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix will NOT work.</option>
+                        <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
                         <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
                         <option value="sparql">SPARQL</option>
                        <option value="vcf">VCF SNP annotation</option>
