@@ -504,7 +504,7 @@ until the IUC complete their own.
 
 
     <xml name="input_conditional" token_label="Track Data" token_format="data">
-        <param label="@LABEL@" format="@FORMAT@" name="annotation" type="data" multiple="True"/>
+        <param label="@LABEL@" format="@FORMAT@" name="annotation" type="data" multiple="False"/>
     </xml>
     <xml name="citations">
         <citations>

@@ -93,7 +93,7 @@ cp '$output.files_path/index.html' '$output'
         <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
             #if $track.data_format.data_format_select != "sparql":
             <files>
-              #for $dataset in $track.data_format.annotation:
+              #set dataset = $track.data_format.annotation
               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.element_identifier}">
                 <metadata>
                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
@@ -128,7 +128,6 @@ cp '$output.files_path/index.html' '$output'
                       />
                 </metadata>
               </trackFile>
-              #end for
             </files>
             #end if
 
@@ -138,17 +137,13 @@ cp '$output.files_path/index.html' '$output'
             #if str($track.data_format.data_format_select) == "pileup":
                 <pileup>
                     <bam_indices>
-                        #for $dataset in $track.data_format.annotation:
                         <bam_index>${dataset.metadata.bam_index}</bam_index>
-                        #end for
                     </bam_indices>
                 </pileup>
             #else if str($track.data_format.data_format_select) == "cram":
                 <cram>
                     <cram_indices>
-                        #for $dataset in $track.data_format.annotation:
                         <cram_index>${dataset.metadata.cram_index}</cram_index>
-                        #end for
                     </cram_indices>
                 </cram>
             #else if str($track.data_format.data_format_select) == "blast":
