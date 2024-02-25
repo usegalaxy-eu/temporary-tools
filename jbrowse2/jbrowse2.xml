@@ -17,9 +17,12 @@ cp '$trackxml' '$output.files_path/galaxy.xml' &&
 python '$__tool_directory__/jbrowse2.py'
 --outdir '$output.files_path'
 --xml '$trackxml' &&
-
-cp '$output.files_path/index.html' '$output'
-
+#if $jbgen.zipOut == "true":
+    (cd '$output.files_path' && zip -r - . ) > JBrowse2.zip &&
+    mv JBrowse2.zip '$output'
+#else
+  cp '$output.files_path/index.html' '$output'
+#end if
 ## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
 #if str($uglyTestingHack) == "enabled":
  &&   cp '$trackxml' '$output'
@@ -77,6 +80,7 @@ cp '$output.files_path/index.html' '$output'
         </genomes>
         <general>
             <defaultLocation>${jbgen.defaultLocation}</defaultLocation>
+            <zipOut>${jbgen.zipOut}</zipOut>
             <analytics>${jbgen.enableAnalytics}</analytics>
             <primary_color>${jbgen.primary_color}</primary_color>
             <secondary_color>${jbgen.secondary_color}</secondary_color>
@@ -89,100 +93,109 @@ cp '$output.files_path/index.html' '$output'
     </metadata>
     <tracks>
         #for $tg in $track_groups:
-        #for $track in $tg.data_tracks:
-        <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-            #if $track.data_format.data_format_select != "sparql":
-            <files>
-              #set dataset = $track.data_format.annotation
-              <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.element_identifier}">
-                <metadata>
-                  <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
-                      size="${dataset.get_size(nice_size=True)}"
-                      edam_format="${dataset.datatype.edam_format}"
-                      file_ext="${dataset.ext}" />
-                  <history id="${__app__.security.encode_id($dataset.history_id)}"
-                      #if $dataset.history.user:
-                      user_email="${dataset.history.user.email}"
-                      user_id="${dataset.history.user_id}"
-                      display_name="${dataset.history.get_display_name()}"/>
-                      #else
-                      user_email="anonymous"
-                      user_id="-1"
-                      display_name="Unnamed History"/>
+            #for $track in $tg.data_tracks:
+            <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
+                #if $track.data_format.data_format_select != "sparql":
+                    <files>
+                    #set dataset = $track.data_format.annotation
+                      <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
+                        <metadata>
+                          <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
+                              size="${dataset.get_size(nice_size=True)}"
+                              edam_format="${dataset.datatype.edam_format}"
+                              file_ext="${dataset.ext}" />
+                          <history id="${__app__.security.encode_id($dataset.history_id)}"
+                              #if $dataset.history.user:
+                              user_email="${dataset.history.user.email}"
+                              user_id="${dataset.history.user_id}"
+                              display_name="${dataset.history.get_display_name()}"/>
+                              #else
+                              user_email="anonymous"
+                              user_id="-1"
+                              display_name="Unnamed History"/>
+                              #end if
+                          <metadata
+                            #for (key, value) in $dataset.get_metadata().items():
+                            #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
+                              #if isinstance($value, list):
+                                #set value_str = "[%s]" % ','.join([str(val) for val in value])
+                                ${key}="$value_str"
+                              #else
+                                ${key}="${value}"
+                              #end if
+                            #end if
+                            #end for
+                              />
+                          <tool
+                              tool_id="${dataset.creating_job.tool_id}"
+                              tool_version="${dataset.creating_job.tool_version}"
+                              />
+                        </metadata>
+                      </trackFile>
+                    </files>
+                #else
+                        <track cat="${tg.category}" format="sparql" visibility="off">
+                #end if
+
+                <options>
+
+                #if str($track.data_format.data_format_select) == "pileup":
+                    <pileup>
+                        <bam_indices>
+                            <bam_index>${dataset.metadata.bam_index}</bam_index>
+                        </bam_indices>
+                    </pileup>
+                #else if str($track.data_format.data_format_select) == "cram":
+                    <cram>
+                        <cram_indices>
+                            <cram_index>${dataset.metadata.cram_index}</cram_index>
+                        </cram_indices>
+                    </cram>
+                #else if str($track.data_format.data_format_select) == "blast":
+                    <blast>
+                      #if str($track.data_format.blast_parent) != "":
+                        <parent>${track.data_format.blast_parent}</parent>
                       #end if
-                  <metadata
-                    #for (key, value) in $dataset.get_metadata().items():
-                    #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
-                      #if isinstance($value, list):
-                        #set value_str = "[%s]" % ','.join([str(val) for val in value])
-                        ${key}="$value_str"
-                      #else
-                        ${key}="${value}"
+                        <protein>${track.data_format.is_protein}</protein>
+                        <min_gap>${track.data_format.min_gap}</min_gap>
+                    </blast>
+                #else if str($track.data_format.data_format_select) == "gene_calls":
+                    <gff>
+                      #if $track.data_format.match_part.match_part_select == "true":
+                        <match>${track.data_format.match_part.name}</match>
                       #end if
-                    #end if
-                    #end for
-                      />
-                  <tool
-                      tool_id="${dataset.creating_job.tool_id}"
-                      tool_version="${dataset.creating_job.tool_version}"
-                      />
-                </metadata>
-              </trackFile>
-            </files>
-            #end if
-
-            <options>
-
-
-            #if str($track.data_format.data_format_select) == "pileup":
-                <pileup>
-                    <bam_indices>
-                        <bam_index>${dataset.metadata.bam_index}</bam_index>
-                    </bam_indices>
-                </pileup>
-            #else if str($track.data_format.data_format_select) == "cram":
-                <cram>
-                    <cram_indices>
-                        <cram_index>${dataset.metadata.cram_index}</cram_index>
-                    </cram_indices>
-                </cram>
-            #else if str($track.data_format.data_format_select) == "blast":
-                <blast>
-                  #if str($track.data_format.blast_parent) != "":
-                    <parent>${track.data_format.blast_parent}</parent>
-                  #end if
-                    <protein>${track.data_format.is_protein}</protein>
-                    <min_gap>${track.data_format.min_gap}</min_gap>
-                </blast>
-            #else if str($track.data_format.data_format_select) == "gene_calls":
-                <gff>
-                  #if $track.data_format.match_part.match_part_select == "true":
-                    <match>${track.data_format.match_part.name}</match>
-                  #end if
-                </gff>
-            #else if str($track.data_format.data_format_select) == "paf":
-                <paf>
-                    <genome>${track.data_format.synteny_genome}</genome>
-                    <genome_label>${track.data_format.synteny_genome.name}</genome_label>
-                </paf>
-            #else if str($track.data_format.data_format_select) == "hic":
-                <hic>
-                </hic>
-            #else if str($track.data_format.data_format_select) == "cool":
-                <cool>
-                </cool>
-            #else if str($track.data_format.data_format_select) == "sparql":
-                <label>${track.data_format.label}</label>
-                <sparql>
-                    <url>${track.data_format.url}</url>
-                    <query>${track.data_format.query}</query>
-                    <query_refnames>${track.data_format.query_refnames}</query_refnames>
-                </sparql>
-            #end if
-            </options>
-        </track>
+                    </gff>
+                #else if str($track.data_format.data_format_select) == "paf":
+                    <paf>
+                        <genome>
+                        #for gnome in $track.data_format.synteny_genome:
+                            $gnome,
+                        #end for
+                        </genome>
+                        <genome_label>
+                        #for gnome in $track.data_format.synteny_genome:
+                            $gnome.name,
+                        #end for
+                        </genome_label>
+                    </paf>
+                #else if str($track.data_format.data_format_select) == "hic":
+                    <hic>
+                    </hic>
+                #else if str($track.data_format.data_format_select) == "cool":
+                    <cool>
+                    </cool>
+                #else if str($track.data_format.data_format_select) == "sparql":
+                    <label>${track.data_format.label}</label>
+                    <sparql>
+                        <url>${track.data_format.url}</url>
+                        <query>${track.data_format.query}</query>
+                        <query_refnames>${track.data_format.query_refnames}</query_refnames>
+                    </sparql>
+                #end if
+                </options>
+            </track>
         #end for
-        #end for
+    #end for
     </tracks>
 </root>
 ]]></configfile>
@@ -236,7 +249,7 @@ cp '$output.files_path/index.html' '$output'
                         <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
                         <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
                         <option value="sparql">SPARQL</option>
-                       <option value="vcf">VCF SNP annotation</option>
+                       <option value="vcf">VCF SNP</option>
                     </param>
                     <when value="blast">
                         <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml" />
@@ -302,11 +315,12 @@ cp '$output.files_path/index.html' '$output'
                         <expand macro="track_visibility" />
                     </when>
                     <when value="paf">
-                        <param label="Comparison genome sequence" help="Paf from this as the reference, using the real reference as the reads to map"
+                        <param label="Comparison genome sequence" help="Paf from these as the references, using the real reference as the reads to map"
                             format="fasta"
                             name="synteny_genome"
-                            type="data" />
-                        <expand macro="input_conditional" label="Synteny data" format="paf" help="Make paf with minimap2 mapping real reference onto desired syntenic reference"/>
+                            type="data"
+                            multiple="True"/>
+                        <expand macro="input_conditional" label="Synteny data" format="paf" help="Make paf with mashmap or minimap2 mapping real reference onto desired syntenic references"/>
                         <expand macro="track_visibility" />
                     </when>
 
@@ -376,7 +390,11 @@ cp '$output.files_path/index.html' '$output'
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
-        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.name"/>
+        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.name">
+            <change_format>
+                <when input="zipOut" value="true" format="zip" />
+            </change_format>
+        </data>
     </outputs>
     <tests>
          <test>
@@ -405,6 +423,7 @@ cp '$output.files_path/index.html' '$output'
                 </assert_contents>
             </output>
         </test>
+
         <test>
             <param name="reference_genome|genome_type_select" value="history"/>
             <param name="reference_genome|genome" value="merlin.fa"/>
@@ -739,6 +758,7 @@ cp '$output.files_path/index.html' '$output'
                 </assert_contents>
             </output>
         </test>
+
         <!-- TODO add a synteny test -->
         <!-- TODO add a bam and a cram test -->
         <!-- TODO add an hic test -->
