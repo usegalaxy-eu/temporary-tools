@@ -471,7 +471,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="bed/test-3.bed,bed/test-6.bed"/>
+                        <param name="annotation" value="bed/test-3.bed"/>
                     </conditional>
                 </repeat>
             </repeat>
@@ -496,7 +496,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/A.gff,gff3/B.gff,gff3/C.gff,gff3/D.gff"/>
+                        <param name="annotation" value="gff3/A.gff"/>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -539,7 +539,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                        <param name="annotation" value="gff3/C.gff"/>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -563,7 +563,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                        <param name="annotation" value="gff3/B.gff"/>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -588,7 +588,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                        <param name="annotation" value="gff3/A.gff"/>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -686,7 +686,7 @@ python '$__tool_directory__/jbrowse2.py'
                         <has_text text="A.gff"/>
                         <has_text text="B.gff"/>
                         <has_text text="C.gff"/>
-                        <has_text text="D.gff"/>
+                        <has_text text="interpro.gff"/>
                         <has_text text="Scaled Colour"/>
                         <has_text text="1.gff"/>
                         <has_text text="2.gff"/>
