@@ -18,8 +18,7 @@ python '$__tool_directory__/jbrowse2.py'
 --outdir '$output.files_path'
 --xml '$trackxml' &&
 #if $jbgen.zipOut == "true":
-    (cd '$output.files_path' && zip -r - . ) > JBrowse2.zip &&
-    mv JBrowse2.zip '$output'
+    (cd '$output.files_path' && zip -r - . ) > '$output'
 #else
   cp '$output.files_path/index.html' '$output'
 #end if
