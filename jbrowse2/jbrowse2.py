@@ -17,7 +17,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("jbrowse")
 
-JB2VER = "v2.10.1"
+JB2VER = "v2.10.2"
 # version pinned for cloning
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -450,22 +450,24 @@ class JbrowseConnector(object):
             if len(genome_name.split()) > 1:
                 genome_name = genome_name.split()[0]
                 # spaces and cruft break scripts when substituted
-            fapath = genome_node["path"]
-            assem = self.make_assembly(fapath, genome_name)
-            assemblies.append(assem)
-            self.genome_names.append(genome_name)
-            if self.genome_name is None:
-                self.genome_name = (
-                    genome_name  # first one for all tracks - other than paf
-                )
-                self.genome_firstcontig = None
-                fl = open(fapath, "r").readline().strip().split(">")
-                if len(fl) > 1:
-                    fl = fl[1]
-                    if len(fl.split()) > 1:
-                        self.genome_firstcontig = fl.split()[0].strip()
-                    else:
-                        self.genome_firstcontig = fl
+            if genome_name not in self.genome_names:
+                # ignore dupes - can have multiple pafs with same references?
+                fapath = genome_node["path"]
+                assem = self.make_assembly(fapath, genome_name)
+                assemblies.append(assem)
+                self.genome_names.append(genome_name)
+                if self.genome_name is None:
+                    self.genome_name = (
+                        genome_name  # first one for all tracks - other than paf
+                    )
+                    self.genome_firstcontig = None
+                    fl = open(fapath, "r").readline().strip().split(">")
+                    if len(fl) > 1:
+                        fl = fl[1]
+                        if len(fl.split()) > 1:
+                            self.genome_firstcontig = fl.split()[0].strip()
+                        else:
+                            self.genome_firstcontig = fl
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
@@ -1013,31 +1015,36 @@ class JbrowseConnector(object):
     def add_paf(self, data, trackData, pafOpts, **kwargs):
         tname = trackData["name"]
         tId = trackData["label"]
-        pgname = pafOpts["genome_label"]
-        if len(pgname.split()) > 1:
-            pgname = pgname.split()[
-                0
-            ]  # trouble from spacey names in command lines avoidance
-        asstrack = self.make_assembly(pafOpts["genome"], pgname)
-        self.genome_names.append(pgname)
-        if self.config_json.get("assemblies", None):
-            self.config_json["assemblies"].append(asstrack)
-        else:
-            self.config_json["assemblies"] = [
-                asstrack,
-            ]
+        pgnames = [x.strip() for x in pafOpts["genome_label"].split(",")]
+        pgpaths = [x.strip() for x in pafOpts["genome"].split(",")]
+        passnames = [self.genome_name]  # always first
+        for i, gname in enumerate(pgnames):
+            if len(gname.split()) > 1:
+                gname = gname.split()[0]
+                # trouble from spacey names in command lines avoidance
+                if gname not in self.genome_names:
+                    passnames.append(gname)
+                    # ignore if already there - eg for duplicates among pafs.
+                    asstrack = self.make_assembly(pgpaths[i], gname)
+                    self.genome_names.append(gname)
+                    if self.config_json.get("assemblies", None):
+                        self.config_json["assemblies"].append(asstrack)
+                    else:
+                        self.config_json["assemblies"] = [
+                            asstrack,
+                        ]
         url = "%s.paf" % (trackData["label"])
         dest = "%s/%s" % (self.outdir, url)
         self.symlink_or_copy(os.path.realpath(data), dest)
         trackDict = {
             "type": "SyntenyTrack",
             "trackId": tId,
-            "assemblyNames": [self.genome_name, pgname],
+            "assemblyNames": passnames,
             "name": tname,
             "adapter": {
                 "type": "PAFAdapter",
                 "pafLocation": {"uri": url},
-                "assemblyNames": [self.genome_name, pgname],
+                "assemblyNames": passnames,
             },
             # "displays": [
             # {
@@ -1119,7 +1126,7 @@ class JbrowseConnector(object):
             # Unsanitize labels (element_identifiers are always sanitized by Galaxy)
             for key, value in mapped_chars.items():
                 track_human_label = track_human_label.replace(value, key)
-            track_human_label = track_human_label.replace(" ","_")
+            track_human_label = track_human_label.replace(" ", "_")
             outputTrackConfig = {
                 "category": category,
                 "style": {},
@@ -1142,7 +1149,7 @@ class JbrowseConnector(object):
                     dataset_ext,
                     outputTrackConfig,
                 )
-            elif dataset_ext in ("hic","juicebox_hic"):
+            elif dataset_ext in ("hic", "juicebox_hic"):
                 self.add_hic(
                     dataset_path,
                     outputTrackConfig,
@@ -1533,6 +1540,7 @@ if __name__ == "__main__":
     default_session_data["session_name"] = root.find(
         "metadata/general/session_name"
     ).text
+    jc.zipOut = root.find("metadata/general/zipOut").text == "true"
     general_data = {
         "analytics": root.find("metadata/general/analytics").text,
         "primary_color": root.find("metadata/general/primary_color").text,
