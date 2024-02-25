@@ -17,7 +17,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("jbrowse")
 
-JB2VER = "v2.10.1"
+JB2VER = "v2.10.2"
 # version pinned for cloning
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
