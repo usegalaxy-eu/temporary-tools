@@ -1062,59 +1062,6 @@ class JbrowseConnector(object):
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
 
-    def add_hicab(self, data, trackData, hicOpts, **kwargs):
-        rel_dest = os.path.join("data", trackData["label"] + ".hic")
-        dest = os.path.join(self.outdir, rel_dest)
-
-        self.symlink_or_copy(os.path.realpath(data), dest)
-
-        self._add_track(
-            trackData["label"],
-            trackData["key"],
-            trackData["category"],
-            rel_dest,
-            config={},
-        )
-
-    def add_sparql(self, url, query, query_refnames, trackData):
-
-        json_track_data = {
-            "type": "FeatureTrack",
-            "trackId": id,
-            "name": trackData["label"],
-            "adapter": {
-                "type": "SPARQLAdapter",
-                "endpoint": {"uri": url, "locationType": "UriLocation"},
-                "queryTemplate": query,
-            },
-            "category": [trackData["category"]],
-            "assemblyNames": [self.genome_name],
-        }
-
-        if query_refnames:
-            json_track_data["adapter"]["refNamesQueryTemplate"]: query_refnames
-
-        self.subprocess_check_call(
-            [
-                "jbrowse",
-                "add-track-json",
-                "--target",
-                os.path.join(self.outdir, "data"),
-                json_track_data,
-            ]
-        )
-
-        # Doesn't work as of 1.6.4, might work in the future
-        # self.subprocess_check_call([
-        #     'jbrowse', 'add-track',
-        #     '--trackType', 'sparql',
-        #     '--name', trackData['label'],
-        #     '--category', trackData['category'],
-        #     '--target', os.path.join(self.outdir, 'data'),
-        #     '--trackId', id,
-        #     '--config', '{"queryTemplate": "%s"}' % query,
-        #     url])
-
     def process_annotations(self, track):
         category = track["category"].replace("__pd__date__pd__", TODAY)
         for i, (
@@ -1190,20 +1137,18 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext == "bam":
-                real_indexes = track["conf"]["options"]["pileup"]["bam_indices"][
-                    "bam_index"
-                ]
+                real_indexes = track["conf"]["options"]["bam"]["bam_index"]
                 if not isinstance(real_indexes, list):
                     real_indexes = [real_indexes]
 
                 self.add_bam(
                     dataset_path,
                     outputTrackConfig,
-                    track["conf"]["options"]["pileup"],
+                    track["conf"]["options"]["bam"],
                     bam_index=real_indexes[i],
                 )
             elif dataset_ext == "cram":
-                real_indexes = track["conf"]["options"]["cram"]["cram_indices"][
+                real_indexes = track["conf"]["options"]["cram"]["cram_index"][
                     "cram_index"
                 ]
                 if not isinstance(real_indexes, list):
@@ -1475,16 +1420,6 @@ if __name__ == "__main__":
                                 metadata,
                             )
                         )
-        else:
-            # For tracks without files (rest, sparql)
-            track_conf["trackfiles"].append(
-                (
-                    "",  # N/A, no path for rest or sparql
-                    track.attrib["format"],
-                    track.find("options/label").text,
-                    {},
-                )
-            )
 
         if is_multi_bigwig:
             metadata = metadata_from_node(x.find("metadata"))
