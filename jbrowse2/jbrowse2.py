@@ -477,7 +477,7 @@ class JbrowseConnector(object):
     def make_assembly(self, fapath, gname):
 
         faname = gname + ".fa.gz"
-        fadest = os.path.join(self.outdir, faname)
+        fadest = os.path.realpath(os.path.join(self.outdir, faname))
         cmd = "bgzip -i -c %s -I %s.gzi > %s && samtools faidx %s" % (
             fapath,
             fadest,

@@ -104,6 +104,7 @@ python '$__tool_directory__/jbrowse2.py'
                         #for $dataset in $track.data_format.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
                                 <metadata>
+
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
                                       size="${dataset.get_size(nice_size=True)}"
                                       edam_format="${dataset.datatype.edam_format}"
@@ -118,6 +119,7 @@ python '$__tool_directory__/jbrowse2.py'
                                       user_id="-1"
                                       display_name="Unnamed History"/>
                                       #end if
+
                                   <metadata
                                     #for (key, value) in $dataset.get_metadata().items():
                                     #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
@@ -136,8 +138,7 @@ python '$__tool_directory__/jbrowse2.py'
                                       />
                                 </metadata>
                               </trackFile>
-
-                        #end for
+                       #end for
                     </files>
                     #else
                             <track cat="${tg.category}" format="sparql" visibility="off">
