@@ -152,11 +152,9 @@ python '$__tool_directory__/jbrowse2.py'
                         </bam>
                     #else if str($track.data_format.data_format_select) == "cram":
                         <cram>
-                            <cram_indices>
                             #for $dataset in $track.data_format.annotation:
                                 <cram_index>${dataset.metadata.cram_index}</cram_index>
                             #end for
-                            </cram_indices>
                         </cram>
                     #else if str($track.data_format.data_format_select) == "blastxml":
                         <blast>
