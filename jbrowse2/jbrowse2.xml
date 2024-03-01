@@ -14,7 +14,12 @@ mkdir -p '$output.files_path' &&
 ## Copy the XML file into the directory, mostly for debugging
 ## but nice if users want to reproduce locally
 cp '$trackxml' '$output.files_path/galaxy.xml' &&
+
+export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
+
+## Once that's done, we run the python script to handle the real work
 python '$__tool_directory__/jbrowse2.py'
+--jbrowse2path \${JBROWSE2_PATH}
 --outdir '$output.files_path'
 --xml '$trackxml' &&
 #if $jbgen.zipOut == "true":
@@ -356,7 +361,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <param name="category" value="Default" />
                 <repeat name="data_tracks">
                     <conditional name="data_format">
-                        <param name="data_format_select" value="wiggle"/>
+                        <param name="data_format_select" value="bigwig"/>
                         <param name="annotation" value="bw/merlin.bw"/>
                     </conditional>
                 </repeat>
@@ -371,11 +376,10 @@ python '$__tool_directory__/jbrowse2.py'
                     <has_text text="tool_id"></has_text>
                     <has_text text="trackFile path="></has_text>
                     <has_text text="file_ext=&quot;bigwig&quot;"></has_text>
-                    <has_text text="format=&quot;wiggle&quot;"></has_text>
+                    <has_text text="format=&quot;bigwig&quot;"></has_text>
                 </assert_contents>
             </output>
         </test>
-
         <test>
             <param name="reference_genome|genome_type_select" value="history"/>
             <param name="reference_genome|genome" value="merlin.fa"/>
@@ -710,7 +714,6 @@ python '$__tool_directory__/jbrowse2.py'
                 </assert_contents>
             </output>
         </test>
-
         <!-- TODO add a synteny test -->
         <!-- TODO add a bam and a cram test -->
         <!-- TODO add an hic test -->
