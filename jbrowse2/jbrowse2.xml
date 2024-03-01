@@ -762,13 +762,6 @@ JBrowse installations straight from Galaxy. It allows you to build up a JBrowse 
 about how to run the command line tools to format your data, and which
 options need to be supplied and where.
 
-The JBrowse-in-Galaxy tool has been rejected by `a Galaxy IUC
-<https://github.com/galaxyproject/tools-iuc/issues>`__, reviewer.
-It is maintained by https://github.com/fubar2 who you can help you
-with missing features or bugs in the tool. For the record, he remains unconvinced by the reviewer's logic,
-and disturbed by the distinctly coercive approach to introducing new code,
-compared to the more usual method of providing a working PR.
-
 Options
 -------
 
