@@ -100,8 +100,8 @@ python '$__tool_directory__/jbrowse2.py'
             #for $track in $tg.data_tracks:
                 <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
                     #if $track.data_format.data_format_select != "sparql":
+                    <files>
                         #for $dataset in $track.data_format.annotation:
-                            <files>
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
                                 <metadata>
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
@@ -136,8 +136,9 @@ python '$__tool_directory__/jbrowse2.py'
                                       />
                                 </metadata>
                               </trackFile>
-                            </files>
+
                         #end for
+                    </files>
                     #else
                             <track cat="${tg.category}" format="sparql" visibility="off">
                     #end if
