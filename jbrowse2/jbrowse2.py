@@ -1149,9 +1149,7 @@ class JbrowseConnector(object):
                     bam_index=real_indexes[i],
                 )
             elif dataset_ext == "cram":
-                real_indexes = track["conf"]["options"]["cram"]["cram_index"][
-                    "cram_index"
-                ]
+                real_indexes = track["conf"]["options"]["cram"][ "cram_index"]
                 if not isinstance(real_indexes, list):
                     real_indexes = [real_indexes]
 
