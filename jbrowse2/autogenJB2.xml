@@ -10,6 +10,7 @@
     <expand macro="requirements"/>
     <version_command>python '${__tool_directory__}/autogenJB2.py' --version</version_command>
     <command detect_errors="aggressive"><![CDATA[
+export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
 python '$__tool_directory__/autogenJB2.py'
 #for $key in $autoCollection.keys():
     #if $autoCollection[$key].ext == 'fasta':
@@ -23,6 +24,7 @@ python '$__tool_directory__/autogenJB2.py'
     #end if
 #end for
 --outdir '$output.files_path'
+--jbrowse2path \${JBROWSE2_PATH}
 --sessName "Autogen JBrowse" &&
 
   cp '$output.files_path/index.html' '$output'

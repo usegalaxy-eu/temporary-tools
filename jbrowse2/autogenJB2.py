@@ -43,9 +43,9 @@ if __name__ == "__main__":
         default=[],
         action="append",
     )
-
-    parser.add_argument("--version", "-V", action="version", version="%(prog)s 2.10.2")
+    parser.add_argument("--jbrowse2path", help="Path to JBrowse2 directory in biocontainer or Conda")
     parser.add_argument("--outdir", help="Output directory", required=True)
+    parser.add_argument("--version", "-V", action="version", version="%(prog)s 2.10.2")
     args = parser.parse_args()
     sessName = args.sessName
     # --trackmeta $jbrowseme[$key],$jbrowseme[$key].ext,'$key'
@@ -63,6 +63,7 @@ if __name__ == "__main__":
             genome_names = [x[2] for x in listgenomes]
             jc = jbC(
                 outdir=args.outdir,
+                jbrowse2path=args.jbrowse2path,
                 genomes=[
                     {
                         "path": x,
