@@ -109,7 +109,7 @@ python '$__tool_directory__/jbrowse2.py'
                     #if $track.data_format.useuri.insource == "history":
                     <files>
                         #for $dataset in $track.data_format.useuri.annotation:
-                              <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
+                              <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
                                 <metadata>
 
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
@@ -205,11 +205,14 @@ python '$__tool_directory__/jbrowse2.py'
                     #end if
                     </options>
                   #else
-                   <trackFile path="${track.data_format.useuri.annouri}" ext=${track.data_format.data_format_select} label="${track.data_format.useuri.annoname}">
+                  <files>
+                    <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}" label="${track.data_format.useuri.annoname}" useuri="yes">
                         <metadata>
+                        <dataset id = "${track.data_format.useuri.annouri}" />
                         </metadata>
-                    </trackfile>
-                    <options/>
+                     </trackFile>
+                 </files>
+                <options/>
                 #end if
                 </track>
             #end for
