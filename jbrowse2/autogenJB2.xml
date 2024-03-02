@@ -13,7 +13,17 @@
 export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
 python '$__tool_directory__/autogenJB2.py'
 #for $key in $autoCollection.keys():
-    #if $autoCollection[$key].ext == 'fasta':
+    #if $autoCollection[$key].is_collection:
+        #set subCol=$autoCollection[$key]
+        #set pafs=[($subCol[x],$subcol[x].ext,x) for x in $subCol.keys() if $subCol[x].ext == 'paf']
+        #if len($pafs) > 0:
+             --pafmeta '$pafs[0]'
+            #set refs = [($pafs[0][2],$subCol[x],x) for x in $subCol.keys() if $subCol[x].ext == 'fasta']
+            #for $ref in $refs:
+             --pafreferencemeta '$ref'
+            #end for
+        #end if
+    #else if $autoCollection[$key].ext == 'fasta':
       --referencemeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
     #else if $autoCollection[$key].ext in ['bed', 'bigwig', 'cool', 'gff', 'gff3', 'hic', 'maf', 'mcool', 'scool', 'vcf']
       --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key'

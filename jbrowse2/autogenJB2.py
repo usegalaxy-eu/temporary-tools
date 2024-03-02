@@ -32,13 +32,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--pafmeta",
-        help="Repeatable. Each is a 'filename, filext, filepath, ... ,' for a JBrowse2 paf track",
+        help="Repeatable. Each is a 'pafname, filext, filepath, ... ,' for a JBrowse2 paf track",
         default=[],
         action="append",
     )
     parser.add_argument(
         "--pafreferencemeta",
-        help="Repeatable. Each is a 'pafname,filepath,refname,filepath,refname....'. Every paf must have a corresponding one ",
+        help="Repeatable. Each is a (pafname,refpath,refname). Every pafname must have a corresponding one or more",
         default=[],
         action="append",
     )

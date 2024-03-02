@@ -505,8 +505,20 @@ until the IUC complete their own.
     </xml>
 
     <xml name="input_conditional" token_label="Track Data" token_format="data">
-        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" type="data" />
-    </xml>
+        <conditional name="useuri">
+                <param name="insource" type="select" label="Define track data as a history file or an internet URI"
+                    help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
+                    <option value="history" selected="true">Track data from a history file</option>
+                    <option value="uri" selected="true">Tabix data URI - index files must be available at corresponding URI</option>
+                </param>
+                <when value="history">
+                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" type="data" />
+                </when>
+                <when value="uri">
+                       <param label="@LABEL@" name="annouri" multiple="false" type="text" />
+                </when>
+            </conditional>
+     </xml>
     <xml name="citations">
         <citations>
         <citation type="doi">10.1186/s13059-016-0924-1</citation>

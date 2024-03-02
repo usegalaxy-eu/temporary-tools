@@ -44,6 +44,8 @@ python '$__tool_directory__/jbrowse2.py'
                       dname = "${reference_genome.genome.name}" />
                   </metadata>
               </genome>
+            #else if str($reference_genome.genome_type_select) == "uri":
+                <genome uri="$reference_genome.uri" />
             #else
               <genome path="$reference_genome.genome" label="${reference_genome.genome.name}">
                 <metadata>
@@ -99,7 +101,7 @@ python '$__tool_directory__/jbrowse2.py'
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
                 <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                    #if $track.data_format.data_format_select != "sparql":
+                    #if $track.data_format.insource == "history":
                     <files>
                         #for $dataset in $track.data_format.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
@@ -140,9 +142,6 @@ python '$__tool_directory__/jbrowse2.py'
                               </trackFile>
                        #end for
                     </files>
-                    #else
-                            <track cat="${tg.category}" format="sparql" visibility="off">
-                    #end if
 
                     <options>
 
@@ -200,8 +199,11 @@ python '$__tool_directory__/jbrowse2.py'
                         </sparql>
                     #end if
                     </options>
+                  #else
+                    <uri  $track.data_format.annouri/>
+                #end if
                 </track>
-                #end for
+            #end for
     #end for
     </tracks>
 </root>
@@ -213,6 +215,7 @@ python '$__tool_directory__/jbrowse2.py'
             <param help="Built-in references" label="Reference genome to display" name="genome_type_select" type="select">
                 <option selected="True" value="indexed">Use a built-in genome</option>
                 <option value="history">Use a genome from history</option>
+                <option value="uri">URI for a reference in tabix .gz format </option>
             </param>
             <when value="indexed">
                 <param
@@ -233,6 +236,13 @@ python '$__tool_directory__/jbrowse2.py'
                     label="Select the reference genome"
                     name="genome"
                     type="data">
+                </param>
+            </when>
+            <when value="uri">
+                <param
+                    label="URI pointing to tabix compressed fasta"
+                    name="uri"
+                    type="text">
                 </param>
             </when>
         </conditional>
