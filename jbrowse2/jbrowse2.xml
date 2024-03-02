@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_5" profile="22.05">
+ <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_6" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -14,7 +14,12 @@ mkdir -p '$output.files_path' &&
 ## Copy the XML file into the directory, mostly for debugging
 ## but nice if users want to reproduce locally
 cp '$trackxml' '$output.files_path/galaxy.xml' &&
+
+export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
+
+## Once that's done, we run the python script to handle the real work
 python '$__tool_directory__/jbrowse2.py'
+--jbrowse2path \${JBROWSE2_PATH}
 --outdir '$output.files_path'
 --xml '$trackxml' &&
 #if $jbgen.zipOut == "true":
@@ -93,107 +98,110 @@ python '$__tool_directory__/jbrowse2.py'
     <tracks>
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
-            <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                #if $track.data_format.data_format_select != "sparql":
+                <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
+                    #if $track.data_format.data_format_select != "sparql":
                     <files>
-                    #set dataset = $track.data_format.annotation
-                      <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
-                        <metadata>
-                          <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
-                              size="${dataset.get_size(nice_size=True)}"
-                              edam_format="${dataset.datatype.edam_format}"
-                              file_ext="${dataset.ext}" />
-                          <history id="${__app__.security.encode_id($dataset.history_id)}"
-                              #if $dataset.history.user:
-                              user_email="${dataset.history.user.email}"
-                              user_id="${dataset.history.user_id}"
-                              display_name="${dataset.history.get_display_name()}"/>
-                              #else
-                              user_email="anonymous"
-                              user_id="-1"
-                              display_name="Unnamed History"/>
-                              #end if
-                          <metadata
-                            #for (key, value) in $dataset.get_metadata().items():
-                            #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
-                              #if isinstance($value, list):
-                                #set value_str = "[%s]" % ','.join([str(val) for val in value])
-                                ${key}="$value_str"
-                              #else
-                                ${key}="${value}"
-                              #end if
-                            #end if
-                            #end for
-                              />
-                          <tool
-                              tool_id="${dataset.creating_job.tool_id}"
-                              tool_version="${dataset.creating_job.tool_version}"
-                              />
-                        </metadata>
-                      </trackFile>
+                        #for $dataset in $track.data_format.annotation:
+                              <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
+                                <metadata>
+
+                                  <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
+                                      size="${dataset.get_size(nice_size=True)}"
+                                      edam_format="${dataset.datatype.edam_format}"
+                                      file_ext="${dataset.ext}" />
+                                  <history id="${__app__.security.encode_id($dataset.history_id)}"
+                                      #if $dataset.history.user:
+                                      user_email="${dataset.history.user.email}"
+                                      user_id="${dataset.history.user_id}"
+                                      display_name="${dataset.history.get_display_name()}"/>
+                                      #else
+                                      user_email="anonymous"
+                                      user_id="-1"
+                                      display_name="Unnamed History"/>
+                                      #end if
+
+                                  <metadata
+                                    #for (key, value) in $dataset.get_metadata().items():
+                                    #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
+                                      #if isinstance($value, list):
+                                        #set value_str = "[%s]" % ','.join([str(val) for val in value])
+                                        ${key}="$value_str"
+                                      #else
+                                        ${key}="${value}"
+                                      #end if
+                                    #end if
+                                    #end for
+                                      />
+                                  <tool
+                                      tool_id="${dataset.creating_job.tool_id}"
+                                      tool_version="${dataset.creating_job.tool_version}"
+                                      />
+                                </metadata>
+                              </trackFile>
+                       #end for
                     </files>
-                #else
-                        <track cat="${tg.category}" format="sparql" visibility="off">
-                #end if
+                    #else
+                            <track cat="${tg.category}" format="sparql" visibility="off">
+                    #end if
 
-                <options>
+                    <options>
 
-                #if str($track.data_format.data_format_select) == "pileup":
-                    <pileup>
-                        <bam_indices>
-                            <bam_index>${dataset.metadata.bam_index}</bam_index>
-                        </bam_indices>
-                    </pileup>
-                #else if str($track.data_format.data_format_select) == "cram":
-                    <cram>
-                        <cram_indices>
-                            <cram_index>${dataset.metadata.cram_index}</cram_index>
-                        </cram_indices>
-                    </cram>
-                #else if str($track.data_format.data_format_select) == "blast":
-                    <blast>
-                      #if str($track.data_format.blast_parent) != "":
-                        <parent>${track.data_format.blast_parent}</parent>
-                      #end if
-                        <protein>${track.data_format.is_protein}</protein>
-                        <min_gap>${track.data_format.min_gap}</min_gap>
-                    </blast>
-                #else if str($track.data_format.data_format_select) == "gene_calls":
-                    <gff>
-                      #if $track.data_format.match_part.match_part_select == "true":
-                        <match>${track.data_format.match_part.name}</match>
-                      #end if
-                    </gff>
-                #else if str($track.data_format.data_format_select) == "paf":
-                    <paf>
-                        <genome>
-                        #for gnome in $track.data_format.synteny_genome:
-                            $gnome,
-                        #end for
-                        </genome>
-                        <genome_label>
-                        #for gnome in $track.data_format.synteny_genome:
-                            $gnome.name,
-                        #end for
-                        </genome_label>
-                    </paf>
-                #else if str($track.data_format.data_format_select) == "hic":
-                    <hic>
-                    </hic>
-                #else if str($track.data_format.data_format_select) == "cool":
-                    <cool>
-                    </cool>
-                #else if str($track.data_format.data_format_select) == "sparql":
-                    <label>${track.data_format.label}</label>
-                    <sparql>
-                        <url>${track.data_format.url}</url>
-                        <query>${track.data_format.query}</query>
-                        <query_refnames>${track.data_format.query_refnames}</query_refnames>
-                    </sparql>
-                #end if
-                </options>
-            </track>
-        #end for
+                    #if str($track.data_format.data_format_select) == "bam":
+                        <bam>
+                            #for $dataset in $track.data_format.annotation:
+                                <bam_index>${dataset.metadata.bam_index}</bam_index>
+                            #end for
+                        </bam>
+                    #else if str($track.data_format.data_format_select) == "cram":
+                        <cram>
+                            #for $dataset in $track.data_format.annotation:
+                                <cram_index>${dataset.metadata.cram_index}</cram_index>
+                            #end for
+                        </cram>
+                    #else if str($track.data_format.data_format_select) == "blastxml":
+                        <blast>
+                          #if str($track.data_format.blast_parent) != "":
+                            <parent>${track.data_format.blast_parent}</parent>
+                          #end if
+                            <protein>${track.data_format.is_protein}</protein>
+                            <min_gap>${track.data_format.min_gap}</min_gap>
+                        </blast>
+                    #else if str($track.data_format.data_format_select) == "gene_calls":
+                        <gff>
+                          #if $track.data_format.match_part.match_part_select == "true":
+                            <match>${track.data_format.match_part.name}</match>
+                          #end if
+                        </gff>
+                    #else if str($track.data_format.data_format_select) == "paf":
+                        <paf>
+                            <genome>
+                            #for gnome in $track.data_format.synteny_genome:
+                                $gnome,
+                            #end for
+                            </genome>
+                            <genome_label>
+                            #for gnome in $track.data_format.synteny_genome:
+                                $gnome.name,
+                            #end for
+                            </genome_label>
+                        </paf>
+                    #else if str($track.data_format.data_format_select) == "hic":
+                        <hic>
+                        </hic>
+                    #else if str($track.data_format.data_format_select) == "cool":
+                        <cool>
+                        </cool>
+                    #else if str($track.data_format.data_format_select) == "sparql":
+                        <label>${track.data_format.label}</label>
+                        <sparql>
+                            <url>${track.data_format.url}</url>
+                            <query>${track.data_format.query}</query>
+                            <query_refnames>${track.data_format.query_refnames}</query_refnames>
+                        </sparql>
+                    #end if
+                    </options>
+                </track>
+                #end for
     #end for
     </tracks>
 </root>
@@ -238,19 +246,18 @@ python '$__tool_directory__/jbrowse2.py'
             <repeat name="data_tracks" title="Annotation Track">
                 <conditional name="data_format" label="Track Data Selection Options">
                     <param type="select" label="Track Type" name="data_format_select">
-                        <option value="pileup">BAM Pileup track</option>
-                        <option value="wiggle">BigWig track</option>
-                        <option value="blast">Blast XML track - converted to GFF</option>
+                        <option value="bam">BAM Pileup track</option>
+                        <option value="bigwig">BigWig track</option>
+                        <option value="blastxml">Blast XML track - converted to GFF</option>
                         <option value="cool">HiC as cool/mcool/scool format files</option>
                         <option value="cram">CRAM</option>
                         <option value="gene_calls" selected="true">GFF/GFF3/BED feature track</option>
                         <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix will NOT work.</option>
                         <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
                         <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
-                        <option value="sparql">SPARQL</option>
                        <option value="vcf">VCF SNP</option>
                     </param>
-                    <when value="blast">
+                    <when value="blastxml">
                         <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml" />
 
                         <param label="Features used in Blast Search"
@@ -297,7 +304,7 @@ python '$__tool_directory__/jbrowse2.py'
                         </conditional>
                         <expand macro="track_visibility" />
                     </when>
-                    <when value="pileup">
+                    <when value="bam">
                         <expand macro="input_conditional" label="BAM Track Data" format="bam" />
                         <expand macro="track_visibility" />
                     </when>
@@ -309,12 +316,12 @@ python '$__tool_directory__/jbrowse2.py'
                         <expand macro="input_conditional" label="MAF Track Data" format="maf" />
                         <expand macro="track_visibility" />
                     </when>
-                    <when value="wiggle">
+                    <when value="bigwig">
                         <expand macro="input_conditional" label="BigWig Track Data" format="bigwig" />
                         <expand macro="track_visibility" />
                     </when>
                     <when value="paf">
-                        <param label="Comparison genome sequence" help="Paf from these as the references, using the real reference as the reads to map"
+                        <param label="Comparison genome sequence" help="Paf from these as the reference(s), using the common reference as the reads to map"
                             format="fasta"
                             name="synteny_genome"
                             type="data"
@@ -329,55 +336,6 @@ python '$__tool_directory__/jbrowse2.py'
                     </when>
                     <when value="cool">
                         <expand macro="input_conditional" label="HiC data in cool/mcool/scool format" format="cool,mcool,scool" />
-                        <expand macro="track_visibility" />
-                    </when>
-                    <when value="sparql">
-                        <param type="text" label="SPARQL Server URL" name="url" />
-                        <param type="text" label="Track Label" name="label" value="SPARQL Genes" />
-                        <param type="text" label="SPARQL Query" name="query" area="true">
-                            <sanitizer>
-                                <mapping initial="galaxy.util.mapped_chars">
-                                <add source="&#10;" target=" " />
-                                <add source="&gt;" target="__gt__" />
-                                <add source="&lt;" target="__lt__" />
-                                </mapping>
-                                <valid initial="default">
-                                <add value="|" />
-                                <add value="#" />
-                                <add value="{"/>
-                                <add value="}"/>
-                                <add value="!"/>
-                                <add value="?"/>
-                                <add value="&amp;"/>
-                                <add value="+"/>
-                                <add value="="/>
-                                <add value="'"/>
-                                <add value='"'/>
-                                </valid>
-                            </sanitizer>
-                        </param>
-                        <param type="text" label="SPARQL reference names query" help="This query should return a line for each reference name in a `refName` column" name="query_refnames" area="true">
-                            <sanitizer>
-                                <mapping initial="galaxy.util.mapped_chars">
-                                <add source="&#10;" target=" " />
-                                <add source="&gt;" target="__gt__" />
-                                <add source="&lt;" target="__lt__" />
-                                </mapping>
-                                <valid initial="default">
-                                <add value="|" />
-                                <add value="#" />
-                                <add value="{"/>
-                                <add value="}"/>
-                                <add value="!"/>
-                                <add value="?"/>
-                                <add value="&amp;"/>
-                                <add value="+"/>
-                                <add value="="/>
-                                <add value="'"/>
-                                <add value='"'/>
-                                </valid>
-                            </sanitizer>
-                        </param>
                         <expand macro="track_visibility" />
                     </when>
                 </conditional>
@@ -403,7 +361,7 @@ python '$__tool_directory__/jbrowse2.py'
                 <param name="category" value="Default" />
                 <repeat name="data_tracks">
                     <conditional name="data_format">
-                        <param name="data_format_select" value="wiggle"/>
+                        <param name="data_format_select" value="bigwig"/>
                         <param name="annotation" value="bw/merlin.bw"/>
                     </conditional>
                 </repeat>
@@ -418,11 +376,10 @@ python '$__tool_directory__/jbrowse2.py'
                     <has_text text="tool_id"></has_text>
                     <has_text text="trackFile path="></has_text>
                     <has_text text="file_ext=&quot;bigwig&quot;"></has_text>
-                    <has_text text="format=&quot;wiggle&quot;"></has_text>
+                    <has_text text="format=&quot;bigwig&quot;"></has_text>
                 </assert_contents>
             </output>
         </test>
-
         <test>
             <param name="reference_genome|genome_type_select" value="history"/>
             <param name="reference_genome|genome" value="merlin.fa"/>
@@ -757,7 +714,6 @@ python '$__tool_directory__/jbrowse2.py'
                 </assert_contents>
             </output>
         </test>
-
         <!-- TODO add a synteny test -->
         <!-- TODO add a bam and a cram test -->
         <!-- TODO add an hic test -->
@@ -805,13 +761,6 @@ The JBrowse-in-Galaxy (JiG) tool was written to help build complex
 JBrowse installations straight from Galaxy. It allows you to build up a JBrowse instance without worrying
 about how to run the command line tools to format your data, and which
 options need to be supplied and where.
-
-The JBrowse-in-Galaxy tool has been rejected by `a Galaxy IUC
-<https://github.com/galaxyproject/tools-iuc/issues>`__, reviewer.
-It is maintained by https://github.com/fubar2 who you can help you
-with missing features or bugs in the tool. For the record, he remains unconvinced by the reviewer's logic,
-and disturbed by the distinctly coercive approach to introducing new code,
-compared to the more usual method of providing a working PR.
 
 Options
 -------

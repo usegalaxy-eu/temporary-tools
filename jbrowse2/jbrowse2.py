@@ -22,7 +22,7 @@ JB2VER = "v2.10.2"
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 GALAXY_INFRASTRUCTURE_URL = None
-JB2REL = "v2.10.1"
+
 # version pinned for cloning
 
 mapped_chars = {
@@ -374,9 +374,10 @@ def metadata_from_node(node):
 
 
 class JbrowseConnector(object):
-    def __init__(self, outdir, genomes):
+    def __init__(self, outdir, jbrowse2path, genomes):
         self.giURL = GALAXY_INFRASTRUCTURE_URL
         self.outdir = outdir
+        self.jbrowse2path = jbrowse2path
         os.makedirs(self.outdir, exist_ok=True)
         self.genome_paths = genomes
         self.genome_name = None
@@ -476,7 +477,7 @@ class JbrowseConnector(object):
     def make_assembly(self, fapath, gname):
 
         faname = gname + ".fa.gz"
-        fadest = os.path.join(self.outdir, faname)
+        fadest = os.path.realpath(os.path.join(self.outdir, faname))
         cmd = "bgzip -i -c %s -I %s.gzi > %s && samtools faidx %s" % (
             fapath,
             fadest,
@@ -1062,59 +1063,6 @@ class JbrowseConnector(object):
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
 
-    def add_hicab(self, data, trackData, hicOpts, **kwargs):
-        rel_dest = os.path.join("data", trackData["label"] + ".hic")
-        dest = os.path.join(self.outdir, rel_dest)
-
-        self.symlink_or_copy(os.path.realpath(data), dest)
-
-        self._add_track(
-            trackData["label"],
-            trackData["key"],
-            trackData["category"],
-            rel_dest,
-            config={},
-        )
-
-    def add_sparql(self, url, query, query_refnames, trackData):
-
-        json_track_data = {
-            "type": "FeatureTrack",
-            "trackId": id,
-            "name": trackData["label"],
-            "adapter": {
-                "type": "SPARQLAdapter",
-                "endpoint": {"uri": url, "locationType": "UriLocation"},
-                "queryTemplate": query,
-            },
-            "category": [trackData["category"]],
-            "assemblyNames": [self.genome_name],
-        }
-
-        if query_refnames:
-            json_track_data["adapter"]["refNamesQueryTemplate"]: query_refnames
-
-        self.subprocess_check_call(
-            [
-                "jbrowse",
-                "add-track-json",
-                "--target",
-                os.path.join(self.outdir, "data"),
-                json_track_data,
-            ]
-        )
-
-        # Doesn't work as of 1.6.4, might work in the future
-        # self.subprocess_check_call([
-        #     'jbrowse', 'add-track',
-        #     '--trackType', 'sparql',
-        #     '--name', trackData['label'],
-        #     '--category', trackData['category'],
-        #     '--target', os.path.join(self.outdir, 'data'),
-        #     '--trackId', id,
-        #     '--config', '{"queryTemplate": "%s"}' % query,
-        #     url])
-
     def process_annotations(self, track):
         category = track["category"].replace("__pd__date__pd__", TODAY)
         for i, (
@@ -1190,22 +1138,18 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext == "bam":
-                real_indexes = track["conf"]["options"]["pileup"]["bam_indices"][
-                    "bam_index"
-                ]
+                real_indexes = track["conf"]["options"]["bam"]["bam_index"]
                 if not isinstance(real_indexes, list):
                     real_indexes = [real_indexes]
 
                 self.add_bam(
                     dataset_path,
                     outputTrackConfig,
-                    track["conf"]["options"]["pileup"],
+                    track["conf"]["options"]["bam"],
                     bam_index=real_indexes[i],
                 )
             elif dataset_ext == "cram":
-                real_indexes = track["conf"]["options"]["cram"]["cram_indices"][
-                    "cram_index"
-                ]
+                real_indexes = track["conf"]["options"]["cram"][ "cram_index"]
                 if not isinstance(real_indexes, list):
                     real_indexes = [real_indexes]
 
@@ -1363,13 +1307,10 @@ class JbrowseConnector(object):
             json.dump(self.config_json, config_file, indent=2)
 
     def clone_jbrowse(self):
-        """Clone a JBrowse directory into a destination directory."""
-        # dest = os.path.realpath(self.outdir)
+        """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now """
         dest = self.outdir
-        cmd = ["rm", "-rf", dest + "/*"]
-        self.subprocess_check_call(cmd)
-        cmd = ["jbrowse", "create", dest, "-t", JB2VER, "-f"]
-        self.subprocess_check_call(cmd)
+        #self.subprocess_check_call(['jbrowse', 'create', dest, '--tag', f"{JB_VER}"])
+        shutil.copytree(self.jbrowse2path, dest, dirs_exist_ok=True)
         for fn in [
             "asset-manifest.json",
             "favicon.ico",
@@ -1378,13 +1319,9 @@ class JbrowseConnector(object):
             "version.txt",
             "test_data",
         ]:
-            cmd = ["rm", "-rf", os.path.join(self.outdir, fn)]
+            cmd = ["rm", "-rf", os.path.join(dest, fn)]
             self.subprocess_check_call(cmd)
-        cmd = [
-            "cp",
-            os.path.join(INSTALLED_TO, "jb2_webserver.py"),
-            self.outdir,
-        ]
+        cmd = ["cp", os.path.join(INSTALLED_TO, "jb2_webserver.py"), dest]
         self.subprocess_check_call(cmd)
 
 
@@ -1404,6 +1341,7 @@ def parse_style_conf(item):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="", epilog="")
     parser.add_argument("--xml", help="Track Configuration")
+    parser.add_argument("--jbrowse2path", help="Path to JBrowse2 directory in biocontainer or Conda")
     parser.add_argument("--outdir", help="Output directory", default="out")
     parser.add_argument("--version", "-V", action="version", version="%(prog)s 2.0.1")
     args = parser.parse_args()
@@ -1419,6 +1357,7 @@ if __name__ == "__main__":
         GALAXY_INFRASTRUCTURE_URL = "http://" + GALAXY_INFRASTRUCTURE_URL
     jc = JbrowseConnector(
         outdir=args.outdir,
+        jbrowse2path=args.jbrowse2path,
         genomes=[
             {
                 "path": os.path.realpath(x.attrib["path"]),
@@ -1475,16 +1414,6 @@ if __name__ == "__main__":
                                 metadata,
                             )
                         )
-        else:
-            # For tracks without files (rest, sparql)
-            track_conf["trackfiles"].append(
-                (
-                    "",  # N/A, no path for rest or sparql
-                    track.attrib["format"],
-                    track.find("options/label").text,
-                    {},
-                )
-            )
 
         if is_multi_bigwig:
             metadata = metadata_from_node(x.find("metadata"))
