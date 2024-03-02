@@ -37,17 +37,22 @@ python '$__tool_directory__/jbrowse2.py'
 <root>
     <metadata>
         <genomes>
-            #if str($reference_genome.genome_type_select) == "indexed":
-              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}">
+            #if str($reference_genome.genome_type_select) == "uri":
+              <genome path="${reference_genome.uri}" label="${reference_genome.refname}" isuri="yes">
                   <metadata>
                      <dataset
-                      dname = "${reference_genome.genome.name}" />
+                      dname = "${reference_genome.refname}" />
+              </metadata>
+              </genome>
+            #else if str($reference_genome.genome_type_select) == "indexed":
+              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}" isuri="no">
+                  <metadata>
+                     <dataset
+                      dname = "${reference_genome.genome.refname}" />
                   </metadata>
               </genome>
-            #else if str($reference_genome.genome_type_select) == "uri":
-                <genome uri="$reference_genome.uri" />
             #else
-              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}">
+              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}" isuri="no">
                 <metadata>
                   <dataset id="${__app__.security.encode_id($reference_genome.genome.id)}" hid="${reference_genome.genome.hid}"
                       size="${reference_genome.genome.get_size(nice_size=True)}"
@@ -101,9 +106,9 @@ python '$__tool_directory__/jbrowse2.py'
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
                 <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                    #if $track.data_format.insource == "history":
+                    #if $track.data_format.useuri.insource == "history":
                     <files>
-                        #for $dataset in $track.data_format.annotation:
+                        #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}">
                                 <metadata>
 
@@ -147,13 +152,13 @@ python '$__tool_directory__/jbrowse2.py'
 
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
-                            #for $dataset in $track.data_format.annotation:
+                            #for $dataset in $track.data_format.useuri.annotation:
                                 <bam_index>${dataset.metadata.bam_index}</bam_index>
                             #end for
                         </bam>
                     #else if str($track.data_format.data_format_select) == "cram":
                         <cram>
-                            #for $dataset in $track.data_format.annotation:
+                            #for $dataset in $track.data_format.useuri.annotation:
                                 <cram_index>${dataset.metadata.cram_index}</cram_index>
                             #end for
                         </cram>
@@ -200,7 +205,11 @@ python '$__tool_directory__/jbrowse2.py'
                     #end if
                     </options>
                   #else
-                    <uri  $track.data_format.annouri/>
+                   <trackFile path="${track.data_format.useuri.annouri}" ext=${track.data_format.data_format_select} label="${track.data_format.useuri.annoname}">
+                        <metadata>
+                        </metadata>
+                    </trackfile>
+                    <options/>
                 #end if
                 </track>
             #end for
@@ -242,6 +251,11 @@ python '$__tool_directory__/jbrowse2.py'
                 <param
                     label="URI pointing to tabix compressed fasta"
                     name="uri"
+                    type="text">
+                </param>
+                <param
+                    label="Reference key - dbkey equivalent"
+                    name="refname"
                     type="text">
                 </param>
             </when>
@@ -357,7 +371,7 @@ python '$__tool_directory__/jbrowse2.py'
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
-        <data format="html" name="output" label="JBrowse2 on $reference_genome.genome.name">
+        <data format="html" name="output" label="JBrowse2">
             <change_format>
                 <when input="zipOut" value="true" format="zip" />
             </change_format>

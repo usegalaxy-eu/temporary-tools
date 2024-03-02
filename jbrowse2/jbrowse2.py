@@ -11,6 +11,7 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import urllib.request
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
@@ -446,7 +447,10 @@ class JbrowseConnector(object):
 
     def process_genomes(self):
         assemblies = []
+        isuri = False
         for i, genome_node in enumerate(self.genome_paths):
+            if genome_node["isuri"].strip().lower() == "yes":
+                isuri = True
             genome_name = genome_node["meta"]["dataset_dname"].strip()
             if len(genome_name.split()) > 1:
                 genome_name = genome_name.split()[0]
@@ -454,7 +458,9 @@ class JbrowseConnector(object):
             if genome_name not in self.genome_names:
                 # ignore dupes - can have multiple pafs with same references?
                 fapath = genome_node["path"]
-                assem = self.make_assembly(fapath, genome_name)
+                if not isuri:
+                    fapath = os.path.realpath(fapath)
+                assem = self.make_assembly(fapath, genome_name, isuri)
                 assemblies.append(assem)
                 self.genome_names.append(genome_name)
                 if self.genome_name is None:
@@ -462,41 +468,63 @@ class JbrowseConnector(object):
                         genome_name  # first one for all tracks - other than paf
                     )
                     self.genome_firstcontig = None
-                    fl = open(fapath, "r").readline().strip().split(">")
-                    if len(fl) > 1:
-                        fl = fl[1]
-                        if len(fl.split()) > 1:
-                            self.genome_firstcontig = fl.split()[0].strip()
-                        else:
-                            self.genome_firstcontig = fl
+                    if not isuri:
+                        # https://lazarus.name/jbrowse/fish/bigwig_0_coverage_bedgraph_cov_count_count_bw.bigwig
+                        # https://lazarus.name/jbrowse/fish/klBraLanc5.haps_combined.decontam.20230620.fasta.fa.gz
+                        fl = open(fapath, "r").readline()
+                        fls = fl.strip().split(">")
+                        if len(fls) > 1:
+                            fl = fls[1]
+                            if len(fl.split()) > 1:
+                                self.genome_firstcontig = fl.split()[0].strip()
+                            else:
+                                self.genome_firstcontig = fl
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
             self.config_json["assemblies"] = assemblies
 
-    def make_assembly(self, fapath, gname):
+    def make_assembly(self, fapath, gname, isuri):
+        if isuri:
+            faname = fapath
+            adapter = {
+                "type": "BgzipFastaAdapter",
+                "fastaLocation": {
+                    "uri": faname,
+                    "locationType": "UriLocation",
+                },
+                "faiLocation": {
+                    "uri": faname + ".fai",
+                    "locationType": "UriLocation",
+                },
+                "gziLocation": {
+                    "uri": faname + ".gzi",
+                    "locationType": "UriLocation",
+                },
+            }
+        else:
+            faname = gname + ".fa.gz"
+            fadest = os.path.realpath(os.path.join(self.outdir, faname))
+            cmd = "bgzip -i -c %s -I %s.gzi > %s && samtools faidx %s" % (
+                fapath,
+                fadest,
+                fadest,
+                fadest,
+            )
+            self.subprocess_popen(cmd)
 
-        faname = gname + ".fa.gz"
-        fadest = os.path.realpath(os.path.join(self.outdir, faname))
-        cmd = "bgzip -i -c %s -I %s.gzi > %s && samtools faidx %s" % (
-            fapath,
-            fadest,
-            fadest,
-            fadest,
-        )
-        self.subprocess_popen(cmd)
-        adapter = {
-            "type": "BgzipFastaAdapter",
-            "fastaLocation": {
-                "uri": faname,
-            },
-            "faiLocation": {
-                "uri": faname + ".fai",
-            },
-            "gziLocation": {
-                "uri": faname + ".gzi",
-            },
-        }
+            adapter = {
+                "type": "BgzipFastaAdapter",
+                "fastaLocation": {
+                    "uri": faname,
+                },
+                "faiLocation": {
+                    "uri": faname + ".fai",
+                },
+                "gziLocation": {
+                    "uri": faname + ".gzi",
+                },
+            }
         self.genome_sequence_adapter = adapter
         trackDict = {
             "name": gname,
@@ -1071,10 +1099,11 @@ class JbrowseConnector(object):
             track_human_label,
             extra_metadata,
         ) in enumerate(track["trackfiles"]):
-            # Unsanitize labels (element_identifiers are always sanitized by Galaxy)
-            for key, value in mapped_chars.items():
-                track_human_label = track_human_label.replace(value, key)
-            track_human_label = track_human_label.replace(" ", "_")
+            if dataset_path.strip().startswith('http'):
+                # Unsanitize labels (element_identifiers are always sanitized by Galaxy)
+                for key, value in mapped_chars.items():
+                    track_human_label = track_human_label.replace(value, key)
+                track_human_label = track_human_label.replace(" ", "_")
             outputTrackConfig = {
                 "category": category,
                 "style": {},
@@ -1360,7 +1389,9 @@ if __name__ == "__main__":
         jbrowse2path=args.jbrowse2path,
         genomes=[
             {
-                "path": os.path.realpath(x.attrib["path"]),
+                "path": x.attrib["path"],
+                "label":  x.attrib["label"],
+                "isuri": x.attrib["isuri"],
                 "meta": metadata_from_node(x.find("metadata")),
             }
             for x in root.findall("metadata/genomes/genome")

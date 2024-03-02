@@ -516,6 +516,13 @@ until the IUC complete their own.
                 </when>
                 <when value="uri">
                        <param label="@LABEL@" name="annouri" multiple="false" type="text" />
+                       <param label="Short name for track display" name="annoname" type="text" >
+                             <sanitizer invalid_char="_">
+                                <valid initial="string.printable" >
+                                    <remove value="'" />
+                                </valid>
+                              </sanitizer>
+                        </param>
                 </when>
             </conditional>
      </xml>
