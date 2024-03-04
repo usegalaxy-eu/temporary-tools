@@ -427,7 +427,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="bigwig"/>
-                        <param name="annotation" value="bw/merlin.bw"/>
+                        <conditional name="useuri">
+                            <param name="annotation" value="bw/merlin.bw"/>
+                            <param name="insource" value="history"/>
+                        </conditional>
                     </conditional>
                 </repeat>
             </repeat>
@@ -453,7 +456,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="vcf"/>
-                        <param name="annotation" value="vcf/merlin.vcf"/>
+                        <conditional name="useuri">
+                            <param name="insource" value="history"/>
+                            <param name="annotation" value="vcf/merlin.vcf"/>
+                        </conditional>
                     </conditional>
                 </repeat>
             </repeat>
@@ -492,7 +498,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="bed/test-3.bed"/>
+                       <conditional name="useuri">
+                            <param name="insource" value="history"/>
+                            <param name="annotation" value="bed/test-3.bed"/>
+                       </conditional>
                     </conditional>
                 </repeat>
             </repeat>
@@ -517,7 +526,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/A.gff"/>
+                       <conditional name="useuri">
+                            <param name="insource" value="history"/>
+                           <param name="annotation" value="gff3/A.gff"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -538,7 +550,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
+                       <conditional name="useuri">
+                            <param name="insource" value="history"/>
                         <param name="annotation" value="gff3/1.gff"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -560,7 +575,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/C.gff"/>
+                       <conditional name="useuri">
+                            <param name="insource" value= "history"/>
+                            <param name="annotation" value="gff3/C.gff"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -584,8 +602,11 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/B.gff"/>
-                        <conditional name="match_part">
+                       <conditional name="useuri">
+                            <param name="annotation" value="gff3/B.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
+                       <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
                         <section name="jbcolor_scale">
@@ -609,7 +630,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/A.gff"/>
+                       <conditional name="useuri">
+                            <param name="annotation" value="gff3/A.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -635,7 +659,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                        <conditional name="useuri">
+                            <param name="annotation" value="gff3/1.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -666,7 +693,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/interpro.gff"/>
+                        <conditional name="useuri">
+                            <param name="annotation" value="gff3/interpro.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -683,7 +713,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/2.gff"/>
+                         <conditional name="useuri">
+                            <param name="annotation" value="gff3/2.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="true"/>
                             <param name="name" value="cDNA_match"/>
@@ -723,7 +756,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                        <conditional name="useuri">
+                            <param name="annotation" value="gff3/1.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
@@ -755,7 +791,11 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gene_calls"/>
-                        <param name="annotation" value="gff3/1.gff"/>
+                         <conditional name="useuri">
+                            <param name="annotation" value="gff3/1.gff"/>
+                            <param name="insource" value= "history"/>
+                        </conditional>
+                        <param name="insource" value= "history"/>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
                         </conditional>
