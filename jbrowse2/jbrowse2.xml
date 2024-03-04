@@ -17,42 +17,75 @@ cp '$trackxml' '$output.files_path/galaxy.xml' &&
 
 export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
 
-## Once that's done, we run the python script to handle the real work
-python '$__tool_directory__/jbrowse2.py'
---jbrowse2path \${JBROWSE2_PATH}
---outdir '$output.files_path'
---xml '$trackxml' &&
-#if $jbgen.zipOut == "true":
-    (cd '$output.files_path' && zip -r - . ) > '$output'
-#else
-  cp '$output.files_path/index.html' '$output'
-#end if
-## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
-#if str($uglyTestingHack) == "enabled":
- &&   cp '$trackxml' '$output'
+#if $jbgen.ucol.formcoll=="collect":
+    python '$__tool_directory__/autogenJB2.py'
+    #for $key in $autoCollection.keys():
+        #if $autoCollection[$key].is_collection:
+            #set subCol=$autoCollection[$key]
+            #set pafs=[($subCol[x],$subcol[x].ext,x) for x in $subCol.keys() if $subCol[x].ext == 'paf']
+            #if len($pafs) > 0:
+                 --pafmeta '$pafs[0]'
+                #set refs = [($pafs[0][2],$subCol[x],x) for x in $subCol.keys() if $subCol[x].ext == 'fasta']
+                #for $ref in $refs:
+                 --pafreferencemeta '$ref'
+                #end for
+            #end if
+        #else if $autoCollection[$key].ext == 'fasta':
+          --referencemeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
+        #else if $autoCollection[$key].ext in ['bed', 'bigwig', 'cool', 'gff', 'gff3', 'hic', 'maf', 'mcool', 'scool', 'vcf']
+          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
+        #else if $autoCollection[$key].ext in ['bam',]
+          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.bam_index'
+         #else if $autoCollection[$key].ext in ['cram',]
+          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.cram_index'
+        #end if
+    #end for
+    --outdir '$output.files_path'
+    --jbrowse2path \${JBROWSE2_PATH}
+    --sessName "Autogen JBrowse" &&
+    #if $jbgen.zipOut == "true":
+        (cd '$output.files_path' && zip -r - . ) > '$output'
+    #else
+      cp '$output.files_path/index.html' '$output'
+    #end if
+#else:
+    python '$__tool_directory__/jbrowse2.py'
+    --jbrowse2path \${JBROWSE2_PATH}
+    --outdir '$output.files_path'
+    --xml '$trackxml' &&
+    #if $jbgen.zipOut == "true":
+        (cd '$output.files_path' && zip -r - . ) > '$output'
+    #else
+      cp '$output.files_path/index.html' '$output'
+    #end if
+    ## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
+    #if str($uglyTestingHack) == "enabled":
+       &&   cp '$trackxml' '$output'
+    #end if
 #end if
   ]]></command>
 <configfiles>
         <configfile name="trackxml"><![CDATA[<?xml version="1.0"?>
+#if $jbgen.ucol.formcoll=="form":
 <root>
     <metadata>
         <genomes>
             #if str($reference_genome.genome_type_select) == "uri":
-              <genome path="${reference_genome.uri}" label="${reference_genome.refname}" isuri="yes">
+              <genome path="${reference_genome.uri}" label="${reference_genome.refname}" useuri="yes">
                   <metadata>
                      <dataset
                       dname = "${reference_genome.refname}" />
               </metadata>
               </genome>
             #else if str($reference_genome.genome_type_select) == "indexed":
-              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}" isuri="no">
+              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}" useuri="no">
                   <metadata>
                      <dataset
                       dname = "${reference_genome.genome.refname}" />
                   </metadata>
               </genome>
             #else
-              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}" isuri="no">
+              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}" useuri="no">
                 <metadata>
                   <dataset id="${__app__.security.encode_id($reference_genome.genome.id)}" hid="${reference_genome.genome.hid}"
                       size="${reference_genome.genome.get_size(nice_size=True)}"
@@ -105,8 +138,9 @@ python '$__tool_directory__/jbrowse2.py'
     <tracks>
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
-                <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                    #if $track.data_format.useuri.insource == "history":
+                #if $track.data_format.useuri.insource == "history":
+                    #if $track.data_format.useuri.annotation:
+                    <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
                     <files>
                         #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
@@ -204,21 +238,25 @@ python '$__tool_directory__/jbrowse2.py'
                         </sparql>
                     #end if
                     </options>
-                  #else
-                  <files>
-                    <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}" label="${track.data_format.useuri.annoname}" useuri="yes">
-                        <metadata>
-                        <dataset id = "${track.data_format.useuri.annouri}" />
-                        </metadata>
-                     </trackFile>
-                 </files>
-                <options/>
-                #end if
+                  </track>
+                  #end if
+                #else if track.data_format.useuri.annouri:
+                   <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
+                      <files>
+                        <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}" label="${track.data_format.useuri.annoname}" useuri="yes">
+                            <metadata>
+                            <dataset id = "${track.data_format.useuri.annouri}" />
+                            </metadata>
+                         </trackFile>
+                     </files>
+                    <options/>
                 </track>
+                #end if
             #end for
-    #end for
+        #end for
     </tracks>
 </root>
+#end if
 ]]></configfile>
     </configfiles>
 

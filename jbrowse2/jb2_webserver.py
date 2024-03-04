@@ -42,7 +42,7 @@ import webbrowser
 from http.server import SimpleHTTPRequestHandler
 
 
-DEFAULT_PORT = 8080
+DEFAULT_PORT = 8081
 
 
 def copy_byte_range(infile, outfile, start=None, stop=None, bufsize=16 * 1024):
@@ -156,7 +156,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Simple Python Web Server with Range Support"
+        description="Tiny Python Web Server supporting range requests, for local viewing of unzipped Galaxy JBrowse2 configurations"
     )
     parser.add_argument(
         "--root",

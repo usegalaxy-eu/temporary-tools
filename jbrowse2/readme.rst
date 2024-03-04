@@ -1,7 +1,19 @@
 JBrowse2 in Galaxy
 ==================
 
-Added Feb 3: cool/mcool -> hic 
+Added Mar 3:
+- optional tracks at last for JB2
+    - dotted noodles from optional inputs now ignored without harm
+- autogenJB2.
+    - Takes a collection of bam/vcf etc and turns them into tracks in a normal JB2 history item.
+    - Uses the JbrowseConnector, but the XML tool drives it from the contents of the collection.
+    - Collection can be built from any source or with optional noodles in a WF
+    - Produces a JB2 with all available tracks.
+    - Argparse command line with repeats for tracks and references
+        - so works outside Galaxy to process directories or s3 buckets.
+
+
+Added Feb 3: cool/mcool -> hic
 
 .. image:: dm4_in_jb2.png
 

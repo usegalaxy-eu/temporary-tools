@@ -55,23 +55,21 @@ python '$__tool_directory__/autogenJB2.py'
         <data format="html" name="output" label="AutoJBrowse2"/>
     </outputs>
 <tests>
- <test>
+   <test>
       <param name="uglyTestingHack" value="enabled" />
       <param name="autoCollection">
         <collection type="list">
           <element name="Merlin" value="merlin.fa" ftype="fasta"/>
-          <element name="merlin-sample.bam" value="bam/merlin-sample.bam" ftype="bam"/>
+          <element name="test-6.bed" value="bed/test-6.bed" ftype="bed"/>
         </collection>
       </param>
-            <output name="output">
-                <assert_contents>
-                    <has_text text='"name": "Merlin",'/>
-                    <has_text text='"name": "merlin-sample.bam",'/>
-                    <has_text text='"uri": "Merlin.fa.gz.fai"'/>
-                    <has_text text='"uri": "bam_0_merlin-sample.bam.bam.bai"'/>
-
-                </assert_contents>
-            </output>
+      <output name="output">
+            <assert_contents>
+                <has_text text='"name": "Merlin",'/>
+                <has_text text='"name": "test-6.bed",'/>
+                <has_text text='"uri": "Merlin.fa.gz.fai"'/>
+            </assert_contents>
+      </output>
     </test>
 </tests>
     <help><![CDATA[

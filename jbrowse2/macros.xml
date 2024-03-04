@@ -140,6 +140,19 @@ until the IUC complete their own.
 
     <xml name="general_options">
         <section name="jbgen" title="General JBrowse Options [Advanced]" expanded="false">
+            <conditional name="ucol">
+                <param name="formcoll" type="select" label="Convert a collection of track files rather than filling in the tool form"
+                    help="A collection of bam/vcf and other track types will be converted into a JBrowse2 automatically">
+                    <option value="form" selected="true">Fill in the tool form to specify tracks for the output JBrowse2</option>
+                    <option value="collect">Convert a collection of suitable track files</option>
+                </param>
+                <when value="collect">
+                       <param label="Collection of bed, bam and other track files" name="autoCollection" type="data_collection" />
+                </when>
+                <when value="form">
+                </when>
+            </conditional>
+
             <param label="Create a zip archive for downloading rather than viewing " name="zipOut" help="Default is to make an interactive browser appear when the 'eye' icon is activated"
             type="boolean" checked="false" truevalue="true" falsevalue="false" />
             <param label="Subset to display to new users" type="text" name="defaultLocation" value="" help="Initial subset to be shown for users who have never visited the browser before. Example: 'ctgA:1234..5678'"/>
@@ -512,7 +525,7 @@ until the IUC complete their own.
                     <option value="uri" selected="true">Tabix data URI - index files must be available at corresponding URI</option>
                 </param>
                 <when value="history">
-                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" type="data" />
+                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
                 </when>
                 <when value="uri">
                        <param label="@LABEL@" name="annouri" multiple="false" type="text" />
