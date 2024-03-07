@@ -1086,9 +1086,9 @@ class JbrowseConnector(object):
         for i, gname in enumerate(pgnames):
             if len(gname.split()) > 1:
                 gname = gname.split()[0]
+                passnames.append(gname)
                 # trouble from spacey names in command lines avoidance
                 if gname not in self.genome_names:
-                    passnames.append(gname)
                     # ignore if already there - eg for duplicates among pafs.
                     asstrack = self.make_assembly(pgpaths[i], gname)
                     self.genome_names.append(gname)
@@ -1148,6 +1148,8 @@ class JbrowseConnector(object):
 
             outputTrackConfig["key"] = track_human_label
             outputTrackConfig["useuri"] = useuri
+            outputTrackConfig["path"] = dataset_path
+            outputTrackConfig["ext"] = dataset_ext
 
             outputTrackConfig["trackset"] = track.get("trackset", {})
             outputTrackConfig["label"] = "%s_%i_%s" % (

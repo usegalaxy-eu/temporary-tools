@@ -528,7 +528,7 @@ until the IUC complete their own.
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
                 </when>
                 <when value="uri">
-                       <param label="@LABEL@" name="annouri" multiple="false" type="text" />
+                       <param label="@LABEL@" name="annouri"  type="text" />
                        <param label="Short name for track display" name="annoname" type="text" >
                              <sanitizer invalid_char="_">
                                 <valid initial="string.printable" >

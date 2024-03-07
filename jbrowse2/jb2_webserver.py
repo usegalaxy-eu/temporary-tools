@@ -171,8 +171,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--bind",
-        default="0.0.0.0",
-        help="IP address to bind to (default: 0.0.0.0)",
+        default="127.0.0.1",
+        help="IP address to bind to (default: 127.0.0.1 - use 0.0.0.0 to allow access on your network)",
     )
     args = parser.parse_args()
 
