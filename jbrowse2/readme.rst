@@ -1,5 +1,11 @@
 JBrowse2 in Galaxy
 ==================
+Added Mar 8:
+ - URI as data source for tracks
+ - Autogenerate from a collection now builtin to advanced options - ignores form
+ - Cram now working
+ - Multigenome pafs from mashmap working properly..
+ - TODO reuse code for references for paf references to allow URI and builtin genomes
 
 Added Mar 3:
  - optional tracks at last for JB2
