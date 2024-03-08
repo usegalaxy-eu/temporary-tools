@@ -275,7 +275,8 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     help="If your genome of interest is not listed, contact the Galaxy team"
                     label="Select a reference genome"
                     name="genome"
-                    type="select">
+                    type="select"
+                    optional="true">
                     <options from_data_table="all_fasta">
                         <filter column="2" type="sort_by"/>
                         <validator message="No genomes are available for the selected input dataset" type="no_options">
@@ -288,7 +289,8 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     format="fasta"
                     label="Select the reference genome"
                     name="genome"
-                    type="data">
+                    type="data"
+                    optional="true">
                 </param>
             </when>
             <when value="uri">
@@ -320,7 +322,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         <option value="blastxml">Blast XML track - converted to GFF</option>
                         <option value="cool">HiC as cool/mcool/scool format files</option>
                         <option value="cram">CRAM</option>
-                        <option value="gff" selected="true">GFF/GFF3 feature track</option>
+                        <option value="gff">GFF/GFF3 feature track</option>
                         <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix will NOT work.</option>
                         <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
                         <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
