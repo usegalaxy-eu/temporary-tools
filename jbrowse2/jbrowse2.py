@@ -1085,7 +1085,8 @@ class JbrowseConnector(object):
                 # trouble from spacey names in command lines avoidance
                 if gname not in self.genome_names:
                     # ignore if already there - eg for duplicates among pafs.
-                    asstrack = self.make_assembly(pgpaths[i], gname)
+                    useuri = pgpaths[i].startswith('http://') or pgpaths[i].startswith('https://')
+                    asstrack = self.make_assembly(pgpaths[i], gname, useuri)
                     self.genome_names.append(gname)
                     if self.config_json.get("assemblies", None):
                         self.config_json["assemblies"].append(asstrack)
