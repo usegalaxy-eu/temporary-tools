@@ -3,6 +3,7 @@ JBrowse2 in Galaxy
 Added Mar 8:
  - URI as data source for tracks
  - Autogenerate from a collection now builtin to advanced options - ignores form
+    - potentially thousands of tracks without filling in any form...
  - Cram now working
  - Multigenome pafs from mashmap working properly..
  - TODO reuse code for references for paf references to allow URI and builtin genomes
@@ -30,7 +31,7 @@ Other tracks
 JBrowse2 is a fast, embeddable genome browser built completely with
 JavaScript and HTML5
 
-Thus, it makes an ideal fit with Galaxy, especially for use as a
+Makes an ideal fit with Galaxy, especially for use as a
 workflow summary. E.g. annotate a genome, then visualise all of the
 associated datasets as an interactive HTML page. This tool MUST be whitelisted
 (or ``sanitize_all_html=False`` in galaxy.ini) to function correctly.
