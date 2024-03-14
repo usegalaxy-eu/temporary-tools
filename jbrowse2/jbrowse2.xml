@@ -81,7 +81,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
               <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}" useuri="no">
                   <metadata>
                      <dataset
-                      dname = "${reference_genome.genome.refname}" />
+                      dname = "${reference_genome.genome.fields.name}" />
                   </metadata>
               </genome>
             #else
