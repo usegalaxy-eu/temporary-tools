@@ -1275,7 +1275,7 @@ class JbrowseConnector(object):
             "reversed": False,
             "assemblyName": self.genome_name,
             "start": 2000,
-            "end": 0,
+            "end": 200000,
             "refName": "x",
         }
 
