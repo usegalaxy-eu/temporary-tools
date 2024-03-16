@@ -481,10 +481,10 @@ class JbrowseConnector(object):
                                 self.genome_firstcontig = fl.split()[0].strip()
                             else:
                                 self.genome_firstcontig = fl
-                        else:
-                            fl = urrlib.request.urlopen(faname+".fai").readline()
-                            if fl: # is first row of the text fai so the first contig name
-                                self.genome_firstcontig = fl.decode('utf8').strip().split()[0]
+                    else:
+                        fl = urllib.request.urlopen(fapath+".fai").readline()
+                        if fl: # is first row of the text fai so the first contig name
+                            self.genome_firstcontig = fl.decode('utf8').strip().split()[0]
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
@@ -870,16 +870,14 @@ class JbrowseConnector(object):
     def add_cram(self, data, trackData, cram_index=None, **kwargs):
         tId = trackData["label"]
         useuri = trackData["useuri"].lower() == "yes"
-        bindex = cram_index
         if useuri:
             url = data
         else:
             fname = "%s.cram" % trackData["label"]
             dest = "%s/%s" % (self.outdir, fname)
-            bindex = fname + '.crai'
             url = fname
             self.subprocess_check_call(["cp", data, dest])
-            if bindex is not None and os.path.exists(bindex):
+            if cram_index is not None and os.path.exists(cram_index):
                 if not os.path.exists(dest+'.crai'):
                     # most probably made by galaxy and stored in galaxy dirs, need to copy it to dest
                     self.subprocess_check_call(
@@ -899,7 +897,7 @@ class JbrowseConnector(object):
                 "type": "CramAdapter",
                 "cramLocation": {"uri": url},
                 "craiLocation": {
-                    "uri": bindex,
+                    "uri": url + '.crai',
                 },
                 "sequenceAdapter": self.genome_sequence_adapter,
             },
