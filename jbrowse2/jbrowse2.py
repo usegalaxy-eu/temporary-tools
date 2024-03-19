@@ -19,7 +19,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("jbrowse")
 
-JB2VER = "v2.10.2"
+JB2VER = "v2.10.3"
 # version pinned for cloning
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -471,8 +471,6 @@ class JbrowseConnector(object):
                     self.genome_sequence_adapter = assem["sequence"]["adapter"]
                     self.genome_firstcontig = None
                     if not useuri:
-                        # https://lazarus.name/jbrowse/fish/bigwig_0_coverage_bedgraph_cov_count_count_bw.bigwig
-                        # https://lazarus.name/jbrowse/fish/klBraLanc5.haps_combined.decontam.20230620.fasta.fa.gz
                         fl = open(fapath, "r").readline()
                         fls = fl.strip().split(">")
                         if len(fls) > 1:
@@ -606,11 +604,13 @@ class JbrowseConnector(object):
             uri = data
         else:
             uri = trackData["hic_url"]
+        categ = trackData['category']
         trackDict = {
             "type": "HicTrack",
             "trackId": tId,
             "name": uri,
             "assemblyNames": [self.genome_name],
+            "category": [categ,],
             "adapter": {
                 "type": "HicAdapter",
                 "hicLocation": uri,
@@ -643,7 +643,7 @@ class JbrowseConnector(object):
                 }
             ]
         }
-
+        categ = trackData['category']
         fname = "%s.bed" % tId
         dest = "%s/%s" % (self.outdir, fname)
         gname = self.genome_name
@@ -669,6 +669,7 @@ class JbrowseConnector(object):
             "type": "MafTrack",
             "trackId": tId,
             "name": trackData["name"],
+            "category": [categ,],
             "adapter": {
                 "type": "MafTabixAdapter",
                 "samples": samples,
@@ -738,11 +739,13 @@ class JbrowseConnector(object):
         self._sort_gff(gff3, dest)
         url = url + ".gz"
         tId = trackData["label"]
+        categ = trackData['category']
         trackDict = {
             "type": "FeatureTrack",
             "trackId": tId,
             "name": trackData["name"],
             "assemblyNames": [self.genome_name],
+            "category": [categ,],
             "adapter": {
                 "type": "Gff3TabixAdapter",
                 "gffGzLocation": {
@@ -791,10 +794,12 @@ class JbrowseConnector(object):
             self.subprocess_check_call(cmd)
         bwloc = {"uri": url}
         tId = trackData["label"]
+        categ = trackData['category']
         trackDict = {
             "type": "QuantitativeTrack",
             "trackId": tId,
             "name": trackData["name"],
+            "category": [categ,],
             "assemblyNames": [
                 self.genome_name,
             ],
@@ -818,6 +823,7 @@ class JbrowseConnector(object):
         tId = trackData["label"]
         useuri = trackData["useuri"].lower() == "yes"
         bindex = bam_index
+        categ = trackData['category']
         if useuri:
             url = data
         else:
@@ -845,6 +851,7 @@ class JbrowseConnector(object):
             "type": "AlignmentsTrack",
             "trackId": tId,
             "name": trackData["name"],
+            "category": [categ,],
             "assemblyNames": [self.genome_name],
             "adapter": {
                 "type": "BamAdapter",
@@ -869,6 +876,7 @@ class JbrowseConnector(object):
 
     def add_cram(self, data, trackData, cram_index=None, **kwargs):
         tId = trackData["label"]
+        categ = trackData['category']
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
@@ -892,6 +900,7 @@ class JbrowseConnector(object):
             "type": "AlignmentsTrack",
             "trackId": tId,
             "name": trackData["name"],
+            "category": [categ,],
             "assemblyNames": [self.genome_name],
             "adapter": {
                 "type": "CramAdapter",
@@ -919,7 +928,7 @@ class JbrowseConnector(object):
         # self.giURL,
         # trackData["metadata"]["dataset_id"],
         # )
-
+        categ = trackData['category']
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
@@ -935,6 +944,7 @@ class JbrowseConnector(object):
             "trackId": tId,
             "name": trackData["name"],
             "assemblyNames": [self.genome_name],
+            "category": [categ,],
             "adapter": {
                 "type": "VcfTabixAdapter",
                 "vcfGzLocation": {
@@ -993,11 +1003,13 @@ class JbrowseConnector(object):
             dest = "%s/%s" % (self.outdir, url)
             self._sort_gff(data, dest)
         tId = trackData["label"]
+        categ = trackData['category']
         trackDict = {
             "type": "FeatureTrack",
             "trackId": tId,
             "name": trackData["name"],
             "assemblyNames": [self.genome_name],
+            "category": [categ,],
             "adapter": {
                 "type": "Gff3TabixAdapter",
                 "gffGzLocation": {
@@ -1027,6 +1039,7 @@ class JbrowseConnector(object):
 
     def add_bed(self, data, ext, trackData):
         tId = trackData["label"]
+        categ = trackData['category']
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
@@ -1040,6 +1053,7 @@ class JbrowseConnector(object):
             "name": trackData["name"],
             "assemblyNames": [self.genome_name],
             "adapter": {
+            "category": [categ,],
                 "type": "BedTabixAdapter",
                 "bedGzLocation": {
                     "uri": url,
@@ -1073,6 +1087,7 @@ class JbrowseConnector(object):
     def add_paf(self, data, trackData, pafOpts, **kwargs):
         tname = trackData["name"]
         tId = trackData["label"]
+        categ = trackData['category']
         pgnames = [x.strip() for x in pafOpts["genome_label"].split(",")]
         pgpaths = [x.strip() for x in pafOpts["genome"].split(",")]
         passnames = [self.genome_name]  # always first
@@ -1099,22 +1114,23 @@ class JbrowseConnector(object):
             "type": "SyntenyTrack",
             "trackId": tId,
             "assemblyNames": passnames,
+            "category": [categ,],
             "name": tname,
             "adapter": {
                 "type": "PAFAdapter",
                 "pafLocation": {"uri": url},
                 "assemblyNames": passnames,
             },
-            # "displays": [
-            # {
-            # "type": "LinearSyntenyDisplay",
-            # "displayId": "%s-LinearSyntenyDisplay" % tId,
-            # },
-            # {
-            # "type": "DotPlotDisplay",
-            # "displayId": "%s-DotPlotDisplay" % tId,
-            # },
-            # ],
+            "displays": [
+            {
+            "type": "LinearSyntenyDisplay",
+            "displayId": "%s-LinearSyntenyDisplay" % tId,
+            },
+            {
+            "type": "DotPlotDisplay",
+            "displayId": "%s-DotPlotDisplay" % tId,
+            },
+            ],
         }
         style_json = self._prepare_track_style(trackDict)
         trackDict["style"] = style_json
@@ -1362,11 +1378,13 @@ class JbrowseConnector(object):
         with open(config_path, "w") as config_file:
             json.dump(self.config_json, config_file, indent=2)
 
-    def clone_jbrowse(self):
+    def clone_jbrowse(self, realclone=True):
         """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now"""
         dest = self.outdir
-        # self.subprocess_check_call(['jbrowse', 'create', dest, '--tag', f"{JB_VER}"])
-        shutil.copytree(self.jbrowse2path, dest, dirs_exist_ok=True)
+        if realclone:
+            self.subprocess_check_call(['jbrowse', 'create', dest,"-f", '--tag', f"{JB2VER}"])
+        else:
+            shutil.copytree(self.jbrowse2path, dest, dirs_exist_ok=True)
         for fn in [
             "asset-manifest.json",
             "favicon.ico",
