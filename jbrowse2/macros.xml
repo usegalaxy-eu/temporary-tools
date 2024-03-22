@@ -522,7 +522,7 @@ until the IUC complete their own.
                 <param name="insource" type="select" label="Define track data as a history file or an internet URI"
                     help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
                     <option value="history" selected="true">Track data from a history file</option>
-                    <option value="uri" selected="true">Tabix data URI - index files must be available at corresponding URI</option>
+                    <option value="uri" >Tabix data URI - index files must be available at corresponding URI</option>
                 </param>
                 <when value="history">
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
@@ -536,6 +536,39 @@ until the IUC complete their own.
                                 </valid>
                               </sanitizer>
                         </param>
+                </when>
+            </conditional>
+     </xml>
+    <xml name="pafref_conditional" token_label="Track Data" token_format="data">
+        <conditional name="pafuseuri">
+                <param name="insource" type="select" label="PAF reference data from a history file or an internet URI?"
+                    help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
+                    <option value="history" selected="true">PAF genome reference data from a history file</option>
+                    <option value="uri">PAF genome reference data from tabix data URI - index files must be available at corresponding URI</option>
+                </param>
+                <when value="history">
+                    <repeat name="refgenomes" title="Add one or more comparison genomes used to make the PAF">
+                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
+                       <param label="Short name for track display" name="annoname" type="text" >
+                             <sanitizer invalid_char="_">
+                                <valid initial="string.printable" >
+                                    <remove value="'" />
+                                </valid>
+                              </sanitizer>
+                        </param>
+                    </repeat>
+                </when>
+                <when value="uri">
+                    <repeat name="refgenomes" title="Provide URI for a comparison genomesused to make the PAF">
+                       <param label="@LABEL@" name="annotation"  type="text" />
+                       <param label="Short name for track display" name="annoname" type="text" >
+                             <sanitizer invalid_char="_">
+                                <valid initial="string.printable" >
+                                    <remove value="'" />
+                                </valid>
+                              </sanitizer>
+                        </param>
+                    </repeat>
                 </when>
             </conditional>
      </xml>

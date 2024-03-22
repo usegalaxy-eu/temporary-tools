@@ -61,10 +61,10 @@ if __name__ == "__main__":
             genome_names = [x[2] for x in listgenomes]
             guseuri = []
             for x in genome_paths:
-                if x.startswith('http://') or x.startswith('https://'):
-                    guseuri.append('yes')
+                if x.startswith("http://") or x.startswith("https://"):
+                    guseuri.append("yes")
                 else:
-                    guseuri.append('no')
+                    guseuri.append("no")
             jc = jbC(
                 outdir=args.outdir,
                 jbrowse2path=args.jbrowse2path,
@@ -73,9 +73,10 @@ if __name__ == "__main__":
                         "path": x,
                         "label": genome_names[i],
                         "useuri": guseuri[i],
-                        "meta":  {"name": genome_names[i],
-                                            "dataset_dname": genome_names[i]
-                                        }
+                        "meta": {
+                            "name": genome_names[i],
+                            "dataset_dname": genome_names[i],
+                        },
                     }
                     for i, x in enumerate(genome_paths)
                 ],
@@ -99,7 +100,7 @@ if __name__ == "__main__":
                 tpath, trext, trackname = track[:3]
                 track_conf["dataset_id"] = trackname
                 useuri = "no"
-                if tpath.startswith('http://') or tpath.startswith('https://'):
+                if tpath.startswith("http://") or tpath.startswith("https://"):
                     useuri = "yes"
                 if trext == "paf":
                     refname = trackname + "_paf.fasta"
@@ -111,28 +112,55 @@ if __name__ == "__main__":
                         )
                         sys.exit(3)
                     else:
-                        track_conf.update({
-                            "conf": {
-                                "options": {
-                                    "paf": {"genome": refdat, "genome_label": trackname}
+                        track_conf.update(
+                            {
+                                "conf": {
+                                    "options": {
+                                        "paf": {
+                                            "genome": refdat,
+                                            "genome_label": trackname,
+                                        }
+                                    }
                                 }
                             }
-                        })
+                        )
                 elif trext == "bam":
-                    ipath  = track[3]
+                    ipath = track[3]
                     if not os.path.exists(ipath):
-                        ipath = os.path.realpath(os.path.join(jc.outdir, trackname + '.bai'))
-                        cmd = ["samtools", "index", "-b", "-o", ipath, os.path.realpath(track[0])]
-                        sys.stdout.write('#### calling %s' % ' '.join(cmd))
+                        ipath = os.path.realpath(
+                            os.path.join(jc.outdir, trackname + ".bai")
+                        )
+                        cmd = [
+                            "samtools",
+                            "index",
+                            "-b",
+                            "-o",
+                            ipath,
+                            os.path.realpath(track[0]),
+                        ]
+                        sys.stdout.write("#### calling %s" % " ".join(cmd))
                         jc.subprocess_check_call(cmd)
-                    track_conf.update({"conf": {"options": {"bam": {"bam_index": ipath}}}})
+                    track_conf.update(
+                        {"conf": {"options": {"bam": {"bam_index": ipath}}}}
+                    )
                 elif trext == "cram":
-                    ipath  = track[3]
+                    ipath = track[3]
                     if not os.path.exists(ipath):
-                        ipath = os.path.realpath(os.path.join('./', trackname + '.crai'))
-                        cmd = ["samtools", "index", "-c", "-o", ipath, os.path.realpath(track[0])]
+                        ipath = os.path.realpath(
+                            os.path.join("./", trackname + ".crai")
+                        )
+                        cmd = [
+                            "samtools",
+                            "index",
+                            "-c",
+                            "-o",
+                            ipath,
+                            os.path.realpath(track[0]),
+                        ]
                         jc.subprocess_check_call(cmd)
-                    track_conf.update({"conf": {"options": {"cram": {"cram_index": ipath}}}})
+                    track_conf.update(
+                        {"conf": {"options": {"cram": {"cram_index": ipath}}}}
+                    )
                 track_conf["path"] = tpath
                 track_conf["format"] = trext
                 track_conf["name"] = trackname

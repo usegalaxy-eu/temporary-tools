@@ -139,16 +139,17 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
                 #if $track.data_format.useuri.insource == "uri":
-                   <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                      <files>
-                        <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}" label="${track.data_format.useuri.annoname}" useuri="yes">
-                            <metadata>
-                            <dataset id = "${track.data_format.useuri.annouri}" />
-                            </metadata>
-                         </trackFile>
-                     </files>
-                    <options/>
-                </track>
+                    <track cat="${tg.category}" format="paf" visibility="${track.data_format.track_visibility}">
+                        <files>
+                             <trackFile path="${ $track.data_format.useuri.insource.annouri}" ext="paf"
+                                label="${track.data_format.useuri.insource.annoname}" useuri="yes">
+                                <metadata>
+                                <dataset id = "${track.data_format.useuri.insource.annouri}" />
+                                </metadata>
+                             </trackFile>
+                        </files>
+                        <options/>
+                    </track>
                 #else if $track.data_format.useuri.insource == "history":
                     #if $track.data_format.useuri.annotation:
                     <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
@@ -194,7 +195,21 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     </files>
 
                     <options>
-
+                        <style>
+                        #if str($track.data_format.data_format_select) in ["gff", "bed", "vcf", "maf", "blastxml"]:
+                            <type>${track.data_format.jbstyle.track_style.display}</type>
+                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                            #end if
+                        #end if
+                        #if str($track.data_format.data_format_select) in ["bam", "cram"]:
+                            <type>LinearAlignmentsDisplay</type>
+                        #end if
+                        #if str($track.data_format.data_format_select) in ["paf"]:
+                            <type>LinearBasicDisplay</type>
+                        #end if
+                        </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
                             #for $dataset in $track.data_format.useuri.annotation:
@@ -224,13 +239,13 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     #else if str($track.data_format.data_format_select) == "paf":
                         <paf>
                             <genome>
-                            #for gnome in $track.data_format.synteny_genome:
-                                $gnome,
+                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
+                                $refgenome.annotation,
                             #end for
                             </genome>
                             <genome_label>
-                            #for gnome in $track.data_format.synteny_genome:
-                                $gnome.name,
+                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
+                                $refgenome.annoname,
                             #end for
                             </genome_label>
                         </paf>
@@ -316,17 +331,17 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             <repeat name="data_tracks" title="Annotation Track">
                 <conditional name="data_format" label="Track Data Selection Options">
                     <param type="select" label="Track Type" name="data_format_select">
-                        <option value="bam">BAM Pileup track</option>
+                        <option value="bam">BAM track. Recommend convert to faster BED unless mapping annotation needed</option>
                         <option value="bed">BED track</option>
                         <option value="bigwig">BigWig track</option>
-                        <option value="blastxml">Blast XML track - converted to GFF</option>
+                        <option value="blastxml">Blast XML track (as GFF3)</option>
+                        <option value="cram">CRAM track. Currently not advantageous over BAM in Galaxy. Convert to BED like BAM.</option>
+                        <option value="gff">GFF/GFF3 track</option>
                         <option value="cool">HiC as cool/mcool/scool format files</option>
-                        <option value="cram">CRAM</option>
-                        <option value="gff">GFF/GFF3 feature track</option>
                         <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix will NOT work.</option>
                         <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
                         <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
-                       <option value="vcf">VCF SNP</option>
+                       <option value="vcf">VCF SNP track</option>
                     </param>
                     <when value="blastxml">
                         <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml" />
@@ -349,6 +364,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             name="is_protein"
                             truevalue="true"
                             falsevalue="false" />
+                        <expand macro="track_styling_feature" />
                         <expand macro="track_visibility" />
                     </when>
                     <when value="vcf">
@@ -373,6 +389,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </when>
                             <when value="false" />
                         </conditional>
+                        <expand macro="track_styling_feature" />
                         <expand macro="track_visibility" />
                     </when>
                     <when value="bam">
@@ -381,6 +398,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     </when>
                     <when value="bed">
                         <expand macro="input_conditional" label="BED Track Data" format="bed" />
+                        <expand macro="track_styling_feature" />
                         <expand macro="track_visibility" />
                     </when>
                     <when value="cram">
@@ -389,6 +407,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     </when>
                     <when value="maf">
                         <expand macro="input_conditional" label="MAF Track Data" format="maf" />
+                        <expand macro="track_styling_feature" />
                         <expand macro="track_visibility" />
                     </when>
                     <when value="bigwig">
@@ -396,12 +415,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         <expand macro="track_visibility" />
                     </when>
                     <when value="paf">
-                        <param label="Comparison genome sequence" help="Paf from these as the reference(s), using the common reference as the reads to map"
-                            format="fasta"
-                            name="synteny_genome"
-                            type="data"
-                            multiple="True"/>
-                        <expand macro="input_conditional" label="Synteny data" format="paf" help="Make paf with mashmap or minimap2 mapping real reference onto desired syntenic references"/>
+                        <expand macro="input_conditional" label="PAF format synteny mapping data" format="paf"
+                             help="PAF made with mashmap or minimap2 mapping the real reference as a query on the comparison genomes as references"/>
+                        <expand macro="pafref_conditional"  label="Comparison genome sequence(s)"
+                            format="fasta" help="Paf from these as the reference(s), using the common reference as the reads to map"/>
                         <expand macro="track_visibility" />
                     </when>
 
