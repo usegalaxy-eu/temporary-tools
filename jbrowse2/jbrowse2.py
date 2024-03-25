@@ -1291,11 +1291,11 @@ class JbrowseConnector(object):
         if self.config_json:
             config_json.update(self.config_json)
         for track_conf in self.tracksToAdd:
-            track_types[track_conf["trackId"]] = track_conf["type"]
             tId = track_conf["trackId"]
+            track_types[tId] = track_conf["type"]
             style_data = default_data["style"].get(tId,  None)
             if not style_data:
-                logging.warn("### No style data in default data for %s" % tId)
+                logging.warn("### No style data in default data %s for %s" % (default_data, tId))
                 style_data = {"type": "LinearBasicDisplay"}
             if "displays" in track_conf:
                 disp = track_conf["displays"][0]["type"]
@@ -1313,7 +1313,7 @@ class JbrowseConnector(object):
             )
         # The view for the assembly we're adding
         view_json = {"type": "LinearGenomeView", "tracks": tracks_data}
-
+        logging.warn("### view_json=%s" % view_json)
         refName = None
         drdict = {
             "reversed": False,

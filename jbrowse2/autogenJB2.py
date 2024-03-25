@@ -172,8 +172,7 @@ if __name__ == "__main__":
                     for key in keys:
                         if trext in [
                             "bigwig",
-                            "gff3",
-                            "gff",
+                            "gff", "gff3",
                             "vcf",
                             "maf",
                         ]:
@@ -182,6 +181,16 @@ if __name__ == "__main__":
                             default_session_data["visibility"]["default_off"].append(
                                 key
                             )
+                        if trext in ["gff", "gff3", "bed", "vcf", "maf", "blastxml"]:
+                            ttype = "LinearBasicDisplay"
+                            if trext == "vcf":
+                                ttype = "LinearVariantDisplay"
+                            style_json = {
+                            "type": ttype,
+                            "trackShowLabels": False,
+                            "trackShowDescriptions": False
+                            }
+                            default_session_data["style"][key] = style_json
             # general_data = {
             # "analytics": root.find("metadata/general/analytics").text,
             # "primary_color": root.find("metadata/general/primary_color").text,
