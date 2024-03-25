@@ -442,7 +442,6 @@ class JbrowseConnector(object):
                 style_data,
             ]
         }
-        logging.warn("style=%s" % (wstyle))
         return wstyle
 
     def process_genomes(self):
@@ -610,12 +609,12 @@ class JbrowseConnector(object):
             uri: 'https://s3.amazonaws.com/jbrowse.org/genomes/GRCh38/fasta/GRCh38.fa.gz.gzi',
         Cool will not be likely to be a good fit - see discussion at https://github.com/GMOD/jbrowse-components/issues/2438
 
-
         """
         tId = trackData["label"]
         # can be served - if public.
         # dsId = trackData["metadata"]["dataset_id"]
         # url = "%s/api/datasets/%s/display?to_ext=hic " % (self.giURL, dsId)
+        hic_path = trackData.get("hic_path", None)
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             uri = data
@@ -659,9 +658,10 @@ class JbrowseConnector(object):
             ]
         }
         categ = trackData["category"]
-        fname = "%s.bed" % tId
+        fname = "%s" % tId
         dest = "%s/%s" % (self.outdir, fname)
         gname = self.genome_name
+
         cmd = [
             "bash",
             os.path.join(INSTALLED_TO, "convertMAF.sh"),
@@ -671,16 +671,13 @@ class JbrowseConnector(object):
             dest,
         ]
         self.subprocess_check_call(cmd)
-        # Construct samples list
-        # We could get this from galaxy metadata, not sure how easily.
-        ps = subprocess.Popen(["grep", "^s [^ ]*", "-o", data], stdout=subprocess.PIPE)
-        output = subprocess.check_output(("sort", "-u"), stdin=ps.stdout)
-        ps.wait()
-        outp = output.decode("ascii")
-        soutp = outp.split("\n")
-        samp = [x.split("s ")[1] for x in soutp if x.startswith("s ")]
-        samples = [x.split(".")[0] for x in samp]
-        logging.warn("### maf convert cmd = %s,\nsamples=%s" % (' '.join(cmd), samples))
+        mafs = open(data,'r').readlines()
+        mafss = [x for x in mafs if (x.startswith('s\t') or x.startswith('s '))]
+        samp = [x.split()[1] for x in mafss if len(x.split()) > 0]
+        sampu = list(dict.fromkeys(samp))
+        samples = [x.split('.')[0] for x in sampu]
+        samples.sort()
+        logging.warn("$$$$ cmd=%s, mafss=%s samp=%s samples=%s" % (' '.join(cmd), mafss, samp, samples))
         trackDict = {
             "type": "MafTrack",
             "trackId": tId,
@@ -704,13 +701,13 @@ class JbrowseConnector(object):
             "displays": [
                 {
                     "type": "LinearBasicDisplay",
-                    "displayId": "%s-LinearBasicDisplay" % tId,
+                    "displayId": "%s-LinearBasicDisplay" % tId
                 },
                 {
                     "type": "LinearArcDisplay",
-                    "displayId": "%s-LinearArcDisplay" % tId,
+                    "displayId": "%s-LinearArcDisplay" % tId
                 },
-            ],
+            ]
         }
         style_json = self._prepare_track_style(trackDict)
         trackDict["style"] = style_json
@@ -1110,7 +1107,7 @@ class JbrowseConnector(object):
         pgnames = [x.strip() for x in pafOpts["genome_label"].split(",") if len(x.strip()) > 0]
         pgpaths = [x.strip() for x in pafOpts["genome"].split(",") if len(x.strip()) > 0]
         passnames = [self.genome_name]  # always first
-        logging.warn("### add_paf got pafOpts=%s, pgnames=%s, pgpaths=%s for %s" % (pafOpts, pgnames, pgpaths, tId))
+        logging.debug("### add_paf got pafOpts=%s, pgnames=%s, pgpaths=%s for %s" % (pafOpts, pgnames, pgpaths, tId))
         for i, gname in enumerate(pgnames):
             if len(gname.split()) > 1:
                 gname = gname.split()[0]
@@ -1202,7 +1199,7 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
-                hic_url = "%s_%d.juicebox_hic" % (track_human_label, i)
+                hic_url = "%s_%d.hic" % (track_human_label, i)
                 hic_path = os.path.join(self.outdir, hic_url)
                 self.subprocess_check_call(
                     [
@@ -1215,9 +1212,8 @@ class JbrowseConnector(object):
                         hic_path,
                     ]
                 )
-                outputTrackConfig["hic_url"] = hic_url
                 self.add_hic(
-                    hic_path,
+                    hic_url,
                     outputTrackConfig,
                 )
             elif dataset_ext in ("bed",):
@@ -1305,7 +1301,6 @@ class JbrowseConnector(object):
             )
         # The view for the assembly we're adding
         view_json = {"type": "LinearGenomeView", "tracks": tracks_data}
-        logging.warn("### view_json=%s" % view_json)
         refName = None
         drdict = {
             "reversed": False,
@@ -1398,7 +1393,7 @@ class JbrowseConnector(object):
         with open(config_path, "w") as config_file:
             json.dump(self.config_json, config_file, indent=2)
 
-    def clone_jbrowse(self, realclone=False):
+    def clone_jbrowse(self, realclone=True):
         """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now
         Leave as True between version updates on temporary tools - requires manual conda trigger :(
         """
@@ -1550,7 +1545,6 @@ if __name__ == "__main__":
                 default_session_data["style"][key] = {
                     item.tag: parse_style_conf(item) for item in track.find("options/style")
                 }
-                logging.warn("### added %s to defsess %s for %s" % (trackkey, default_session_data, key ))
             else:
                 default_session_data["style"][key] = {}
                 logging.warn("@@@@ no options/style found for %s" % (key))
@@ -1566,7 +1560,7 @@ if __name__ == "__main__":
     default_session_data["session_name"] = root.find(
         "metadata/general/session_name"
     ).text
-    logging.warn("default_session=%s" % (default_session_data))
+    logging.debug("default_session=%s" % (default_session_data))
     jc.zipOut = root.find("metadata/general/zipOut").text == "true"
     general_data = {
         "analytics": root.find("metadata/general/analytics").text,
