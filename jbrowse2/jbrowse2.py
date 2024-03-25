@@ -1,5 +1,5 @@
  #!/usr/bin/env python
-# change to accumulating all configuration for config.json based on the default from the clone
+
 import argparse
 import binascii
 import datetime
@@ -23,8 +23,6 @@ JB2VER = "v2.10.3"
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 GALAXY_INFRASTRUCTURE_URL = None
-
-# version pinned for cloning
 
 mapped_chars = {
     ">": "__gt__",
@@ -458,7 +456,7 @@ class JbrowseConnector(object):
                 genome_name = genome_name.split()[0]
                 # spaces and cruft break scripts when substituted
             if genome_name not in self.genome_names:
-                # ignore dupes - can have multiple pafs with same references?
+                # pafs with shared references
                 fapath = genome_node["path"]
                 if not useuri:
                     fapath = os.path.realpath(fapath)
@@ -467,7 +465,7 @@ class JbrowseConnector(object):
                 self.genome_names.append(genome_name)
                 if self.genome_name is None:
                     self.genome_name = (
-                        genome_name  # first one for all tracks - other than paf
+                        genome_name  # first one for all tracks
                     )
                     self.genome_sequence_adapter = assem["sequence"]["adapter"]
                     self.genome_firstcontig = None
@@ -481,11 +479,16 @@ class JbrowseConnector(object):
                             else:
                                 self.genome_firstcontig = fl
                     else:
-                        fl = urllib.request.urlopen(fapath + ".fai").readline()
+                        try:
+                            fl = urllib.request.urlopen(fapath + ".fai").readline()
+                        except:
+                            fl = None
                         if fl:  # is first row of the text fai so the first contig name
                             self.genome_firstcontig = (
                                 fl.decode("utf8").strip().split()[0]
                             )
+                        else:
+                            self.genome_firstcontig = None
         if self.config_json.get("assemblies", None):
             self.config_json["assemblies"] += assemblies
         else:
@@ -606,6 +609,8 @@ class JbrowseConnector(object):
             gziLocation:
             uri: 'https://s3.amazonaws.com/jbrowse.org/genomes/GRCh38/fasta/GRCh38.fa.gz.gzi',
         Cool will not be likely to be a good fit - see discussion at https://github.com/GMOD/jbrowse-components/issues/2438
+
+
         """
         tId = trackData["label"]
         # can be served - if public.
@@ -615,12 +620,16 @@ class JbrowseConnector(object):
         if useuri:
             uri = data
         else:
-            uri = trackData["hic_url"]
+            uri = "%s.hic" % trackData["label"]
+            # slashes in names cause path trouble
+            dest = os.path.join(self.outdir, uri)
+            cmd = ["cp", data, dest]
+            self.subprocess_check_call(cmd)
         categ = trackData["category"]
         trackDict = {
             "type": "HicTrack",
             "trackId": tId,
-            "name": uri,
+            "name":  trackData["label"],
             "assemblyNames": [self.genome_name],
             "category": [
                 categ,
@@ -628,16 +637,16 @@ class JbrowseConnector(object):
             "adapter": {
                 "type": "HicAdapter",
                 "hicLocation": uri,
-            },
-            "displays": [
-                {
-                    "type": "LinearHicDisplay",
-                    "displayId": "%s-LinearHicDisplay" % tId,
-                },
-            ],
+            }
         }
-        style_json = self._prepare_track_style(trackDict)
+        style_json = {
+        "displays": [
+             { "type": "LinearHicDisplay", "displayId": "%s-LinearHicDisplay" % trackDict["trackId"] }
+            ]
+        }
         trackDict["style"] = style_json
+        # style_json = self._prepare_track_style(trackDict)
+        # trackDict["style"] = style_json
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
 
@@ -793,14 +802,6 @@ class JbrowseConnector(object):
         os.unlink(gff3)
 
     def add_bigwig(self, data, trackData):
-        """ "type": "LinearWiggleDisplay",
-        "configuration": {},
-        "selectedRendering": "",
-        "resolution": 1,
-        "posColor": "rgb(228, 26, 28)",
-        "negColor": "rgb(255, 255, 51)",
-        "constraints": {}
-        """
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
@@ -1278,23 +1279,20 @@ class JbrowseConnector(object):
 
     def add_default_session(self, default_data):
         """
-        Add some default session settings: set some assemblies/tracks on/off
+        default session settings are hard and fragile.
+        .add_default_view() and other configuration code adapted from
+         https://github.com/abretaud/tools-iuc/blob/jbrowse2/tools/jbrowse2/jbrowse2.py
         """
         tracks_data = []
-
         # TODO using the default session for now, but check out session specs in the future https://github.com/GMOD/jbrowse-components/issues/2708
-
-        # We need to know the track type from the config.json generated just before
         track_types = {}
         with open(self.config_json_file, "r") as config_file:
             config_json = json.load(config_file)
         if self.config_json:
             config_json.update(self.config_json)
-
         for track_conf in self.tracksToAdd:
             track_types[track_conf["trackId"]] = track_conf["type"]
             tId = track_conf["trackId"]
-            #if tId in data["visibility"]["default_on"]:
             style_data = default_data["style"].get(tId,  None)
             if not style_data:
                 logging.warn("### No style data in default data for %s" % tId)
@@ -1408,8 +1406,10 @@ class JbrowseConnector(object):
         with open(config_path, "w") as config_file:
             json.dump(self.config_json, config_file, indent=2)
 
-    def clone_jbrowse(self, realclone=True):
-        """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now"""
+    def clone_jbrowse(self, realclone=False):
+        """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now
+        Leave as True between version updates on temporary tools - requires manual conda trigger :(
+        """
         dest = self.outdir
         if realclone:
             self.subprocess_check_call(
@@ -1472,7 +1472,6 @@ if __name__ == "__main__":
     )
     jc.process_genomes()
 
-    # .add_default_view() replace from https://github.com/abretaud/tools-iuc/blob/jbrowse2/tools/jbrowse2/jbrowse2.py
     default_session_data = {
         "visibility": {
             "default_on": [],
@@ -1500,6 +1499,7 @@ if __name__ == "__main__":
         if trackfiles:
             for x in track.findall("files/trackFile"):
                 track_conf["label"] = x.attrib["label"]
+                trackkey = track_conf["label"]
                 track_conf["useuri"] = x.attrib["useuri"]
                 if is_multi_bigwig:
                     multi_bigwig_paths.append(
@@ -1544,18 +1544,6 @@ if __name__ == "__main__":
             )
         track_conf["category"] = track.attrib["cat"]
         track_conf["format"] = track.attrib["format"]
-        if track.find("options/style"):
-            track_conf["style"] = {
-                item.tag: parse_style_conf(item) for item in track.find("options/style")
-            }
-        else:
-            track_conf["style"] = {}
-        if track.find("options/style_labels"):
-            track_conf["style_labels"] = {
-                item.tag: parse_style_conf(item)
-                for item in track.find("options/style_labels")
-            }
-
         track_conf["conf"] = etree_to_dict(track.find("options"))
         track_conf["category"] = track.attrib["cat"]
         track_conf["format"] = track.attrib["format"]
@@ -1566,12 +1554,20 @@ if __name__ == "__main__":
                 default_session_data["visibility"][
                     track.attrib.get("visibility", "default_off")
                 ].append(key)
-                if track_conf.get("style", None):
-                    default_session_data["style"][key] = track_conf["style"]
-                if track_conf.get("style_lables", None):
-                    default_session_data["style_labels"][key] = track_conf.get(
-                        "style_labels", None
-                    )
+            if track.find("options/style"):
+                default_session_data["style"][key] = {
+                    item.tag: parse_style_conf(item) for item in track.find("options/style")
+                }
+                logging.warn("### added %s to defsess %s for %s" % (trackkey, default_session_data, key ))
+            else:
+                default_session_data["style"][key] = {}
+                logging.warn("@@@@ no options/style found for %s" % (key))
+
+            if track.find("options/style_labels"):
+                default_session_data["style_labels"][key] = {
+                    item.tag: parse_style_conf(item)
+                    for item in track.find("options/style_labels")
+                }
     default_session_data["defaultLocation"] = root.find(
         "metadata/general/defaultLocation"
     ).text

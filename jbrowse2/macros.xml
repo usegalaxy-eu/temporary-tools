@@ -542,12 +542,12 @@ until the IUC complete their own.
     <xml name="pafref_conditional" token_label="Track Data" token_format="data">
         <conditional name="pafuseuri">
                 <param name="insource" type="select" label="PAF reference data from a history file or an internet URI?"
-                    help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
-                    <option value="history" selected="true">PAF genome reference data from a history file</option>
-                    <option value="uri">PAF genome reference data from tabix data URI - index files must be available at corresponding URI</option>
+                    help="Multiple references can be used for mashmap PAF. A URI source requires all the associated tabix index files to be in place.">
+                    <option value="history" selected="true">PAF reference comparison genome from a history file</option>
+                    <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
                 </param>
                 <when value="history">
-                    <repeat name="refgenomes" title="Add one or more comparison genomes used to make the PAF">
+                    <repeat name="refgenomes" title="PAF reference comparison genome used to make the PAF">
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
                        <param label="Short name for track display" name="annoname" type="text" >
                              <sanitizer invalid_char="_">
@@ -559,7 +559,7 @@ until the IUC complete their own.
                     </repeat>
                 </when>
                 <when value="uri">
-                    <repeat name="refgenomes" title="Provide URI for a comparison genomesused to make the PAF">
+                    <repeat name="refgenomes" title="PAF reference comparison genome URI">
                        <param label="@LABEL@" name="annotation"  type="text" />
                        <param label="Short name for track display" name="annoname" type="text" >
                              <sanitizer invalid_char="_">

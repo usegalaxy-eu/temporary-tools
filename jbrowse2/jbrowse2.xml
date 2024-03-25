@@ -11,12 +11,8 @@
     <version_command>python '${__tool_directory__}/jbrowse2.py' --version</version_command>
     <command detect_errors="aggressive"><![CDATA[
 mkdir -p '$output.files_path' &&
-## Copy the XML file into the directory, mostly for debugging
-## but nice if users want to reproduce locally
 cp '$trackxml' '$output.files_path/galaxy.xml' &&
-
 export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
-
 #if $jbgen.ucol.formcoll=="collect":
     python '$__tool_directory__/autogenJB2.py'
     #for $key in $autoCollection.keys():
@@ -139,17 +135,15 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
         #for $tg in $track_groups:
             #for $track in $tg.data_tracks:
                 #if $track.data_format.useuri.insource == "uri":
-                    <track cat="${tg.category}" format="paf" visibility="${track.data_format.track_visibility}">
+                    <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
                         <files>
-                             <trackFile path="${ $track.data_format.useuri.insource.annouri}" ext="paf"
-                                label="${track.data_format.useuri.insource.annoname}" useuri="yes">
+                             <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}"
+                                label="${track.data_format.useuri.annoname}" useuri="yes">
                                 <metadata>
-                                <dataset id = "${track.data_format.useuri.insource.annouri}" />
+                                <dataset id = "${track.data_format.useuri.annouri}" />
                                 </metadata>
                              </trackFile>
                         </files>
-                        <options/>
-                    </track>
                 #else if $track.data_format.useuri.insource == "history":
                     #if $track.data_format.useuri.annotation:
                     <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
@@ -157,7 +151,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
                                 <metadata>
-
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
                                       size="${dataset.get_size(nice_size=True)}"
                                       edam_format="${dataset.datatype.edam_format}"
@@ -193,23 +186,24 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                               </trackFile>
                        #end for
                     </files>
-
-                    <options>
-                        <style>
-                        #if str($track.data_format.data_format_select) in ["gff", "bed", "vcf", "maf", "blastxml"]:
-                            <type>${track.data_format.jbstyle.track_style.display}</type>
-                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
-                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
-                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
-                            #end if
+                    #end if
+                  #end if
+                  <options>
+                    <style>
+                    #if str($track.data_format.data_format_select) in ["gff", "bed", "vcf", "maf", "blastxml"]:
+                        <type>${track.data_format.jbstyle.track_style.display}</type>
+                        #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                            <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                            <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
                         #end if
-                        #if str($track.data_format.data_format_select) in ["bam", "cram"]:
-                            <type>LinearAlignmentsDisplay</type>
-                        #end if
-                        #if str($track.data_format.data_format_select) in ["paf"]:
-                            <type>LinearBasicDisplay</type>
-                        #end if
-                        </style>
+                    #end if
+                    #if str($track.data_format.data_format_select) in ["bam", "cram"]:
+                        <type>LinearAlignmentsDisplay</type>
+                    #end if
+                    #if str($track.data_format.data_format_select) in ["paf"]:
+                        <type>LinearBasicDisplay</type>
+                    #end if
+                    </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
                             #for $dataset in $track.data_format.useuri.annotation:
@@ -268,8 +262,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     #end if
                     </options>
                   </track>
-                  #end if
-                #end if
             #end for
         #end for
     </tracks>
