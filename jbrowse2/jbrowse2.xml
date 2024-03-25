@@ -203,6 +203,9 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     #if str($track.data_format.data_format_select) in ["paf"]:
                         <type>LinearBasicDisplay</type>
                     #end if
+                    #if str($track.data_format.data_format_select) in ["hic"]:
+                        <type>LinearHicDisplay</type>
+                    #end if
                     </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>

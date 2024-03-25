@@ -629,24 +629,16 @@ class JbrowseConnector(object):
         trackDict = {
             "type": "HicTrack",
             "trackId": tId,
-            "name":  trackData["label"],
+            "name":  trackData["name"],
             "assemblyNames": [self.genome_name],
             "category": [
                 categ,
             ],
             "adapter": {
                 "type": "HicAdapter",
-                "hicLocation": uri,
+                "hicLocation": { "uri": uri }
             }
         }
-        style_json = {
-        "displays": [
-             { "type": "LinearHicDisplay", "displayId": "%s-LinearHicDisplay" % trackDict["trackId"] }
-            ]
-        }
-        trackDict["style"] = style_json
-        # style_json = self._prepare_track_style(trackDict)
-        # trackDict["style"] = style_json
         self.tracksToAdd.append(trackDict)
         self.trackIdlist.append(tId)
 
