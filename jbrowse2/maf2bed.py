@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# painfully converted from
+# painfully converted from b0rken perl from
 # https://unpkg.com/browse/jbrowse-plugin-mafviewer@1.0.6/dist/
 # license is Apache2_license.txt included here
 
@@ -32,7 +32,7 @@ for line in sys.stdin:
     elif line[0] == 'a':
         score = int(line[1].split('=')[1])
         if id > 0:
-            print('\t'.join([chrom, '%d' % start, '%d' % end, f"{sys.argv[1]}_{id}", '%d' % score, buffer]))
+            sys.stdout.write('\t'.join([chrom, '%d' % start, '%d' % end, f"{sys.argv[1]}_{id}", '%d' % score, buffer])+ '\n')
         id += 1
         buffer = ''
     elif line[0] == 's':
@@ -41,4 +41,4 @@ for line in sys.stdin:
         temp = line
         buffer = temp if buffer == '' else f"{buffer},{temp}"
 
-print('\t'.join([chrom, '%d' % start, '%d' % end, f"{sys.argv[1]}_{id}", '%d' % score, buffer]))
+sys.stdout.write('\t'.join([chrom, '%d' % start, '%d' % end, f"{sys.argv[1]}_{id}", '%d' % score, buffer]) + '\n')
