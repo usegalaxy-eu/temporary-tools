@@ -56,7 +56,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
     #end if
     ## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
     #if str($uglyTestingHack) == "enabled":
-       &&   cp '$trackxml' '$output'
+       && cp '$trackxml' '$output'
     #end if
 #end if
   ]]></command>
