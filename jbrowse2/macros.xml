@@ -138,6 +138,7 @@ until the IUC complete their own.
         </param>
     </xml>
 
+
     <xml name="general_options">
         <section name="jbgen" title="General JBrowse Options [Advanced]" expanded="false">
             <conditional name="ucol">
@@ -372,7 +373,10 @@ until the IUC complete their own.
                     <option value="LinearAlignmentsDisplay" selected="true">LinearAlignmentsDisplay</option>
                     <option value="LinearPileupDisplay">LinearPileupDisplay</option>
                     <option value="LinearSNPCoverageDisplay">LinearSNPCoverageDisplay</option>
+                    <option value="LinearReadArcsDisplay">LinearReadArcsDisplay</option>
+                    <option value="LinearReadCloudDisplay">LinearReadCloudDisplay</option>
                 </param>
+                <!-- TODO check if possible to handle more options than just the display style-->
                 <when value="LinearAlignmentsDisplay"/>
                 <when value="LinearPileupDisplay"/>
                 <when value="LinearSNPCoverageDisplay">
@@ -380,6 +384,8 @@ until the IUC complete their own.
                     <param name="minScore" label="Min score" type="integer" value="" optional="true"/>
                     <param name="maxScore" label="Max score" type="integer" value="" optional="true"/>
                 </when>
+                <when value="LinearReadArcsDisplay"/>
+                <when value="LinearReadCloudDisplay"/>
             </conditional>
         </section>
     </xml>
@@ -389,10 +395,12 @@ until the IUC complete their own.
             <conditional name="track_style">
                 <param name="display" type="select" label="Display style" help="How the track will be displayed by default">
                     <option value="LinearVariantDisplay" selected="true">LinearVariantDisplay</option>
+                    <option value="LinearPairedArcDisplay">LinearPairedArcDisplay</option>
                 </param>
                 <when value="LinearVariantDisplay">
                     <expand macro="track_styling_linear"/>
                 </when>
+                <when value="LinearPairedArcDisplay"/>
             </conditional>
         </section>
     </xml>
@@ -522,7 +530,7 @@ until the IUC complete their own.
                 <param name="insource" type="select" label="Define track data as a history file or an internet URI"
                     help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
                     <option value="history" selected="true">Track data from a history file</option>
-                    <option value="uri" selected="true">Tabix data URI - index files must be available at corresponding URI</option>
+                    <option value="uri" >Tabix data URI - index files must be available at corresponding URI</option>
                 </param>
                 <when value="history">
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
@@ -536,6 +544,39 @@ until the IUC complete their own.
                                 </valid>
                               </sanitizer>
                         </param>
+                </when>
+            </conditional>
+     </xml>
+    <xml name="pafref_conditional" token_label="Track Data" token_format="data">
+        <conditional name="pafuseuri">
+                <param name="insource" type="select" label="PAF reference data from a history file or an internet URI?"
+                    help="Multiple references can be used for mashmap PAF. A URI source requires all the associated tabix index files to be in place.">
+                    <option value="history" selected="true">PAF reference comparison genome from a history file</option>
+                    <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
+                </param>
+                <when value="history">
+                    <repeat name="refgenomes" title="PAF reference comparison genome used to make the PAF">
+                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
+                       <param label="Short name for track display" name="annoname" type="text" help="No spaces allowed here">
+                             <sanitizer invalid_char="_">
+                                <valid initial="string.printable" >
+                                    <remove value=" " />
+                                </valid>
+                              </sanitizer>
+                        </param>
+                    </repeat>
+                </when>
+                <when value="uri">
+                    <repeat name="refgenomes" title="PAF reference comparison genome URI">
+                       <param label="@LABEL@" name="annotation"  type="text" />
+                       <param label="Short name for track display" name="annoname" type="text" >
+                             <sanitizer invalid_char="_">
+                                <valid initial="string.printable" >
+                                    <remove value="'" />
+                                </valid>
+                              </sanitizer>
+                        </param>
+                    </repeat>
                 </when>
             </conditional>
      </xml>
