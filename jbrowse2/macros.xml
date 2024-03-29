@@ -138,6 +138,7 @@ until the IUC complete their own.
         </param>
     </xml>
 
+
     <xml name="general_options">
         <section name="jbgen" title="General JBrowse Options [Advanced]" expanded="false">
             <conditional name="ucol">
@@ -372,7 +373,10 @@ until the IUC complete their own.
                     <option value="LinearAlignmentsDisplay" selected="true">LinearAlignmentsDisplay</option>
                     <option value="LinearPileupDisplay">LinearPileupDisplay</option>
                     <option value="LinearSNPCoverageDisplay">LinearSNPCoverageDisplay</option>
+                    <option value="LinearReadArcsDisplay">LinearReadArcsDisplay</option>
+                    <option value="LinearReadCloudDisplay">LinearReadCloudDisplay</option>
                 </param>
+                <!-- TODO check if possible to handle more options than just the display style-->
                 <when value="LinearAlignmentsDisplay"/>
                 <when value="LinearPileupDisplay"/>
                 <when value="LinearSNPCoverageDisplay">
@@ -380,6 +384,8 @@ until the IUC complete their own.
                     <param name="minScore" label="Min score" type="integer" value="" optional="true"/>
                     <param name="maxScore" label="Max score" type="integer" value="" optional="true"/>
                 </when>
+                <when value="LinearReadArcsDisplay"/>
+                <when value="LinearReadCloudDisplay"/>
             </conditional>
         </section>
     </xml>
@@ -389,10 +395,12 @@ until the IUC complete their own.
             <conditional name="track_style">
                 <param name="display" type="select" label="Display style" help="How the track will be displayed by default">
                     <option value="LinearVariantDisplay" selected="true">LinearVariantDisplay</option>
+                    <option value="LinearPairedArcDisplay">LinearPairedArcDisplay</option>
                 </param>
                 <when value="LinearVariantDisplay">
                     <expand macro="track_styling_linear"/>
                 </when>
+                <when value="LinearPairedArcDisplay"/>
             </conditional>
         </section>
     </xml>
@@ -430,6 +438,7 @@ until the IUC complete their own.
         </section>
     </xml>
 
+    <!-- TODO use this -->
     <xml name="track_menu">
         <section name="jbmenu" title="JBrowse Contextual Menu options [Advanced]" expanded="false">
             <repeat name="track_menu" title="Track Menu">
@@ -549,10 +558,10 @@ until the IUC complete their own.
                 <when value="history">
                     <repeat name="refgenomes" title="PAF reference comparison genome used to make the PAF">
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
-                       <param label="Short name for track display" name="annoname" type="text" >
+                       <param label="Short name for track display" name="annoname" type="text" help="No spaces allowed here">
                              <sanitizer invalid_char="_">
                                 <valid initial="string.printable" >
-                                    <remove value="'" />
+                                    <remove value=" " />
                                 </valid>
                               </sanitizer>
                         </param>

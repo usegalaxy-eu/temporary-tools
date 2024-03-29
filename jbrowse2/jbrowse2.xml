@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="jbrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_7" profile="22.05">
+ <tool id="jbrowse2" name="JBrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_8" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -56,68 +56,14 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
     #end if
     ## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
     #if str($uglyTestingHack) == "enabled":
-       && cp '$trackxml' '$output'
+       &&   cp '$trackxml' '$output'
     #end if
 #end if
   ]]></command>
 <configfiles>
         <configfile name="trackxml"><![CDATA[<?xml version="1.0"?>
-#if $jbgen.ucol.formcoll=="form":
 <root>
     <metadata>
-        <genomes>
-            #if str($reference_genome.genome_type_select) == "uri":
-              <genome path="${reference_genome.uri}" label="${reference_genome.refname}" useuri="yes">
-                  <metadata>
-                     <dataset
-                      dname = "${reference_genome.refname}" />
-              </metadata>
-              </genome>
-            #else if str($reference_genome.genome_type_select) == "indexed":
-              <genome path="${reference_genome.genome.fields.path}" label="${reference_genome.genome.fields.name}" useuri="no">
-                  <metadata>
-                     <dataset
-                      dname = "${reference_genome.genome.fields.name}" />
-                  </metadata>
-              </genome>
-            #else
-              <genome path="$reference_genome.genome" label="${reference_genome.genome.name}" useuri="no">
-                <metadata>
-                  <dataset id="${__app__.security.encode_id($reference_genome.genome.id)}" hid="${reference_genome.genome.hid}"
-                      size="${reference_genome.genome.get_size(nice_size=True)}"
-                      edam_format="${reference_genome.genome.datatype.edam_format}"
-                      file_ext="${reference_genome.genome.ext}"
-                      dname = "${reference_genome.genome.name}" />
-                  <history id="${__app__.security.encode_id($reference_genome.genome.history_id)}"
-                      #if $reference_genome.genome.history.user:
-                      user_email="${reference_genome.genome.history.user.email}"
-                      user_id="${reference_genome.genome.history.user_id}"
-                      display_name="${reference_genome.genome.history.get_display_name()}"/>
-                      #else
-                      user_email="anonymous"
-                      user_id="-1"
-                      display_name="Unnamed History"/>
-                      #end if
-                  <metadata
-                      #for (key, value) in $reference_genome.genome.get_metadata().items():
-                      #if "_types" not in $key:
-                        #if isinstance($value, list):
-                          #set value_str = "[%s]" % ','.join([str(val) for val in value])
-                          ${key}="$value_str"
-                        #else
-                          ${key}="${value}"
-                        #end if
-                      #end if
-                      #end for
-                      />
-                  <tool
-                      tool_id="${reference_genome.genome.creating_job.tool_id}"
-                      tool_version="${reference_genome.genome.creating_job.tool_version}"
-                      />
-                </metadata>
-              </genome>
-            #end if
-        </genomes>
         <general>
             <defaultLocation>${jbgen.defaultLocation}</defaultLocation>
             <zipOut>${jbgen.zipOut}</zipOut>
@@ -131,8 +77,73 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
         </general>
         <galaxyUrl>${__app__.config.galaxy_infrastructure_url}</galaxyUrl>
     </metadata>
+#if $jbgen.ucol.formcoll=="form":
+    #for $assembly in $assemblies:
+    <assembly>
+        <metadata>
+            <genomes>
+                #if str($assembly.reference_genome.genome_type_select) == "uri":
+                  <genome path="${assembly.reference_genome.uri}" label="${assembly.reference_genome.refname}" useuri="yes">
+                      <metadata>
+                         <dataset
+                          dname = "${assembly.reference_genome.refname}" />
+                  </metadata>
+                  </genome>
+                #else if str($assembly.reference_genome.genome_type_select) == "indexed":
+                  <genome path="${assembly.reference_genome.genome.fields.path}" label="${assembly.reference_genome.genome.fields.name}" useuri="no">
+                      <metadata>
+                         <dataset
+                          dname = "${assembly.reference_genome.genome.fields.name}" />
+                      </metadata>
+                  </genome>
+                #else
+                  <genome path="$assembly.reference_genome.genome" label="${assembly.reference_genome.genome.name}" useuri="no">
+                    <metadata>
+                    #if $uglyTestingHack != "enabled":
+                      <dataset id="${__app__.security.encode_id($assembly.reference_genome.genome.id)}"
+                          hid="${assembly.reference_genome.genome.hid}"
+                          size="${assembly.reference_genome.genome.get_size(nice_size=True)}"
+                          edam_format="${assembly.reference_genome.genome.datatype.edam_format}"
+                          file_ext="${assembly.reference_genome.genome.ext}"
+                          dname = "${assembly.reference_genome.genome.name}"
+                          />
+                      <history
+                          #if $assembly.reference_genome.genome.history.user:
+                          user_email="${assembly.reference_genome.genome.history.user.email}"
+                          user_id="${assembly.reference_genome.genome.history.user_id}"
+                          display_name="${assembly.reference_genome.genome.history.get_display_name()}"/>
+                          #else
+                          user_email="anonymous"
+                          user_id="-1"
+                          display_name="Unnamed History"
+                          #end if
+                          id="${__app__.security.encode_id($assembly.reference_genome.genome.history_id)}"
+                          />
+                      <metadata
+                          #for (key, value) in $assembly.reference_genome.genome.get_metadata().items():
+                          #if "_types" not in $key:
+                            #if isinstance($value, list):
+                              #set value_str = "[%s]" % ','.join([str(val) for val in value])
+                              ${key}="$value_str"
+                            #else
+                              ${key}="${value}"
+                            #end if
+                          #end if
+                          #end for
+                          />
+                      <tool
+                          tool_id="${assembly.reference_genome.genome.creating_job.tool_id}"
+                          tool_version="${assembly.reference_genome.genome.creating_job.tool_version}"
+                          />
+                    #end if
+                    </metadata>
+                  </genome>
+                #end if
+            </genomes>
+
+    </metadata>
     <tracks>
-        #for $tg in $track_groups:
+        #for $tg in $assembly.track_groups:
             #for $track in $tg.data_tracks:
                 #if $track.data_format.useuri.insource == "uri":
                     <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
@@ -151,6 +162,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
                                 <metadata>
+                                #if $uglyTestingHack != "enabled":
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
                                       size="${dataset.get_size(nice_size=True)}"
                                       edam_format="${dataset.datatype.edam_format}"
@@ -182,30 +194,32 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                       tool_id="${dataset.creating_job.tool_id}"
                                       tool_version="${dataset.creating_job.tool_version}"
                                       />
+                                #end if
                                 </metadata>
                               </trackFile>
                        #end for
                     </files>
                     #end if
                   #end if
+                  #if $uglyTestingHack != "enabled":
                   <options>
                     <style>
-                    #if str($track.data_format.data_format_select) in ["gff", "bed", "vcf", "maf", "blastxml"]:
-                        <type>${track.data_format.jbstyle.track_style.display}</type>
-                        #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
-                            <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
-                            <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                        #if str($track.data_format.data_format_select) in ["gff", "bed", "vcf", "maf", "blastxml"]:
+                            <type>${track.data_format.jbstyle.track_style.display}</type>
+                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                            #end if
                         #end if
-                    #end if
-                    #if str($track.data_format.data_format_select) in ["bam", "cram"]:
-                        <type>LinearAlignmentsDisplay</type>
-                    #end if
-                    #if str($track.data_format.data_format_select) in ["paf"]:
-                        <type>LinearBasicDisplay</type>
-                    #end if
-                    #if str($track.data_format.data_format_select) in ["hic"]:
-                        <type>LinearHicDisplay</type>
-                    #end if
+                        #if str($track.data_format.data_format_select) in ["bam", "cram"]:
+                            <type>LinearAlignmentsDisplay</type>
+                        #end if
+                        #if str($track.data_format.data_format_select) in ["paf"]:
+                            <type>LinearBasicDisplay</type>
+                        #end if
+                        #if str($track.data_format.data_format_select) in ["hic"]:
+                            <type>LinearHicDisplay</type>
+                        #end if
                     </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
@@ -264,26 +278,30 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         </sparql>
                     #end if
                     </options>
+                    #end if
                   </track>
             #end for
         #end for
     </tracks>
-</root>
+    </assembly>
+    #end for
 #end if
+</root>
 ]]></configfile>
     </configfiles>
-
     <inputs>
+        <repeat name="assemblies" min="1" title="Genome Assembly" help="When too many genomes are never enough">
         <conditional name="reference_genome">
-            <param help="Built-in references" label="Reference genome to display" name="genome_type_select" type="select">
+            <param help="Select a built in, history or remote tabix URI for the reference track"
+                 label="Reference genome source" name="genome_type_select" type="select">
                 <option selected="True" value="indexed">Use a built-in genome</option>
                 <option value="history">Use a genome from history</option>
-                <option value="uri">URI for a reference in tabix .gz format </option>
+                <option value="uri">URI for a reference as tabix with predictable index file URI</option>
             </param>
             <when value="indexed">
                 <param
-                    help="If your genome of interest is not listed, contact the Galaxy team"
-                    label="Select a reference genome"
+                    help="If not listed, add a custom genome, use a history genome or a remote URI tabix genome"
+                    label="Select a built in reference genome or custom genome"
                     name="genome"
                     type="select"
                     optional="true">
@@ -310,7 +328,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     type="text">
                 </param>
                 <param
-                    label="Reference key - dbkey equivalent"
+                    label="Reference dbkey for tracks with this genome, such as hg38 or SacCer4"
                     name="refname"
                     type="text">
                 </param>
@@ -428,9 +446,8 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 </conditional>
             </repeat>
         </repeat>
-
+        </repeat>
         <expand macro="general_options" />
-
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
@@ -442,115 +459,144 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
     </outputs>
     <tests>
          <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
-            <repeat name="track_groups">
-                <param name="category" value="Default" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="bigwig"/>
-                        <conditional name="useuri">
-                            <param name="annotation" value="bw/merlin.bw"/>
-                            <param name="insource" value="history"/>
+             <repeat name="assemblies">
+                 <conditional name="reference_genome">
+                    <param name="genome_type_select" value="history"/>
+                    <param name="genome" value="merlin.fa"/>
+                    <param name="genome.ext" value="fasta"/>
+                    <param name="genome.name" value="Merlin"/>
+                 </conditional>
+                <repeat name="track_groups">
+                    <param name="category" value="Default" />
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="bigwig"/>
+                            <conditional name="useuri">
+                                <param name="annotation" value="bw/merlin.bw"/>
+                                <param name="insource" value="history"/>
+                            </conditional>
                         </conditional>
-                    </conditional>
-                </repeat>
+                    </repeat>
+                 </repeat>
             </repeat>
             <param name="uglyTestingHack" value="enabled" />
             <output name="output">
                 <assert_contents>
                     <has_text text="genome path="></has_text>
-                    <has_text text="dataset id="></has_text>
-                    <has_text text="history id="></has_text>
+                    <has_text text="label="></has_text>
+                    <has_text text="format="></has_text>
                     <has_text text="metadata"></has_text>
-                    <has_text text="tool_id"></has_text>
+                    <has_text text="useuri="></has_text>
                     <has_text text="trackFile path="></has_text>
-                    <has_text text="file_ext=&quot;bigwig&quot;"></has_text>
+                    <has_text text="ext=&quot;bigwig&quot;"></has_text>
                     <has_text text="format=&quot;bigwig&quot;"></has_text>
                 </assert_contents>
             </output>
         </test>
         <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
-            <repeat name="track_groups">
-                <param name="category" value="Default" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="vcf"/>
-                        <conditional name="useuri">
-                            <param name="insource" value="history"/>
-                            <param name="annotation" value="vcf/merlin.vcf"/>
+             <repeat name="assemblies">
+                 <conditional name="reference_genome">
+                    <param name="genome_type_select" value="history"/>
+                    <param name="genome" value="merlin.fa"/>
+                    <param name="genome.ext" value="fasta"/>
+                    <param name="genome.name" value="Merlin"/>
+                 </conditional>
+                <repeat name="track_groups">
+                    <param name="category" value="Default" />
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="vcf"/>
+                            <conditional name="useuri">
+                                <param name="insource" value="history"/>
+                                <param name="annotation" value="vcf/merlin.vcf"/>
+                            </conditional>
                         </conditional>
-                    </conditional>
+                    </repeat>
                 </repeat>
             </repeat>
             <param name="uglyTestingHack" value="enabled" />
             <output name="output">
                 <assert_contents>
                     <has_text text="genome path="></has_text>
-                    <has_text text="dataset id="></has_text>
-                    <has_text text="history id="></has_text>
+                   <has_text text="label="></has_text>
+                    <has_text text="format="></has_text>
                     <has_text text="metadata"></has_text>
-                    <has_text text="tool_id"></has_text>
+                    <has_text text="useuri="></has_text>
                     <has_text text="trackFile path="></has_text>
                     <has_text text="ext=&quot;vcf&quot; label=&quot;merlin.vcf&quot;"></has_text>
                 </assert_contents>
             </output>
         </test>
         <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
+             <repeat name="assemblies">
+                 <conditional name="reference_genome">
+                    <param name="genome_type_select" value="history"/>
+                    <param name="genome" value="merlin.fa"/>
+                    <param name="genome.ext" value="fasta"/>
+                    <param name="genome.name" value="Merlin"/>
+                 </conditional>
+            </repeat>
             <param name="uglyTestingHack" value="enabled" />
             <output name="output">
                 <assert_contents>
                     <has_text text="genome path="></has_text>
-                    <has_text text="dataset id="></has_text>
-                    <has_text text="history id="></has_text>
+                   <has_text text="label="></has_text>
+                    <has_text text="useuri="></has_text>
                     <has_text text="metadata"></has_text>
-                    <has_text text="tool_id"></has_text>
                 </assert_contents>
             </output>
         </test>
         <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
-            <repeat name="track_groups">
-                <param name="category" value="Default" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="bed"/>
-                       <conditional name="useuri">
-                            <param name="insource" value="history"/>
-                            <param name="annotation" value="bed/test-3.bed"/>
-                       </conditional>
-                    </conditional>
+             <repeat name="assemblies">
+                 <conditional name="reference_genome">
+                    <param name="genome_type_select" value="history"/>
+                    <param name="genome" value="merlin.fa"/>
+                    <param name="genome.ext" value="fasta"/>
+                    <param name="genome.name" value="Merlin"/>
+                 </conditional>
+                <repeat name="track_groups">
+                    <param name="category" value="Default" />
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="vcf"/>
+                            <conditional name="useuri">
+                                <param name="insource" value="history"/>
+                                <param name="annotation" value="vcf/merlin.vcf"/>
+                            </conditional>
+                        </conditional>
+                    </repeat>
                 </repeat>
             </repeat>
             <param name="uglyTestingHack" value="enabled" />
             <output name="output">
                 <assert_contents>
                     <has_text text="genome path="></has_text>
-                    <has_text text="dataset id="></has_text>
-                    <has_text text="history id="></has_text>
+                   <has_text text="label="></has_text>
+                    <has_text text="format="></has_text>
                     <has_text text="metadata"></has_text>
-                    <has_text text="tool_id"></has_text>
+                    <has_text text="useuri="></has_text>
                     <has_text text="trackFile path="></has_text>
-                    <has_text text="ext=&quot;bed&quot; label=&quot;test-3.bed&quot;"></has_text>
+                    <has_text text="ext=&quot;vcf&quot; label=&quot;merlin.vcf&quot;"></has_text>
                 </assert_contents>
             </output>
         </test>
         <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
-            <repeat name="track_groups">
-                <param name="category" value="Auto Coloured" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
+             <repeat name="assemblies">
+                 <conditional name="reference_genome">
+                    <param name="genome_type_select" value="history"/>
+                    <param name="genome" value="merlin.fa"/>
+                    <param name="genome.ext" value="fasta"/>
+                    <param name="genome.name" value="Merlin"/>
+                 </conditional>
+                 <repeat name="track_groups">
+                    <param name="category" value="Default" />
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
                         <param name="data_format_select" value="gff"/>
-                       <conditional name="useuri">
-                            <param name="insource" value="history"/>
-                           <param name="annotation" value="gff3/A.gff"/>
+                           <conditional name="useuri">
+                                <param name="insource" value="history"/>
+                               <param name="annotation" value="gff3/A.gff"/>
+                            </conditional>
                         </conditional>
                         <conditional name="match_part">
                             <param name="match_part_select" value="false"/>
@@ -563,13 +609,11 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 <param name="color_select" value="automatic"/>
                             </conditional>
                         </section>
-                    </conditional>
+                    </repeat>
                 </repeat>
-            </repeat>
-
-            <repeat name="track_groups">
+                <repeat name="track_groups">
                 <param name="category" value="Ignore Scale" />
-                <repeat name="data_tracks">
+                    <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gff"/>
                        <conditional name="useuri">
@@ -589,150 +633,148 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </conditional>
                         </section>
                     </conditional>
+                    </repeat>
                 </repeat>
-            </repeat>
-
-            <repeat name="track_groups">
+                <repeat name="track_groups">
                 <param name="category" value="Scaled Colour" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                       <conditional name="useuri">
-                            <param name="insource" value= "history"/>
-                            <param name="annotation" value="gff3/C.gff"/>
-                        </conditional>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="score"/>
-                                <param name="score_scaling" value="linear"/>
-                                <conditional name="score_scales">
-                                    <param name="scale_select" value="automatic"/>
-                                </conditional>
-                                <conditional name="color_scheme">
-                                    <param name="score_scheme" value="opacity"/>
-                                    <conditional name="color">
-                                        <param name="color_select" value="automatic"/>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="gff"/>
+                           <conditional name="useuri">
+                                <param name="insource" value= "history"/>
+                                <param name="annotation" value="gff3/C.gff"/>
+                            </conditional>
+                            <conditional name="match_part">
+                                <param name="match_part_select" value="false"/>
+                            </conditional>
+                            <section name="jbcolor_scale">
+                                <conditional name="color_score">
+                                    <param name="color_score_select" value="score"/>
+                                    <param name="score_scaling" value="linear"/>
+                                    <conditional name="score_scales">
+                                        <param name="scale_select" value="automatic"/>
+                                    </conditional>
+                                    <conditional name="color_scheme">
+                                        <param name="score_scheme" value="opacity"/>
+                                        <conditional name="color">
+                                            <param name="color_select" value="automatic"/>
+                                        </conditional>
                                     </conditional>
                                 </conditional>
+                            </section>
+                        </conditional>
+                    </repeat>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="gff"/>
+                           <conditional name="useuri">
+                                <param name="annotation" value="gff3/B.gff"/>
+                                <param name="insource" value= "history"/>
                             </conditional>
-                        </section>
-                    </conditional>
-                </repeat>
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                       <conditional name="useuri">
-                            <param name="annotation" value="gff3/B.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                       <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="score"/>
-                                <param name="score_scaling" value="linear"/>
-                                <conditional name="score_scales">
-                                    <param name="scale_select" value="automatic"/>
-                                </conditional>
-                                <conditional name="color_scheme">
-                                    <param name="score_scheme" value="opacity"/>
-                                    <conditional name="color">
-                                        <param name="color_select" value="manual"/>
-                                        <param name="style_color" value="#0000ff"/>
+                           <conditional name="match_part">
+                                <param name="match_part_select" value="false"/>
+                            </conditional>
+                            <section name="jbcolor_scale">
+                                <conditional name="color_score">
+                                    <param name="color_score_select" value="score"/>
+                                    <param name="score_scaling" value="linear"/>
+                                    <conditional name="score_scales">
+                                        <param name="scale_select" value="automatic"/>
+                                    </conditional>
+                                    <conditional name="color_scheme">
+                                        <param name="score_scheme" value="opacity"/>
+                                        <conditional name="color">
+                                            <param name="color_select" value="manual"/>
+                                            <param name="style_color" value="#0000ff"/>
+                                        </conditional>
                                     </conditional>
                                 </conditional>
+                            </section>
+                        </conditional>
+                    </repeat>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="gff"/>
+                           <conditional name="useuri">
+                                <param name="annotation" value="gff3/A.gff"/>
+                                <param name="insource" value= "history"/>
                             </conditional>
-                        </section>
-                    </conditional>
-                </repeat>
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                       <conditional name="useuri">
-                            <param name="annotation" value="gff3/A.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="score"/>
-                                <param name="score_scaling" value="linear"/>
-                                <conditional name="score_scales">
-                                    <param name="scale_select" value="manual"/>
-                                    <param name="minimum" value="0"/>
-                                    <param name="maximum" value="1000"/>
-                                </conditional>
-                                <conditional name="color_scheme">
-                                    <param name="score_scheme" value="opacity"/>
-                                    <conditional name="color">
-                                        <param name="color_select" value="automatic"/>
+                            <conditional name="match_part">
+                                <param name="match_part_select" value="false"/>
+                            </conditional>
+                            <section name="jbcolor_scale">
+                                <conditional name="color_score">
+                                    <param name="color_score_select" value="score"/>
+                                    <param name="score_scaling" value="linear"/>
+                                    <conditional name="score_scales">
+                                        <param name="scale_select" value="manual"/>
+                                        <param name="minimum" value="0"/>
+                                        <param name="maximum" value="1000"/>
+                                    </conditional>
+                                    <conditional name="color_scheme">
+                                        <param name="score_scheme" value="opacity"/>
+                                        <conditional name="color">
+                                            <param name="color_select" value="automatic"/>
+                                        </conditional>
                                     </conditional>
                                 </conditional>
+                            </section>
+                        </conditional>
+                    </repeat>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="gff"/>
+                            <conditional name="useuri">
+                                <param name="annotation" value="gff3/1.gff"/>
+                                <param name="insource" value= "history"/>
                             </conditional>
-                        </section>
-                    </conditional>
-                </repeat>
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                        <conditional name="useuri">
-                            <param name="annotation" value="gff3/1.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="score"/>
-                                <param name="score_scaling" value="linear"/>
-                                <conditional name="score_scales">
-                                    <param name="scale_select" value="manual"/>
-                                    <param name="minimum" value="0"/>
-                                    <param name="maximum" value="1000"/>
-                                </conditional>
-                                <conditional name="color_scheme">
-                                    <param name="score_scheme" value="opacity"/>
-                                    <conditional name="color">
-                                        <param name="color_select" value="manual"/>
-                                        <param name="style_color" value="#ff0000"/>
+                            <conditional name="match_part">
+                                <param name="match_part_select" value="false"/>
+                            </conditional>
+                            <section name="jbcolor_scale">
+                                <conditional name="color_score">
+                                    <param name="color_score_select" value="score"/>
+                                    <param name="score_scaling" value="linear"/>
+                                    <conditional name="score_scales">
+                                        <param name="scale_select" value="manual"/>
+                                        <param name="minimum" value="0"/>
+                                        <param name="maximum" value="1000"/>
+                                    </conditional>
+                                    <conditional name="color_scheme">
+                                        <param name="score_scheme" value="opacity"/>
+                                        <conditional name="color">
+                                            <param name="color_select" value="manual"/>
+                                            <param name="style_color" value="#ff0000"/>
+                                        </conditional>
                                     </conditional>
                                 </conditional>
-                            </conditional>
-                        </section>
-                    </conditional>
+                            </section>
+                        </conditional>
+                    </repeat>
                 </repeat>
-            </repeat>
-
-            <repeat name="track_groups">
+                <repeat name="track_groups">
                 <param name="category" value="Realistic" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                        <conditional name="useuri">
-                            <param name="annotation" value="gff3/interpro.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="none"/>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="gff"/>
+                            <conditional name="useuri">
+                                <param name="annotation" value="gff3/interpro.gff"/>
+                                <param name="insource" value= "history"/>
                             </conditional>
-                            <conditional name="color">
-                                <param name="color_select" value="automatic"/>
+                            <conditional name="match_part">
+                                <param name="match_part_select" value="false"/>
                             </conditional>
-                        </section>
-                    </conditional>
-                </repeat>
-                <repeat name="data_tracks">
+                            <section name="jbcolor_scale">
+                                <conditional name="color_score">
+                                    <param name="color_score_select" value="none"/>
+                                </conditional>
+                                <conditional name="color">
+                                    <param name="color_select" value="automatic"/>
+                                </conditional>
+                            </section>
+                        </conditional>
+                    </repeat>
+                    <repeat name="data_tracks">
                     <conditional name="data_format">
                         <param name="data_format_select" value="gff"/>
                          <conditional name="useuri">
@@ -752,13 +794,14 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </conditional>
                         </section>
                     </conditional>
+                    </repeat>
                 </repeat>
             </repeat>
 
             <param name="uglyTestingHack" value="enabled" />
             <output name="output">
                 <assert_contents>
-                        <has_text text="Auto Coloured"/>
+                        <has_text text="Ignore Scale"/>
                         <has_text text="A.gff"/>
                         <has_text text="B.gff"/>
                         <has_text text="C.gff"/>
@@ -769,78 +812,8 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 </assert_contents>
             </output>
         </test>
-        <test>
-            <param name="reference_genome|genome_type_select" value="history"/>
-            <param name="reference_genome|genome" value="merlin.fa"/>
 
-            <repeat name="track_groups">
-                <param name="category" value="With menu or index" />
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                        <conditional name="useuri">
-                            <param name="annotation" value="gff3/1.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="none"/>
-                            </conditional>
-                            <conditional name="color">
-                                <param name="color_select" value="automatic"/>
-                            </conditional>
-                        </section>
-                        <section name="jbmenu">
-                            <repeat name="track_menu">
-                                <param name="menu_action" value="iframeDialog"/>
-                                <param name="menu_label" value="Some menu item"/>
-                                <param name="menu_title" value="Frame title"/>
-                                <param name="menu_url" value="https://example.com/#!/?id={name}&amp;q={type}&amp;z=&quot;{end}&quot;"/>
-                                <param name="menu_icon" value="dijitIconNewTask"/>
-                            </repeat>
-                            <repeat name="track_menu">
-                                <param name="menu_action" value="newWindow"/>
-                                <param name="menu_label" value="Another menu item"/>
-                                <param name="menu_title" value="Frame title 2"/>
-                                <param name="menu_url" value="https://example.com/#!/?id={name}&amp;q={type}&amp;z=&quot;{end}&quot;"/>
-                            </repeat>
-                        </section>
-                    </conditional>
-                </repeat>
-                <repeat name="data_tracks">
-                    <conditional name="data_format">
-                        <param name="data_format_select" value="gff"/>
-                         <conditional name="useuri">
-                            <param name="annotation" value="gff3/1.gff"/>
-                            <param name="insource" value= "history"/>
-                        </conditional>
-                        <param name="insource" value= "history"/>
-                        <conditional name="match_part">
-                            <param name="match_part_select" value="false"/>
-                        </conditional>
-                        <section name="jbcolor_scale">
-                            <conditional name="color_score">
-                                <param name="color_score_select" value="none"/>
-                            </conditional>
-                            <conditional name="color">
-                                <param name="color_select" value="automatic"/>
-                            </conditional>
-                        </section>
-                    </conditional>
-                </repeat>
-            </repeat>
 
-            <param name="uglyTestingHack" value="enabled" />
-            <output name="output">
-                <assert_contents>
-                    <has_text text="With menu or index"/>
-                    <has_text text="gff"/>
-                </assert_contents>
-            </output>
-        </test>
         <!-- TODO add a synteny test -->
         <!-- TODO add a bam and a cram test -->
         <!-- TODO add an hic test -->
