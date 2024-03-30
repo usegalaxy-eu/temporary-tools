@@ -555,7 +555,7 @@ until the IUC complete their own.
                     <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
                 </param>
                 <when value="history">
-                    <repeat name="refgenomes" title="PAF reference comparison genome used to make the PAF">
+                    <repeat name="refgenomes" title="PAF reference comparison genome used to make the PAF" min="1">
                        <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
                        <param label="Short name for track display" name="annoname" type="text" help="No spaces allowed here">
                              <sanitizer invalid_char="_">
@@ -567,9 +567,9 @@ until the IUC complete their own.
                     </repeat>
                 </when>
                 <when value="uri">
-                    <repeat name="refgenomes" title="PAF reference comparison genome URI">
+                    <repeat name="refgenomes" title="PAF reference comparison genome URI" min="1">
                        <param label="@LABEL@" name="annotation"  type="text" />
-                       <param label="Short name for track display" name="annoname" type="text" >
+                       <param label="Short name for this reference" name="annoname" type="text" help="Short names take less track space">
                              <sanitizer invalid_char="_">
                                 <valid initial="string.printable" >
                                     <remove value="'" />

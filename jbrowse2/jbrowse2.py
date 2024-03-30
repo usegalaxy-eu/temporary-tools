@@ -378,7 +378,6 @@ class JbrowseConnector(object):
         self.assmeta = {}
         self.giURL = GALAXY_INFRASTRUCTURE_URL
         self.outdir = outdir
-        self.genome_firstcontig = None
         self.jbrowse2path = jbrowse2path
         os.makedirs(self.outdir, exist_ok=True)
         self.genome_names = []
@@ -1125,21 +1124,22 @@ class JbrowseConnector(object):
                 gname = gname.split()[0]
             passnames.append(gname)
             # trouble from spacey names in command lines avoidance
+            useuri = pgpaths[i].startswith("http://") or pgpaths[i].startswith(
+                "https://"
+            )
+            if not useuri:
+                url = "%s.paf" % (lab)
+            else:
+                url = data
             if gname not in self.genome_names:
                 # ignore if already there - eg for duplicates among pafs.
-                useuri = pgpaths[i].startswith("http://") or pgpaths[i].startswith(
-                    "https://"
-                )
                 asstrack = self.make_assembly(pgpaths[i], gname, useuri)
                 self.genome_names.append(gname)
                 self.tracksToAdd[gname] = []
                 self.assemblies.append(asstrack)
                 if not useuri:
-                    url = "%s.paf" % (lab)
                     dest = "%s/%s" % (self.outdir, url)
                     self.symlink_or_copy(os.path.realpath(data), dest)
-                else:
-                    url = data
         trackDict = {
             "type": "SyntenyTrack",
             "trackId": tId,
