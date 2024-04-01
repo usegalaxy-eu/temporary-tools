@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import shutil
+import ssl
 import struct
 import subprocess
 import tempfile
@@ -37,6 +38,32 @@ mapped_chars = {
     "#": "__pd__",
     "": "__cn__",
 }
+
+
+INDEX_TEMPLATE = """<!doctype html>
+<html lang="en" style="height:100%">
+<head>
+<meta charset="utf-8"/>
+<link rel="shortcut icon" href="./favicon.ico"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#000000"/>
+<meta name="description" content="A fast and flexible genome browser"/>
+<link rel="manifest" href="./manifest.json"/>
+<title>JBrowse</title>
+</script>
+</head>
+<body style="overscroll-behavior:none; height:100%; margin: 0;">
+<iframe
+  id="jbframe"
+  title="JBrowse2"
+  frameborder="0"
+  width="100%"
+  height="100%"
+  src='index_noview.html?config=config.json__SESSION_SPEC__'>
+</iframe>
+</body>
+</html>
+"""
 
 
 class ColorScaling(object):
@@ -376,6 +403,9 @@ class JbrowseConnector(object):
     def __init__(self, outdir, jbrowse2path):
         self.assemblies = []  # these require more than a few line diff.
         self.assmeta = {}
+        self.ass_first_contigs = (
+            []
+        )  # for default session - these are read as first line of the assembly .fai
         self.giURL = GALAXY_INFRASTRUCTURE_URL
         self.outdir = outdir
         self.jbrowse2path = jbrowse2path
@@ -451,6 +481,22 @@ class JbrowseConnector(object):
         }
         return wstyle
 
+    def urllib_get_2018():
+        # Using a protected member like this is not any more fragile
+        # than extending the class and using it. I would use it.
+        url = "https://localhost:6667/my-endpoint"
+        ssl._create_default_https_context = ssl._create_unverified_context
+        with urllib.request.urlopen(url=url) as f:
+            print(f.read().decode("utf-8"))
+
+    def urllib_get_2022():
+        # Finally! Able to use the publice API. Happy happy!
+        url = "https://localhost:6667/my-endpoint"
+        scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        scontext.verify_mode = ssl.VerifyMode.CERT_NONE
+        with urllib.request.urlopen(url=url, context=scontext) as f:
+            print(f.read().decode("utf-8"))
+
     def process_genomes(self, genomes):
         assembly = []
         assmeta = []
@@ -469,8 +515,9 @@ class JbrowseConnector(object):
                 fapath = genome_node["path"]
                 if not useuri:
                     fapath = os.path.realpath(fapath)
-                assem = self.make_assembly(fapath, genome_name, useuri)
+                assem, first_contig = self.make_assembly(fapath, genome_name, useuri)
                 assembly.append(assem)
+                self.ass_first_contigs.append(first_contig)
                 if len(genome_names) == 0:
                     this_genome["genome_name"] = genome_name  # first one for all tracks
                     genome_names.append(genome_name)
@@ -491,7 +538,12 @@ class JbrowseConnector(object):
                                 this_genome["genome_firstcontig"] = fl
                     else:
                         try:
-                            fl = urllib.request.urlopen(fapath + ".fai").readline()
+                            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                            scontext.verify_mode = ssl.VerifyMode.CERT_NONE
+                            with urllib.request.urlopen(
+                                url=fapath + ".fai", context=scontext
+                            ) as f:
+                                fl = f.readline()
                         except Exception:
                             fl = None
                         if fl:  # is first row of the text fai so the first contig name
@@ -506,6 +558,9 @@ class JbrowseConnector(object):
         return this_genome["genome_name"]
 
     def make_assembly(self, fapath, gname, useuri):
+        """added code to grab the first contig name and length for broken default session from Anthony and Helena's code
+        that poor Bjoern is trying to figure out.
+        """
         if useuri:
             faname = fapath
             adapter = {
@@ -514,6 +569,12 @@ class JbrowseConnector(object):
                 "faiLocation": {"uri": faname + ".fai", "locationType": "UriLocation"},
                 "gziLocation": {"uri": faname + ".gzi", "locationType": "UriLocation"},
             }
+            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+            scontext.verify_mode = ssl.VerifyMode.CERT_NONE
+            with urllib.request.urlopen(url=faname + ".fai", context=scontext) as f:
+                fl = f.readline()
+            contig = fl.decode("utf8").strip()
+            # Merlin  172788  8       60      61
         else:
             faname = gname + ".fa.gz"
             fadest = os.path.realpath(os.path.join(self.outdir, faname))
@@ -537,7 +598,9 @@ class JbrowseConnector(object):
                     "uri": faname + ".gzi",
                 },
             }
-
+            contig = open(fadest + ".fai", "r").readline().strip()
+        first_contig = contig.split()[:2]
+        first_contig.insert(0, gname)
         trackDict = {
             "name": gname,
             "sequence": {
@@ -556,7 +619,7 @@ class JbrowseConnector(object):
                 },
             ],
         }
-        return trackDict
+        return (trackDict, first_contig)
 
     def add_default_view(self):
         cmd = [
@@ -907,7 +970,6 @@ class JbrowseConnector(object):
             else:
                 cpath = os.path.realpath(dest) + ".crai"
                 cmd = ["samtools", "index", "-c", "-o", cpath, os.path.realpath(dest)]
-                logging.debug("executing cmd %s" % " ".join(cmd))
                 self.subprocess_check_call(cmd)
         trackDict = {
             "type": "AlignmentsTrack",
@@ -1136,7 +1198,7 @@ class JbrowseConnector(object):
 
             if gname not in self.genome_names:
                 # ignore if already there - eg for duplicates among pafs.
-                asstrack = self.make_assembly(pgpaths[i], gname, useuri)
+                asstrack, first_contig = self.make_assembly(pgpaths[i], gname, useuri)
                 self.genome_names.append(gname)
                 self.tracksToAdd[gname] = []
                 self.assemblies.append(asstrack)
@@ -1318,7 +1380,7 @@ class JbrowseConnector(object):
             for track_conf in self.tracksToAdd[gnome]:
                 tId = track_conf["trackId"]
                 track_types[tId] = track_conf["type"]
-                style_data = default_data["style"].get(tId, None)
+                style_data = default_data[gnome]["style"].get(tId, None)
                 if not style_data:
                     logging.debug(
                         "### No style data in default data %s for %s"
@@ -1392,6 +1454,75 @@ class JbrowseConnector(object):
         logging.debug("defaultSession=%s" % (pp))
         with open(self.config_json_file, "w") as config_file:
             json.dump(self.config_json, config_file, indent=2)
+
+    def add_defsess_to_index(self, data):
+        """
+        Broken in Anthony's PR because only ever dealt with the first assembly.
+
+        Add some default session settings: set some assemblies/tracks on/off
+
+        This allows to select a default view:
+        - jb type (Linear, Circular, etc)
+        - default location on an assembly
+        - default tracks
+        - ...
+
+        Different methods to do that were tested/discussed:
+        - using a defaultSession item in config.json: this proved to be difficult:
+          forced to write a full session block, including hard-coded/hard-to-guess items,
+          no good way to let Jbrowse2 display a scaffold without knowing its size
+        - using JBrowse2 as an embedded React component in a tool-generated html file:
+          it works but it requires generating js code to actually do what we want = chosing default view, assembly, tracks, ...
+        - writing a session-spec inside the config.json file: this is not yet supported as of 2.10.2 (see PR 4148 below)
+          a session-spec is a kind of simplified defaultSession where you don't need to specify every aspect of the session
+        - passing a session-spec through URL params by embedding the JBrowse2 index.html inside an iframe
+          we selected this option
+
+        Xrefs to understand the choices:
+        https://github.com/GMOD/jbrowse-components/issues/2708
+        https://github.com/GMOD/jbrowse-components/discussions/3568
+        https://github.com/GMOD/jbrowse-components/pull/4148
+        """
+        new_index = "Nothing written"
+        session_spec = {"views": []}
+        logging.debug("def ass_first=%s\ndata=%s" % (self.ass_first_contigs, data))
+        for first_contig in self.ass_first_contigs:
+            logging.debug("first contig=%s" % self.ass_first_contigs)
+            [gnome, refName, end] = first_contig
+            start = 0
+            # if False or data.get("defaultLocation", ""):
+                # loc_match = re.search(
+                    # r"^([^:]+):([\d,]*)\.*([\d,]*)$", data["defaultLocation"]
+                # )
+                # # loc_match = re.search(r"^(\w+):(\d+)\.+(\d+)$", data["defaultLocation"])
+                # if loc_match:
+                    # refName = loc_match.group(1)
+                    # start = int(loc_match.group(2))
+                    # end = int(loc_match.group(3))
+            # else:
+            aview = {
+                "assembly": gnome,
+                "loc": "{}:{}..{}".format(refName, start, end),
+                "type": "LinearGenomeView",
+                "tracks": data[gnome]["tracks"],
+            }
+            session_spec["views"].append(aview)
+        sess = json.dumps(session_spec, sort_keys=True, indent=2)
+        new_index = INDEX_TEMPLATE.replace(
+            "__SESSION_SPEC__", "&session=spec-{}".format(sess)
+        )
+
+        os.rename(
+            os.path.join(self.outdir, "index.html"),
+            os.path.join(self.outdir, "index_noview.html"),
+        )
+
+        with open(os.path.join(self.outdir, "index.html"), "w") as nind:
+            nind.write(new_index)
+        logging.debug(
+            "#### add_defsession gnome=%s refname=%s\nsession_spec=%s\nnew_index=%s"
+            % (gnome, refName, sess, new_index)
+        )
 
     def add_general_configuration(self, data):
         """
@@ -1480,14 +1611,7 @@ if __name__ == "__main__":
 
     jc = JbrowseConnector(outdir=args.outdir, jbrowse2path=args.jbrowse2path)
 
-    default_session_data = {
-        "visibility": {
-            "default_on": [],
-            "default_off": [],
-        },
-        "style": {},
-        "style_labels": {},
-    }
+    default_session_data = {}
 
     for ass in root.findall("assembly"):
         genomes = [
@@ -1500,7 +1624,16 @@ if __name__ == "__main__":
             for x in ass.findall("metadata/genomes/genome")
         ]
         assref_name = jc.process_genomes(genomes)
-
+        if not default_session_data.get(assref_name, None):
+            default_session_data[assref_name] = {
+                "tracks": [],
+                "style": {},
+                "style_labels": {},
+                "visibility": {
+                    "default_on": [],
+                    "default_off": [],
+                },
+            }
         for track in ass.find("tracks"):
             track_conf = {}
             track_conf["trackfiles"] = []
@@ -1577,21 +1710,22 @@ if __name__ == "__main__":
                     vis = track.attrib.get("visibility", "default_off")
                     if not vis:
                         vis = "default_off"
-                    default_session_data["visibility"][vis].append(key)
+                    default_session_data[assref_name]["visibility"][vis].append(key)
                 if track.find("options/style"):
-                    default_session_data["style"][key] = {
+                    default_session_data[assref_name]["style"][key] = {
                         item.tag: parse_style_conf(item)
                         for item in track.find("options/style")
                     }
                 else:
-                    default_session_data["style"][key] = {}
-                    logging.debug("@@@@ no options/style found for %s" % (key))
+                    default_session_data[assref_name]["style"][key] = {}
+                    logging.debug("no options/style found for %s" % (key))
 
                 if track.find("options/style_labels"):
-                    default_session_data["style_labels"][key] = {
+                    default_session_data[assref_name]["style_labels"][key] = {
                         item.tag: parse_style_conf(item)
                         for item in track.find("options/style_labels")
                     }
+                default_session_data[assref_name]["tracks"].append(key)
     default_session_data["defaultLocation"] = root.find(
         "metadata/general/defaultLocation"
     ).text
@@ -1616,7 +1750,8 @@ if __name__ == "__main__":
     assconf = jc.config_json.get("assemblies", [])
     assconf += jc.assemblies
     jc.config_json["assemblies"] = assconf
-    logging.debug("&&&assemblies=%s, gnames=%s" % (assconf, jc.genome_names))
+    logging.debug("assemblies=%s, gnames=%s" % (assconf, jc.genome_names))
     jc.write_config()
-    jc.add_default_session(default_session_data)
+    # jc.add_default_session(default_session_data)
+    jc.add_defsess_to_index(default_session_data)
     # jc.text_index() not sure what broke here.

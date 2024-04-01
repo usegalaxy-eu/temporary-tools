@@ -43,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument("--version", "-V", action="version", version="%(prog)s 2.10.2")
     args = parser.parse_args()
     sessName = args.sessName
+    default_session_data = {}
     # --trackmeta $jbrowseme[$key],$jbrowseme[$key].ext,'$key'
     trackList = [x.strip().split(",") for x in args.trackmeta if x > ""]
     refList = [x.strip().split(",") for x in args.referencemeta if x > ""]
@@ -76,16 +77,18 @@ if __name__ == "__main__":
                     for i, x in enumerate(genome_paths)
                 ],
             )
-            logging.debug("#!!! paths=%s, genomes=%s" % (genome_paths, genomes))
+            logging.debug("@@@ paths=%s, genomes=%s" % (genome_paths, genomes))
             assref_name = jc.process_genomes(genomes[0])
-            default_session_data = {
-                "visibility": {
-                    "default_on": [],
-                    "default_off": [],
-                },
-                "style": {},
-                "style_labels": {},
-            }
+            if not default_session_data.get(assref_name, None):
+                default_session_data[assref_name] = {
+                    "tracks": [],
+                    "style": {},
+                    "style_labels": {},
+                    "visibility": {
+                        "default_on": [],
+                        "default_off": [],
+                    },
+                }
             listtracks = trackList
             # foo.paf must have a foo_paf.fasta or fasta.gz to match
             tnames = [x[2] for x in listtracks]
@@ -175,10 +178,12 @@ if __name__ == "__main__":
                             "gff3",
                             "vcf",
                             "maf",
+                            "bed",
+                            "hic"
                         ]:
-                            default_session_data["visibility"]["default_on"].append(key)
+                            default_session_data[assref_name]["visibility"]["default_on"].append(key)
                         else:
-                            default_session_data["visibility"]["default_off"].append(
+                            default_session_data[assref_name]["visibility"]["default_off"].append(
                                 key
                             )
                         if trext in ["gff", "gff3", "bed", "vcf", "maf", "blastxml"]:
@@ -190,7 +195,8 @@ if __name__ == "__main__":
                                 "trackShowLabels": False,
                                 "trackShowDescriptions": False,
                             }
-                            default_session_data["style"][key] = style_json
+                            default_session_data[assref_name]["style"][key] = style_json
+                            default_session_data[assref_name]["tracks"].append(key)
             # general_data = {
             # "analytics": root.find("metadata/general/analytics").text,
             # "primary_color": root.find("metadata/general/primary_color").text,
@@ -214,7 +220,8 @@ if __name__ == "__main__":
             jc.write_config()
             default_session_data.update({"session_name": sessName})
             track_conf.update(default_session_data)
-            jc.add_default_session(default_session_data)
+            # jc.add_default_session(default_session_data)
+            jc.add_defsess_to_index(default_session_data)
             # jc.text_index() not sure what broke here.
     else:
         sys.stderr.write(
