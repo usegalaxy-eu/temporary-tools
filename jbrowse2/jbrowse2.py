@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("jbrowse")
 
 JB2VER = "v2.10.3"
-# version pinned for cloning
+# version pinned if cloning - but not cloning now
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 SELF_LOCATION = os.path.dirname(os.path.realpath(__file__))
@@ -1372,6 +1372,7 @@ class JbrowseConnector(object):
             config_json.update(self.config_json)
         if "defaultSession" in config_json:
             session_json = config_json["defaultSession"]
+            session_views = []
         else:
             session_json = {}
             session_views = []
@@ -1403,31 +1404,46 @@ class JbrowseConnector(object):
                 )
             # paf genomes have no tracks associated so nothing for the view
             if len(tracks_data) > 0:
-                view_json = {"type": "LinearGenomeView", "tracks": tracks_data}
-                refName = self.assmeta[gnome][0].get("genome_firstcontig", None)
-                drdict = {
-                    "reversed": False,
-                    "assemblyName": gnome,
-                    "start": 0,
-                    "end": 100000,
-                    "refName": refName,
+                view_json = {
+                    "type": "LinearGenomeView",
+                    "offsetPx": 0,
+                    "minimized": False,
+                    "tracks": tracks_data,
                 }
-                ddl = default_data.get("defaultLocation", None)
-                if ddl:
-                    loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
-                    # allow commas like 100,000 but ignore as integer
-                    if loc_match:
-                        refName = loc_match.group(1)
-                        drdict["refName"] = refName
-                        if loc_match.group(2) > "":
-                            drdict["start"] = int(loc_match.group(2).replace(",", ""))
-                        if loc_match.group(3) > "":
-                            drdict["end"] = int(loc_match.group(3).replace(",", ""))
-                    else:
-                        logging.info(
-                            "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
-                            % ddl
-                        )
+                logging.debug(
+                    "Looking for %s in self.ass_ %s" % (gnome, self.ass_first_contigs)
+                )
+                first = [x for x in self.ass_first_contigs if x[0] == gnome]
+                if len(first) > 0:
+                    [gnome, refName, end] = first[0]
+                    start = 0
+                    end = int(end)
+                    drdict = {
+                        "refName": refName,
+                        "start": start,
+                        "end": end,
+                        "reversed": False,
+                        "assemblyName": gnome,
+                    }
+                else:
+                    ddl = default_data.get("defaultLocation", None)
+                    if ddl:
+                        loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
+                        # allow commas like 100,000 but ignore as integer
+                        if loc_match:
+                            refName = loc_match.group(1)
+                            drdict["refName"] = refName
+                            if loc_match.group(2) > "":
+                                drdict["start"] = int(
+                                    loc_match.group(2).replace(",", "")
+                                )
+                            if loc_match.group(3) > "":
+                                drdict["end"] = int(loc_match.group(3).replace(",", ""))
+                        else:
+                            logging.info(
+                                "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
+                                % ddl
+                            )
                 if drdict.get("refName", None):
                     # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
                     view_json["displayedRegions"] = [
@@ -1436,7 +1452,7 @@ class JbrowseConnector(object):
                     logging.info("@@@ defaultlocation %s for default session" % drdict)
                 else:
                     logging.info(
-                        "@@@ no contig name found for default session - please add one!"
+                        "@@@ no track location for default session - please add one!"
                     )
                 session_views.append(view_json)
         session_name = default_data.get("session_name", "New session")
@@ -1457,8 +1473,22 @@ class JbrowseConnector(object):
 
     def add_defsess_to_index(self, data):
         """
-        Broken in Anthony's PR because only ever dealt with the first assembly.
+        Included on request of the new codeowner, from Anthony's IUC PR.
+        Had to be fixed to keep each assembly with the associated tracks for a default view.
+        Originally used only the first assembly, putting all tracks there and so breaking some
+        when tested with 2 or more. Seems ironic that this vital feature could not have ever been tested
+        given that my declining to add it was the basis for a reviewer's rejection of my original IUC PR.
+        A simple 2 line diff apparently.
 
+        The technical problem is that this index.html hack breaks the promise of all the form fields
+        for track controls such as visibility default that were working mostly. They need to be removed from the form by whoever
+        thought this method was a good solution to the JB2 bug breaking config.json style default
+        view coordinates.
+
+        And no, dear reviewer of this code, please leave this piece of history.
+        It is true and I prefer that it remain here to document my considerable discomfort at this unfair treatment.
+
+         ----------------------------------------------------------
         Add some default session settings: set some assemblies/tracks on/off
 
         This allows to select a default view:
@@ -1490,16 +1520,6 @@ class JbrowseConnector(object):
             logging.debug("first contig=%s" % self.ass_first_contigs)
             [gnome, refName, end] = first_contig
             start = 0
-            # if False or data.get("defaultLocation", ""):
-                # loc_match = re.search(
-                    # r"^([^:]+):([\d,]*)\.*([\d,]*)$", data["defaultLocation"]
-                # )
-                # # loc_match = re.search(r"^(\w+):(\d+)\.+(\d+)$", data["defaultLocation"])
-                # if loc_match:
-                    # refName = loc_match.group(1)
-                    # start = int(loc_match.group(2))
-                    # end = int(loc_match.group(3))
-            # else:
             aview = {
                 "assembly": gnome,
                 "loc": "{}:{}..{}".format(refName, start, end),
@@ -1652,7 +1672,6 @@ if __name__ == "__main__":
             if trackfiles:
                 for x in track.findall("files/trackFile"):
                     track_conf["label"] = x.attrib["label"]
-                    trackkey = track_conf["label"]
                     track_conf["useuri"] = x.attrib["useuri"]
                     if is_multi_bigwig:
                         multi_bigwig_paths.append(
@@ -1752,6 +1771,7 @@ if __name__ == "__main__":
     jc.config_json["assemblies"] = assconf
     logging.debug("assemblies=%s, gnames=%s" % (assconf, jc.genome_names))
     jc.write_config()
-    # jc.add_default_session(default_session_data)
-    jc.add_defsess_to_index(default_session_data)
+    jc.add_default_session(default_session_data)
+    # note that this can be left in the config.json but has NO EFFECT if add_defsess_to_index is called.
+    # jc.add_defsess_to_index(default_session_data)
     # jc.text_index() not sure what broke here.
