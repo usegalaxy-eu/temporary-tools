@@ -1088,7 +1088,7 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            url = tId
+            url = tId + '.gz'
             dest = "%s/%s" % (self.outdir, url)
             self._sort_bed(data, dest)
         trackDict = {
