@@ -308,6 +308,18 @@ until the IUC complete their own.
         <param label="Max height" name="max_height" type="integer" value="600" help="Maximum height that the track is permitted to reach in pixels."/>
     </xml>
 
+    <xml name="track_styling_vgp">
+         <section name="jbstyle" title="JBrowse Styling Options [Advanced]" expanded="false">
+        <param label="Show labels" name="show_labels" type="boolean" checked="false" truevalue="true" falsevalue="false" />
+        <param label="Show descriptions" name="show_descriptions" type="boolean" checked="false" truevalue="true" falsevalue="false" />
+        <param name="display" type="select" label="Display style" help="How the track will be displayed by default">
+            <option value="LinearBasicDisplay" selected="true">LinearBasicDisplay</option>
+            <option value="LinearPileupDisplay">LinearPileupDisplay - good for dense tracks at scale</option>
+            <option value="LinearArcDisplay">LinearArcDisplay</option>
+        </param>
+        </section>
+    </xml>
+
     <xml name="track_styling_feature">
         <section name="jbstyle" title="JBrowse Styling Options [Advanced]" expanded="false">
         <conditional name="track_style">
