@@ -220,8 +220,8 @@ if __name__ == "__main__":
             jc.write_config()
             default_session_data.update({"session_name": sessName})
             track_conf.update(default_session_data)
-            # jc.add_default_session(default_session_data)
-            jc.add_defsess_to_index(default_session_data)
+            jc.add_default_session(default_session_data)
+            # jc.add_defsess_to_index(default_session_data)
             # jc.text_index() not sure what broke here.
     else:
         sys.stderr.write(
