@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("jbrowse")
 
 JB2VER = "v2.10.3"
-# version pinned for cloning
+# version pinned if cloning - but not cloning now
 
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 SELF_LOCATION = os.path.dirname(os.path.realpath(__file__))
@@ -401,6 +401,7 @@ def metadata_from_node(node):
 
 class JbrowseConnector(object):
     def __init__(self, outdir, jbrowse2path):
+        self.trackCounter = 0  # to avoid name clashes
         self.assemblies = []  # these require more than a few line diff.
         self.assmeta = {}
         self.ass_first_contigs = (
@@ -481,21 +482,22 @@ class JbrowseConnector(object):
         }
         return wstyle
 
-    def urllib_get_2018():
-        # Using a protected member like this is not any more fragile
-        # than extending the class and using it. I would use it.
-        url = "https://localhost:6667/my-endpoint"
-        ssl._create_default_https_context = ssl._create_unverified_context
-        with urllib.request.urlopen(url=url) as f:
-            print(f.read().decode("utf-8"))
-
-    def urllib_get_2022():
-        # Finally! Able to use the publice API. Happy happy!
-        url = "https://localhost:6667/my-endpoint"
-        scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        scontext.verify_mode = ssl.VerifyMode.CERT_NONE
-        with urllib.request.urlopen(url=url, context=scontext) as f:
-            print(f.read().decode("utf-8"))
+    def getNrow(self, url):
+        useuri = url.startswith("https://") or url.startswith("http://")
+        if not useuri:
+            fl = open(url, "r").readlines()
+            nrow = len(fl)
+        else:
+            try:
+                scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                scontext.verify_mode = ssl.VerifyMode.CERT_NONE
+                with urllib.request.urlopen(url, context=scontext) as f:
+                    fl = f.readlines()
+                nrow = len(fl)
+            except Exception:
+                nrow = 0
+        logging.debug("### getNrow returning %d" % nrow)
+        return nrow
 
     def process_genomes(self, genomes):
         assembly = []
@@ -507,6 +509,8 @@ class JbrowseConnector(object):
             if genome_node["useuri"] == "yes":
                 useuri = True
             genome_name = genome_node["label"].strip()
+            if len(genome_name) == 0:
+                genome_name = os.path.splitext(os.path.basename(genome_node["path"]))[0]
             if len(genome_name.split()) > 1:
                 genome_name = genome_name.split()[0]
                 # spaces and cruft break scripts when substituted
@@ -684,7 +688,7 @@ class JbrowseConnector(object):
         if useuri:
             uri = data
         else:
-            uri = "%s.hic" % trackData["label"]
+            uri = tId
             # slashes in names cause path trouble
             dest = os.path.join(self.outdir, uri)
             cmd = ["cp", data, dest]
@@ -720,7 +724,7 @@ class JbrowseConnector(object):
             ]
         }
         categ = trackData["category"]
-        fname = "%s" % tId
+        fname = tId
         dest = "%s/%s" % (self.outdir, fname)
         gname = trackData["assemblyNames"]
 
@@ -811,59 +815,20 @@ class JbrowseConnector(object):
             # Replace original gff3 file
             shutil.copy(gff3_rebased.name, gff3)
             os.unlink(gff3_rebased.name)
-        url = "%s.gff3.gz" % trackData["label"]
-        dest = "%s/%s" % (self.outdir, url)
-        self._sort_gff(gff3, dest)
-        tId = trackData["label"]
-        categ = trackData["category"]
-        trackDict = {
-            "type": "FeatureTrack",
-            "trackId": tId,
-            "name": trackData["name"],
-            "assemblyNames": [trackData["assemblyNames"]],
-            "category": [
-                categ,
-            ],
-            "adapter": {
-                "type": "Gff3TabixAdapter",
-                "gffGzLocation": {
-                    "uri": url,
-                },
-                "index": {
-                    "location": {
-                        "uri": url + ".tbi",
-                    }
-                },
-            },
-            "displays": [
-                {
-                    "type": "LinearBasicDisplay",
-                    "displayId": "%s-LinearBasicDisplay" % tId,
-                },
-                {
-                    "type": "LinearArcDisplay",
-                    "displayId": "%s-LinearArcDisplay" % tId,
-                },
-            ],
-        }
-        style_json = self._prepare_track_style(trackDict)
-        trackDict["style"] = style_json
-        self.tracksToAdd[trackData["assemblyNames"]].append(trackDict)
-        self.trackIdlist.append(tId)
-        os.unlink(gff3)
+        self.add_gff(gff3, trackData, **kwargs)
 
     def add_bigwig(self, data, trackData):
+        tId = trackData["label"]
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
         else:
-            url = "%s.bigwig" % trackData["label"]
+            url = tId
             # slashes in names cause path trouble
             dest = os.path.join(self.outdir, url)
             cmd = ["cp", data, dest]
             self.subprocess_check_call(cmd)
         bwloc = {"uri": url}
-        tId = trackData["label"]
         categ = trackData["category"]
         trackDict = {
             "type": "QuantitativeTrack",
@@ -897,7 +862,7 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            fname = "%s.bam" % trackData["label"]
+            fname = tId
             dest = "%s/%s" % (self.outdir, fname)
             url = fname
             bindex = fname + ".bai"
@@ -957,8 +922,8 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            fname = "%s.cram" % trackData["label"]
-            dest = "%s/%s" % (self.outdir, fname)
+            fname = tId
+            dest = os.path.join(self.outdir, fname)
             url = fname
             self.subprocess_check_call(["cp", data, dest])
             if cram_index is not None and os.path.exists(cram_index):
@@ -1010,7 +975,7 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            url = "%s.vcf.gz" % tId
+            url = tId
             dest = "%s/%s" % (self.outdir, url)
             cmd = "bgzip -c %s  > %s" % (data, dest)
             self.subprocess_popen(cmd)
@@ -1059,7 +1024,7 @@ class JbrowseConnector(object):
             cmd = "jbrowse sort-gff '%s' | bgzip -c > '%s'" % (
                 data,
                 dest,
-            )  # "gff3sort.pl --precise '%s' | grep -v \"^$\" > '%s'"
+            )
             self.subprocess_popen(cmd)
             self.subprocess_check_call(["tabix", "-f", "-p", "gff", dest])
 
@@ -1071,15 +1036,15 @@ class JbrowseConnector(object):
             cmd = ["tabix", "-f", "-p", "bed", dest]
             self.subprocess_check_call(cmd)
 
-    def add_gff(self, data, ext, trackData):
+    def add_gff(self, data, trackData):
+        tId = trackData["label"]
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = trackData["path"]
         else:
-            url = "%s.%s.gz" % (trackData["label"], ext)
+            url = tId + ".gz"
             dest = "%s/%s" % (self.outdir, url)
             self._sort_gff(data, dest)
-        tId = trackData["label"]
         categ = trackData["category"]
         trackDict = {
             "type": "FeatureTrack",
@@ -1123,7 +1088,7 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            url = "%s.%s.gz" % (trackData["label"], ext)
+            url = tId + '.gz'
             dest = "%s/%s" % (self.outdir, url)
             self._sort_bed(data, dest)
         trackDict = {
@@ -1168,37 +1133,41 @@ class JbrowseConnector(object):
     def add_paf(self, data, trackData, pafOpts, **kwargs):
         tname = trackData["name"]
         tId = trackData["label"]
-        url = "%s.paf" % tId
+        url = tId
         useuri = data.startswith("http://") or data.startswith("https://")
         if not useuri:
             dest = "%s/%s" % (self.outdir, url)
             self.symlink_or_copy(os.path.realpath(data), dest)
+            nrow = self.getNrow(dest)
         else:
             url = data
+            nrow = self.getNrow(url)
         categ = trackData["category"]
-        pgnames = [
-            x.strip() for x in pafOpts["genome_label"].split(",") if len(x.strip()) > 0
-        ]
+        pgnames = [x.strip() for x in pafOpts["genome_label"].split(",")]
         pgpaths = [
             x.strip() for x in pafOpts["genome"].split(",") if len(x.strip()) > 0
         ]
         passnames = [trackData["assemblyNames"]]  # always first
+        for i, gp in enumerate(pgpaths):
+            if len(pgnames[i].strip()) == 0:
+                # user may have left it blank - cannot make non-optional if want optional tracks.
+                gn = os.path.basename(gp)
+                pgnames[i] = os.path.splitext(gn)[0]
         logging.debug(
             "### add_paf got pafOpts=%s, pgnames=%s, pgpaths=%s for %s"
             % (pafOpts, pgnames, pgpaths, tId)
         )
-        for i, gname in enumerate(pgnames):
+        for i, gp in enumerate(pgpaths):
+            gname = pgnames[i]
             if len(gname.split()) > 1:
                 gname = gname.split()[0]
             passnames.append(gname)
             # trouble from spacey names in command lines avoidance
-            useuri = pgpaths[i].startswith("http://") or pgpaths[i].startswith(
-                "https://"
-            )
+            useuri = gp.startswith("http://") or gp.startswith("https://")
 
             if gname not in self.genome_names:
                 # ignore if already there - eg for duplicates among pafs.
-                asstrack, first_contig = self.make_assembly(pgpaths[i], gname, useuri)
+                asstrack, first_contig = self.make_assembly(gp, gname, useuri)
                 self.genome_names.append(gname)
                 self.tracksToAdd[gname] = []
                 self.assemblies.append(asstrack)
@@ -1229,26 +1198,37 @@ class JbrowseConnector(object):
                     "displayId": "%s-LinearComparativeDisplay" % tId,
                 },
                 {
-                    "type": "LinearSyntenyDisplay",
+                    "type": "LinearBasicDisplay",
                     "displayId": "%s-LinearSyntenyDisplay" % tId,
                 },
             ],
         }
-        style_json = {
-            "displays": [
-                {
-                    "type": "LGVSyntenyDisplay",
-                    "displayId": "%s-LGVSyntenyDisplay" % tId,
-                }
-            ]
-        }
+        if nrow > 20000:
+            style_json = {
+                "displays": [
+                    {
+                        "type": "LGVSyntenyDisplay",
+                        "displayId": "%s-LGVSyntenyDisplay" % tId,
+                    }
+                ]
+            }
+        else:
+            style_json = {
+                "displays": [
+                    {
+                        "type": "LinearBasicDisplay",
+                        "displayId": "%s-LinearBasicDisplay" % tId,
+                    }
+                ]
+            }
+
         trackDict["style"] = style_json
         self.tracksToAdd[trackData["assemblyNames"]].append(trackDict)
         self.trackIdlist.append(tId)
 
     def process_annotations(self, track):
         category = track["category"].replace("__pd__date__pd__", TODAY)
-        for i, (
+        for trackIndex, (
             dataset_path,
             dataset_ext,
             useuri,
@@ -1264,7 +1244,6 @@ class JbrowseConnector(object):
                 "category": category,
                 "style": {},
             }
-
             outputTrackConfig["assemblyNames"] = track["assemblyNames"]
             outputTrackConfig["key"] = track_human_label
             outputTrackConfig["useuri"] = useuri
@@ -1272,18 +1251,18 @@ class JbrowseConnector(object):
             outputTrackConfig["ext"] = dataset_ext
 
             outputTrackConfig["trackset"] = track.get("trackset", {})
-            outputTrackConfig["label"] = "%s_%i_%s" % (
-                dataset_ext,
-                i,
+            outputTrackConfig["label"] = "%s_%d.%s" % (
                 track_human_label,
+                self.trackCounter,
+                dataset_ext,
             )
+            self.trackCounter += 1
             outputTrackConfig["metadata"] = extra_metadata
             outputTrackConfig["name"] = track_human_label
 
             if dataset_ext in ("gff", "gff3"):
                 self.add_gff(
                     dataset_path,
-                    dataset_ext,
                     outputTrackConfig,
                 )
             elif dataset_ext in ("hic", "juicebox_hic"):
@@ -1292,7 +1271,7 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
-                hic_url = "%s_%d.hic" % (track_human_label, i)
+                hic_url = outputTrackConfig["label"]
                 hic_path = os.path.join(self.outdir, hic_url)
                 self.subprocess_check_call(
                     [
@@ -1372,6 +1351,7 @@ class JbrowseConnector(object):
             config_json.update(self.config_json)
         if "defaultSession" in config_json:
             session_json = config_json["defaultSession"]
+            session_views = []
         else:
             session_json = {}
             session_views = []
@@ -1387,9 +1367,9 @@ class JbrowseConnector(object):
                         % (default_data, tId)
                     )
                     style_data = {"type": "LinearBasicDisplay"}
-                if "displays" in track_conf:
-                    disp = track_conf["displays"][0]["type"]
-                    style_data["type"] = disp
+                    if "displays" in track_conf:
+                        disp = track_conf["displays"][0]["type"]
+                        style_data["type"] = disp
                 if track_conf.get("style_labels", None):
                     # TODO fix this: it should probably go in a renderer block (SvgFeatureRenderer) but still does not work
                     # TODO move this to per track displays?
@@ -1403,31 +1383,46 @@ class JbrowseConnector(object):
                 )
             # paf genomes have no tracks associated so nothing for the view
             if len(tracks_data) > 0:
-                view_json = {"type": "LinearGenomeView", "tracks": tracks_data}
-                refName = self.assmeta[gnome][0].get("genome_firstcontig", None)
-                drdict = {
-                    "reversed": False,
-                    "assemblyName": gnome,
-                    "start": 0,
-                    "end": 100000,
-                    "refName": refName,
+                view_json = {
+                    "type": "LinearGenomeView",
+                    "offsetPx": 0,
+                    "minimized": False,
+                    "tracks": tracks_data,
                 }
-                ddl = default_data.get("defaultLocation", None)
-                if ddl:
-                    loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
-                    # allow commas like 100,000 but ignore as integer
-                    if loc_match:
-                        refName = loc_match.group(1)
-                        drdict["refName"] = refName
-                        if loc_match.group(2) > "":
-                            drdict["start"] = int(loc_match.group(2).replace(",", ""))
-                        if loc_match.group(3) > "":
-                            drdict["end"] = int(loc_match.group(3).replace(",", ""))
-                    else:
-                        logging.info(
-                            "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
-                            % ddl
-                        )
+                logging.debug(
+                    "Looking for %s in self.ass_ %s" % (gnome, self.ass_first_contigs)
+                )
+                first = [x for x in self.ass_first_contigs if x[0] == gnome]
+                if len(first) > 0:
+                    [gnome, refName, end] = first[0]
+                    start = 0
+                    end = int(end)
+                    drdict = {
+                        "refName": refName,
+                        "start": start,
+                        "end": end,
+                        "reversed": False,
+                        "assemblyName": gnome,
+                    }
+                else:
+                    ddl = default_data.get("defaultLocation", None)
+                    if ddl:
+                        loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
+                        # allow commas like 100,000 but ignore as integer
+                        if loc_match:
+                            refName = loc_match.group(1)
+                            drdict["refName"] = refName
+                            if loc_match.group(2) > "":
+                                drdict["start"] = int(
+                                    loc_match.group(2).replace(",", "")
+                                )
+                            if loc_match.group(3) > "":
+                                drdict["end"] = int(loc_match.group(3).replace(",", ""))
+                        else:
+                            logging.info(
+                                "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
+                                % ddl
+                            )
                 if drdict.get("refName", None):
                     # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
                     view_json["displayedRegions"] = [
@@ -1436,7 +1431,7 @@ class JbrowseConnector(object):
                     logging.info("@@@ defaultlocation %s for default session" % drdict)
                 else:
                     logging.info(
-                        "@@@ no contig name found for default session - please add one!"
+                        "@@@ no track location for default session - please add one!"
                     )
                 session_views.append(view_json)
         session_name = default_data.get("session_name", "New session")
@@ -1457,8 +1452,22 @@ class JbrowseConnector(object):
 
     def add_defsess_to_index(self, data):
         """
-        Broken in Anthony's PR because only ever dealt with the first assembly.
+        Included on request of the new codeowner, from Anthony's IUC PR.
+        Had to be fixed to keep each assembly with the associated tracks for a default view.
+        Originally used only the first assembly, putting all tracks there and so breaking some
+        when tested with 2 or more. Seems ironic that this vital feature could not have ever been tested
+        given that my declining to add it was the basis for a reviewer's rejection of my original IUC PR.
+        A simple 2 line diff apparently.
 
+        The technical problem is that this index.html hack breaks the promise of all the form fields
+        for track controls such as visibility default that were working mostly. They need to be removed from the form by whoever
+        thought this method was a good solution to the JB2 bug breaking config.json style default
+        view coordinates.
+
+        And no, dear reviewer of this code, please leave this piece of history.
+        It is true and I prefer that it remain here to document my considerable discomfort at this unfair treatment.
+
+         ----------------------------------------------------------
         Add some default session settings: set some assemblies/tracks on/off
 
         This allows to select a default view:
@@ -1490,16 +1499,6 @@ class JbrowseConnector(object):
             logging.debug("first contig=%s" % self.ass_first_contigs)
             [gnome, refName, end] = first_contig
             start = 0
-            # if False or data.get("defaultLocation", ""):
-                # loc_match = re.search(
-                    # r"^([^:]+):([\d,]*)\.*([\d,]*)$", data["defaultLocation"]
-                # )
-                # # loc_match = re.search(r"^(\w+):(\d+)\.+(\d+)$", data["defaultLocation"])
-                # if loc_match:
-                    # refName = loc_match.group(1)
-                    # start = int(loc_match.group(2))
-                    # end = int(loc_match.group(3))
-            # else:
             aview = {
                 "assembly": gnome,
                 "loc": "{}:{}..{}".format(refName, start, end),
@@ -1612,7 +1611,6 @@ if __name__ == "__main__":
     jc = JbrowseConnector(outdir=args.outdir, jbrowse2path=args.jbrowse2path)
 
     default_session_data = {}
-
     for ass in root.findall("assembly"):
         genomes = [
             {
@@ -1652,7 +1650,6 @@ if __name__ == "__main__":
             if trackfiles:
                 for x in track.findall("files/trackFile"):
                     track_conf["label"] = x.attrib["label"]
-                    trackkey = track_conf["label"]
                     track_conf["useuri"] = x.attrib["useuri"]
                     if is_multi_bigwig:
                         multi_bigwig_paths.append(
@@ -1752,6 +1749,7 @@ if __name__ == "__main__":
     jc.config_json["assemblies"] = assconf
     logging.debug("assemblies=%s, gnames=%s" % (assconf, jc.genome_names))
     jc.write_config()
-    # jc.add_default_session(default_session_data)
-    jc.add_defsess_to_index(default_session_data)
+    jc.add_default_session(default_session_data)
+    # note that this can be left in the config.json but has NO EFFECT if add_defsess_to_index is called.
+    # jc.add_defsess_to_index(default_session_data)
     # jc.text_index() not sure what broke here.
