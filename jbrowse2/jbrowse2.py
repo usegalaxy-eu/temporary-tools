@@ -854,10 +854,10 @@ class JbrowseConnector(object):
         self.tracksToAdd[trackData["assemblyNames"]].append(trackDict)
         self.trackIdlist.append(tId)
 
-    def add_bam(self, data, trackData, bam_index=None, **kwargs):
+    def add_bam(self, data, trackData, bam_indexes=None, **kwargs):
         tId = trackData["label"]
+        realFName = trackData["key"]
         useuri = trackData["useuri"].lower() == "yes"
-        bindex = bam_index
         categ = trackData["category"]
         if useuri:
             url = data
@@ -867,6 +867,20 @@ class JbrowseConnector(object):
             url = fname
             bindex = fname + ".bai"
             self.subprocess_check_call(["cp", data, dest])
+            bi = bam_indexes.split()
+            bam_index = [
+                x.split(",")[1].strip()
+                for x in bi
+                if "," in x and x.split(",")[0].strip() == realFName
+            ]
+            if len(bam_index) > 0:
+                bam_index = bam_index[0]
+            else:
+                bam_index = None
+            logging.debug(
+                "===realFName=%s got %s as bi, %s for bam_index"
+                % (realFName, bi, bam_index)
+            )
             if bam_index is not None and os.path.exists(bam_index):
                 if not os.path.exists(bindex):
                     # bai most probably made by galaxy and stored in galaxy dirs, need to copy it to dest
@@ -909,8 +923,9 @@ class JbrowseConnector(object):
         self.tracksToAdd[trackData["assemblyNames"]].append(trackDict)
         self.trackIdlist.append(tId)
 
-    def add_cram(self, data, trackData, cram_index=None, **kwargs):
+    def add_cram(self, data, trackData, cram_indexes=None, **kwargs):
         tId = trackData["label"]
+        realFName = trackData["key"]
         categ = trackData["category"]
         useuri = trackData["useuri"].lower() == "yes"
         gsa = self.assmeta.get(trackData["assemblyNames"], None)
@@ -926,7 +941,21 @@ class JbrowseConnector(object):
             dest = os.path.join(self.outdir, fname)
             url = fname
             self.subprocess_check_call(["cp", data, dest])
-            if cram_index is not None and os.path.exists(cram_index):
+            ci = cram_indexes.split()
+            cram_index = [
+                x.split(",")[1].strip()
+                for x in ci
+                if "," in x and x.split(",")[0] == realFName
+            ]
+            if len(cram_index) > 0:
+                cram_index = cram_index[0]
+            else:
+                cram_index = None
+            logging.debug(
+                "=== for %s got %s as cram_indexes, %s for cram_index"
+                % (realFName, cram_indexes, cram_index)
+            )
+            if cram_index and os.path.exists(cram_index):
                 if not os.path.exists(dest + ".crai"):
                     # most probably made by galaxy and stored in galaxy dirs, need to copy it to dest
                     self.subprocess_check_call(
@@ -1306,17 +1335,19 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext == "bam":
                 real_indexes = track["conf"]["options"]["bam"]["bam_index"]
+                logging.debug("**** add bam got %s for indexes" % real_indexes)
                 self.add_bam(
                     dataset_path,
                     outputTrackConfig,
-                    bam_index=real_indexes,
+                    bam_indexes=real_indexes,
                 )
             elif dataset_ext == "cram":
                 real_indexes = track["conf"]["options"]["cram"]["cram_index"]
+                logging.debug("**** add cram got %s for indexes" % real_indexes)
                 self.add_cram(
                     dataset_path,
                     outputTrackConfig,
-                    cram_index=real_indexes,
+                    cram_indexes=real_indexes,
                 )
             elif dataset_ext == "blastxml":
                 self.add_blastxml(
@@ -1645,7 +1676,7 @@ if __name__ == "__main__":
 
             trackfiles = track.findall("files/trackFile")
             if trackfiles:
-                for x in track.findall("files/trackFile"):
+                for x in trackfiles:
                     track_conf["label"] = x.attrib["label"]
                     track_conf["useuri"] = x.attrib["useuri"]
                     if is_multi_bigwig:

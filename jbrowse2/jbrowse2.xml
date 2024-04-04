@@ -223,15 +223,19 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
+                        <bam_index>
                             #for $dataset in $track.data_format.useuri.annotation:
-                                <bam_index>${dataset.metadata.bam_index}</bam_index>
+                                ${dataset.name},${dataset.metadata.bam_index}
                             #end for
+                        </bam_index>
                         </bam>
                     #else if str($track.data_format.data_format_select) == "cram":
                         <cram>
+                        <cram_index>
                             #for $dataset in $track.data_format.useuri.annotation:
-                                <cram_index>${dataset.metadata.cram_index}</cram_index>
+                                ${dataset.name},${dataset.metadata.cram_index}
                             #end for
+                        </cram_index>
                         </cram>
                     #else if str($track.data_format.data_format_select) == "blastxml":
                         <blast>
