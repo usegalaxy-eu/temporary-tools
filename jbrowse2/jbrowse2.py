@@ -1088,7 +1088,7 @@ class JbrowseConnector(object):
         if useuri:
             url = data
         else:
-            url = tId + '.gz'
+            url = tId + ".gz"
             dest = "%s/%s" % (self.outdir, url)
             self._sort_bed(data, dest)
         trackDict = {
@@ -1355,85 +1355,82 @@ class JbrowseConnector(object):
         else:
             session_json = {}
             session_views = []
-        for gnome in self.genome_names:
+        for gnome in self.assmeta.keys():  # assemblies have their own tracks
             tracks_data = []
             for track_conf in self.tracksToAdd[gnome]:
                 tId = track_conf["trackId"]
-                track_types[tId] = track_conf["type"]
-                style_data = default_data[gnome]["style"].get(tId, None)
-                if not style_data:
-                    logging.debug(
-                        "### No style data in default data %s for %s"
-                        % (default_data, tId)
+                if tId in default_data[gnome]["visibility"]["default_on"]:
+                    track_types[tId] = track_conf["type"]
+                    style_data = default_data[gnome]["style"].get(tId, None)
+                    if not style_data:
+                        logging.debug(
+                            "### No style data in default data %s for %s"
+                            % (default_data, tId)
+                        )
+                        style_data = {"type": "LinearBasicDisplay"}
+                        if "displays" in track_conf:
+                            disp = track_conf["displays"][0]["type"]
+                            style_data["type"] = disp
+                    if track_conf.get("style_labels", None):
+                        # TODO fix this: it should probably go in a renderer block (SvgFeatureRenderer) but still does not work
+                        # TODO move this to per track displays?
+                        style_data["labels"] = track_conf["style_labels"]
+                    tracks_data.append(
+                        {
+                            "type": track_types[tId],
+                            "configuration": tId,
+                            "displays": [style_data],
+                        }
                     )
-                    style_data = {"type": "LinearBasicDisplay"}
-                    if "displays" in track_conf:
-                        disp = track_conf["displays"][0]["type"]
-                        style_data["type"] = disp
-                if track_conf.get("style_labels", None):
-                    # TODO fix this: it should probably go in a renderer block (SvgFeatureRenderer) but still does not work
-                    # TODO move this to per track displays?
-                    style_data["labels"] = track_conf["style_labels"]
-                tracks_data.append(
-                    {
-                        "type": track_types[tId],
-                        "configuration": tId,
-                        "displays": [style_data],
-                    }
-                )
-            # paf genomes have no tracks associated so nothing for the view
-            if len(tracks_data) > 0:
-                view_json = {
-                    "type": "LinearGenomeView",
-                    "offsetPx": 0,
-                    "minimized": False,
-                    "tracks": tracks_data,
+            view_json = {
+                "type": "LinearGenomeView",
+                "offsetPx": 0,
+                "minimized": False,
+                "tracks": tracks_data,
+            }
+            logging.debug(
+                "Looking for %s in self.ass_ %s" % (gnome, self.ass_first_contigs)
+            )
+            first = [x for x in self.ass_first_contigs if x[0] == gnome]
+            if len(first) > 0:
+                [gnome, refName, end] = first[0]
+                start = 0
+                end = int(end)
+                drdict = {
+                    "refName": refName,
+                    "start": start,
+                    "end": end,
+                    "reversed": False,
+                    "assemblyName": gnome,
                 }
-                logging.debug(
-                    "Looking for %s in self.ass_ %s" % (gnome, self.ass_first_contigs)
+            else:
+                ddl = default_data.get("defaultLocation", None)
+                if ddl:
+                    loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
+                    # allow commas like 100,000 but ignore as integer
+                    if loc_match:
+                        refName = loc_match.group(1)
+                        drdict["refName"] = refName
+                        if loc_match.group(2) > "":
+                            drdict["start"] = int(loc_match.group(2).replace(",", ""))
+                        if loc_match.group(3) > "":
+                            drdict["end"] = int(loc_match.group(3).replace(",", ""))
+                    else:
+                        logging.info(
+                            "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
+                            % ddl
+                        )
+            if drdict.get("refName", None):
+                # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
+                view_json["displayedRegions"] = [
+                    drdict,
+                ]
+                logging.info("@@@ defaultlocation %s for default session" % drdict)
+            else:
+                logging.info(
+                    "@@@ no track location for default session - please add one!"
                 )
-                first = [x for x in self.ass_first_contigs if x[0] == gnome]
-                if len(first) > 0:
-                    [gnome, refName, end] = first[0]
-                    start = 0
-                    end = int(end)
-                    drdict = {
-                        "refName": refName,
-                        "start": start,
-                        "end": end,
-                        "reversed": False,
-                        "assemblyName": gnome,
-                    }
-                else:
-                    ddl = default_data.get("defaultLocation", None)
-                    if ddl:
-                        loc_match = re.search(r"^([^:]+):([\d,]*)\.*([\d,]*)$", ddl)
-                        # allow commas like 100,000 but ignore as integer
-                        if loc_match:
-                            refName = loc_match.group(1)
-                            drdict["refName"] = refName
-                            if loc_match.group(2) > "":
-                                drdict["start"] = int(
-                                    loc_match.group(2).replace(",", "")
-                                )
-                            if loc_match.group(3) > "":
-                                drdict["end"] = int(loc_match.group(3).replace(",", ""))
-                        else:
-                            logging.info(
-                                "@@@ regexp could not match contig:start..end in the supplied location %s - please fix"
-                                % ddl
-                            )
-                if drdict.get("refName", None):
-                    # TODO displayedRegions is not just zooming to the region, it hides the rest of the chromosome
-                    view_json["displayedRegions"] = [
-                        drdict,
-                    ]
-                    logging.info("@@@ defaultlocation %s for default session" % drdict)
-                else:
-                    logging.info(
-                        "@@@ no track location for default session - please add one!"
-                    )
-                session_views.append(view_json)
+            session_views.append(view_json)
         session_name = default_data.get("session_name", "New session")
         for key, value in mapped_chars.items():
             session_name = session_name.replace(value, key)
