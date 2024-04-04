@@ -249,16 +249,29 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         </gff>
                     #else if str($track.data_format.data_format_select) == "paf":
                         <paf>
+                            #if $track.data_format.pafuseuri.insource == "history":
                             <genome>
-                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
-                                $refgenome.annotation,
-                            #end for
+                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
+                                    ${refgenome.annotation},
+                                #end for
                             </genome>
                             <genome_label>
-                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
-                                $refgenome.annoname,
-                            #end for
+                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
+                                    ${refgenome.annotation.name},
+                                #end for
                             </genome_label>
+                            #else:
+                            <genome>
+                                #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                    $refgenome.annotation,
+                                #end for
+                            </genome>
+                            <genome_label>
+                                #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                    ${refgenome.annoname},
+                                #end for
+                            </genome_label>
+                            #end if
                         </paf>
                     #else if str($track.data_format.data_format_select) == "hic":
                         <hic>
