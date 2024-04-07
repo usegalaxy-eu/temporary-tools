@@ -210,6 +210,13 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 <trackShowLabels>${track.data_format.jbstyle.show_labels}</trackShowLabels>
                                 <trackShowDescriptions>${track.data_format.jbstyle.show_descriptions}</trackShowDescriptions>
                             #end if
+                        #else if str($track.data_format.data_format_select) == "vcf":
+                            <type>${track.data_format.jbstyle.track_style.display}</type>
+                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                            #end if
+
                         #end if
                         #if str($track.data_format.data_format_select) in ["bam", "cram"]:
                             <type>LinearAlignmentsDisplay</type>
@@ -217,21 +224,25 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #if str($track.data_format.data_format_select) in ["paf"]:
                             <type>LinearBasicDisplay</type>
                         #end if
-                        #if str($track.data_format.data_format_select) in ["hic"]:
+                        #if str($track.data_format.data_format_select) in ["hic", "cool", "mcool", "scool"]:
                             <type>LinearHicDisplay</type>
                         #end if
                     </style>
                     #if str($track.data_format.data_format_select) == "bam":
                         <bam>
+                        <bam_index>
                             #for $dataset in $track.data_format.useuri.annotation:
-                                <bam_index>${dataset.metadata.bam_index}</bam_index>
+                                ${dataset.name},${dataset.metadata.bam_index}
                             #end for
+                        </bam_index>
                         </bam>
                     #else if str($track.data_format.data_format_select) == "cram":
                         <cram>
+                        <cram_index>
                             #for $dataset in $track.data_format.useuri.annotation:
-                                <cram_index>${dataset.metadata.cram_index}</cram_index>
+                                ${dataset.name},${dataset.metadata.cram_index}
                             #end for
+                        </cram_index>
                         </cram>
                     #else if str($track.data_format.data_format_select) == "blastxml":
                         <blast>
@@ -249,16 +260,29 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         </gff>
                     #else if str($track.data_format.data_format_select) == "paf":
                         <paf>
+                            #if $track.data_format.pafuseuri.insource == "history":
                             <genome>
-                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
-                                $refgenome.annotation,
-                            #end for
+                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
+                                    ${refgenome.annotation},
+                                #end for
                             </genome>
                             <genome_label>
-                            #for refgenome in $track.data_format.pafuseuri.refgenomes:
-                                $refgenome.annoname,
-                            #end for
+                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
+                                        ${refgenome.annotation.name},
+                                #end for
                             </genome_label>
+                            #else:
+                            <genome>
+                                #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                    $refgenome.annotation,
+                                #end for
+                            </genome>
+                            <genome_label>
+                                #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                    ${refgenome.annoname},
+                                #end for
+                            </genome_label>
+                            #end if
                         </paf>
                     #else if str($track.data_format.data_format_select) == "hic":
                         <hic>
