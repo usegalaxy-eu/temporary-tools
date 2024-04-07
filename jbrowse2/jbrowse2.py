@@ -475,12 +475,7 @@ class JbrowseConnector(object):
         if trackDict.get("displays", None):  # use first if multiple like bed
             style_data["type"] = trackDict["displays"][0]["type"]
             style_data["displayId"] = trackDict["displays"][0]["displayId"]
-        wstyle = {
-            "displays": [
-                style_data,
-            ]
-        }
-        return wstyle
+        return style_data
 
     def getNrow(self, url):
         useuri = url.startswith("https://") or url.startswith("http://")
@@ -681,18 +676,23 @@ class JbrowseConnector(object):
 
         """
         tId = trackData["label"]
+        wasCool = trackData["wasCool"]
         # can be served - if public.
         # dsId = trackData["metadata"]["dataset_id"]
         # url = "%s/api/datasets/%s/display?to_ext=hic " % (self.giURL, dsId)
         useuri = trackData["useuri"].lower() == "yes"
+        logging.debug("wasCool=%s, data=%s, tId=%s" % (wasCool, data, tId))
         if useuri:
             uri = data
         else:
-            uri = tId
-            # slashes in names cause path trouble
-            dest = os.path.join(self.outdir, uri)
-            cmd = ["cp", data, dest]
-            self.subprocess_check_call(cmd)
+            uri = tId + ".hic"
+            if not wasCool:
+                dest = os.path.join(self.outdir, uri)
+                if not os.path.exists(dest):
+                    cmd = ["cp", data, dest]
+                    self.subprocess_check_call(cmd)
+                else:
+                    logging.error("not wasCool but %s exists" % dest)
         categ = trackData["category"]
         trackDict = {
             "type": "HicTrack",
@@ -1232,25 +1232,16 @@ class JbrowseConnector(object):
                 },
             ],
         }
-        if nrow > 20000:
+        if nrow > 10000:
             style_json = {
-                "displays": [
-                    {
-                        "type": "LGVSyntenyDisplay",
-                        "displayId": "%s-LGVSyntenyDisplay" % tId,
-                    }
-                ]
+                "type": "LGVSyntenyDisplay",
+                "displayId": "%s-LGVSyntenyDisplay" % tId,
             }
         else:
             style_json = {
-                "displays": [
-                    {
-                        "type": "LinearBasicDisplay",
-                        "displayId": "%s-LinearBasicDisplay" % tId,
-                    }
-                ]
+                "type": "LinearBasicDisplay",
+                "displayId": "%s-LinearBasicDisplay" % tId,
             }
-
         trackDict["style"] = style_json
         self.tracksToAdd[trackData["assemblyNames"]].append(trackDict)
         self.trackIdlist.append(tId)
@@ -1295,13 +1286,15 @@ class JbrowseConnector(object):
                     outputTrackConfig,
                 )
             elif dataset_ext in ("hic", "juicebox_hic"):
+                outputTrackConfig["wasCool"] = False
                 self.add_hic(
                     dataset_path,
                     outputTrackConfig,
                 )
             elif dataset_ext in ("cool", "mcool", "scool"):
                 hic_url = outputTrackConfig["label"]
-                hic_path = os.path.join(self.outdir, hic_url)
+                hic_path = os.path.join(self.outdir, hic_url) + ".hic"
+                outputTrackConfig["wasCool"] = True
                 self.subprocess_check_call(
                     [
                         "hictk",
@@ -1313,8 +1306,12 @@ class JbrowseConnector(object):
                         hic_path,
                     ]
                 )
+                logging.debug(
+                    "### ext=cool: wasCool=%s, hic_path=%s"
+                    % (outputTrackConfig["wasCool"], hic_path)
+                )
                 self.add_hic(
-                    hic_url,
+                    hic_path,
                     outputTrackConfig,
                 )
             elif dataset_ext in ("bed",):
@@ -1395,8 +1392,8 @@ class JbrowseConnector(object):
                     style_data = default_data[gnome]["style"].get(tId, None)
                     if not style_data:
                         logging.debug(
-                            "### No style data in default data %s for %s"
-                            % (default_data, tId)
+                            "### No style data for %s in available default data %s"
+                            % (tId, default_data)
                         )
                         style_data = {"type": "LinearBasicDisplay"}
                         if "displays" in track_conf:
@@ -1726,8 +1723,6 @@ if __name__ == "__main__":
             track_conf["category"] = track.attrib["cat"]
             track_conf["format"] = track.attrib["format"]
             track_conf["conf"] = etree_to_dict(track.find("options"))
-            track_conf["category"] = track.attrib["cat"]
-            track_conf["format"] = track.attrib["format"]
             keys = jc.process_annotations(track_conf)
 
             if keys:
@@ -1736,20 +1731,24 @@ if __name__ == "__main__":
                     if not vis:
                         vis = "default_off"
                     default_session_data[assref_name]["visibility"][vis].append(key)
-                if track.find("options/style"):
-                    default_session_data[assref_name]["style"][key] = {
-                        item.tag: parse_style_conf(item)
-                        for item in track.find("options/style")
-                    }
-                else:
-                    default_session_data[assref_name]["style"][key] = {}
-                    logging.debug("no options/style found for %s" % (key))
-
-                if track.find("options/style_labels"):
-                    default_session_data[assref_name]["style_labels"][key] = {
-                        item.tag: parse_style_conf(item)
-                        for item in track.find("options/style_labels")
-                    }
+                    trakdat = jc.tracksToAdd[assref_name]
+                    stile = {}
+                    for trak in trakdat:
+                        if trak["trackId"] == key:
+                            stile = trak.get("style", {})
+                    if track.find("options/style"):
+                        supdate = {
+                            item.tag: parse_style_conf(item)
+                            for item in track.find("options/style")
+                        }
+                        stile.update(supdate)
+                    default_session_data[assref_name]["style"][key] = stile
+                    logging.debug("@@@ for %s got style=%s" % (key, stile))
+                    if track.find("options/style_labels"):
+                        default_session_data[assref_name]["style_labels"][key] = {
+                            item.tag: parse_style_conf(item)
+                            for item in track.find("options/style_labels")
+                        }
                 default_session_data[assref_name]["tracks"].append(key)
     default_session_data["defaultLocation"] = root.find(
         "metadata/general/defaultLocation"

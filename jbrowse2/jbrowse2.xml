@@ -210,6 +210,13 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 <trackShowLabels>${track.data_format.jbstyle.show_labels}</trackShowLabels>
                                 <trackShowDescriptions>${track.data_format.jbstyle.show_descriptions}</trackShowDescriptions>
                             #end if
+                        #else if str($track.data_format.data_format_select) == "vcf":
+                            <type>${track.data_format.jbstyle.track_style.display}</type>
+                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                            #end if
+
                         #end if
                         #if str($track.data_format.data_format_select) in ["bam", "cram"]:
                             <type>LinearAlignmentsDisplay</type>
@@ -217,7 +224,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #if str($track.data_format.data_format_select) in ["paf"]:
                             <type>LinearBasicDisplay</type>
                         #end if
-                        #if str($track.data_format.data_format_select) in ["hic"]:
+                        #if str($track.data_format.data_format_select) in ["hic", "cool", "mcool", "scool"]:
                             <type>LinearHicDisplay</type>
                         #end if
                     </style>
@@ -261,7 +268,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </genome>
                             <genome_label>
                                 #for $refgenome in $track.data_format.pafuseuri.refgenomes:
-                                    ${refgenome.annotation.name},
+                                        ${refgenome.annotation.name},
                                 #end for
                             </genome_label>
                             #else:

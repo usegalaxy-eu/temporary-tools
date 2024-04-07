@@ -567,9 +567,8 @@ until the IUC complete their own.
                     <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
                 </param>
                 <when value="history">
-                    <repeat name="refgenomes" title="Add all PAF reference comparison genomes used to make the PAF" min="1">
-                       <param label="@LABEL@" format="@FORMAT@" name="annotation"  type="data" />
-                    </repeat>
+                       <param label="@LABEL@" format="@FORMAT@" name="annotation"  type="data"
+                          help="Add all PAF reference comparison genomes used to make the PAF" multiple="true" />
                 </when>
                 <when value="uri">
                     <repeat name="refuri" title="PAF reference comparison genome URI" min="1">
