@@ -221,9 +221,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #if str($track.data_format.data_format_select) in ["bam", "cram"]:
                             <type>LinearAlignmentsDisplay</type>
                         #end if
-                        #if str($track.data_format.data_format_select) in ["paf"]:
-                            <type>LinearBasicDisplay</type>
-                        #end if
                         #if str($track.data_format.data_format_select) in ["hic", "cool", "mcool", "scool"]:
                             <type>LinearHicDisplay</type>
                         #end if
