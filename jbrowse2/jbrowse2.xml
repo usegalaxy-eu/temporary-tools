@@ -1,4 +1,4 @@
- <tool id="jbrowse2" name="JBrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_11" profile="22.05">
+ <tool id="jbrowse2" name="JBrowse2" version="@TOOL_VERSION@+@WRAPPER_VERSION@_12" profile="22.05">
     <description>genome browser</description>
     <macros>
         <import>macros.xml</import>
@@ -262,13 +262,13 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         <paf>
                             #if $track.data_format.pafuseuri.insource == "history":
                             <genome>
-                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
-                                    ${refgenome.annotation},
+                                #for $anno in $track.data_format.pafuseuri.annotation:
+                                    ${anno},
                                 #end for
                             </genome>
                             <genome_label>
-                                #for $refgenome in $track.data_format.pafuseuri.refgenomes:
-                                        ${refgenome.annotation.name},
+                                #for $anno in $track.data_format.pafuseuri.annotation:
+                                        ${anno.name},
                                 #end for
                             </genome_label>
                             #else:
