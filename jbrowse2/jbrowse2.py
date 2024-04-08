@@ -1480,17 +1480,7 @@ class JbrowseConnector(object):
         Included on request of the new codeowner, from Anthony's IUC PR.
         Had to be fixed to keep each assembly with the associated tracks for a default view.
         Originally used only the first assembly, putting all tracks there and so breaking some
-        when tested with 2 or more. Seems ironic that this vital feature could not have ever been tested
-        given that my declining to add it was the basis for a reviewer's rejection of my original IUC PR.
-        A simple 2 line diff apparently.
-
-        The technical problem is that this index.html hack breaks the promise of all the form fields
-        for track controls such as visibility default that were working mostly. They need to be removed from the form by whoever
-        thought this method was a good solution to the JB2 bug breaking config.json style default
-        view coordinates.
-
-        And no, dear reviewer of this code, please leave this piece of history.
-        It is true and I prefer that it remain here to document my considerable discomfort at this unfair treatment.
+        when tested with 2 or more.
 
          ----------------------------------------------------------
         Add some default session settings: set some assemblies/tracks on/off
