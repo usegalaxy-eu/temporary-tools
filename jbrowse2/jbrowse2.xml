@@ -588,7 +588,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             <repeat name="assemblies">
                 <conditional name="reference_genome">
                     <param name="genome_type_select" value="history"/>
-                    <param name="genome" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Ppersica.fa" />
+                    <param name="genome" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Ppersica1.fa" />
                     <param name="genome.ext" value="fasta"/>
                 </conditional>
                 <repeat name="track_groups">
@@ -605,7 +605,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         <conditional name="pafsuseuri">
                             <conditional name="useuri">
                                 <param name="insource" value="history"/>
-                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera.fa"/>
+                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera1.fa"/>
                             </conditional>
                         </conditional>
                     </repeat>
