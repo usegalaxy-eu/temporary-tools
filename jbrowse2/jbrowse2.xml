@@ -308,13 +308,14 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
 ]]></configfile>
     </configfiles>
     <inputs>
-        <repeat name="assemblies" min="1" title="Genome Assembly" help="When too many genomes are never enough">
+        <repeat name="assemblies" min="1" title="Genome reference to provide display coordinates for this set of tracks"
+           help="JBrowse2 can show a set of tracks for each of multiple genome reference fasta files">
         <conditional name="reference_genome">
             <param help="Select a built in, history or remote tabix URI for the reference track"
                  label="Reference genome source" name="genome_type_select" type="select">
-                <option selected="True" value="indexed">Use a built-in genome</option>
-                <option value="history">Use a genome from history</option>
-                <option value="uri">URI for a reference as tabix with predictable index file URI</option>
+                <option selected="True" value="indexed">Use a Galaxy server built-in genome</option>
+                <option value="history">Use a genome fasta file from the current history</option>
+                <option value="uri">Provide a URI (e.g. "https://..." for a genome reference as tabix bgzip with predictable index file URI</option>
             </param>
             <when value="indexed">
                 <param
@@ -377,7 +378,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     </param>
                     <when value="blastxml">
                         <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml" />
-
                         <param label="Features used in Blast Search"
                             help="in GFF3. This is used  so we know where to map features. E.g. where results of which CDS Protein32 match up to. The query IDs in your blast results should MATCH some feature
                             IDs in your GFF3 file. This is an optional field and is most useful if using JBrowse to display protein blast results on a DNA genome. blastn results don't need this,
@@ -386,7 +386,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             name="blast_parent"
                             optional="true"
                             type="data"/>
-
                         <param label="Minimum Gap Size"
                             help="before a new match_part feature is created"
                             name="min_gap"
@@ -456,7 +455,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             format="fasta" help="Paf from these as the reference(s), using the common reference as the reads to map"/>
                         <expand macro="track_visibility" />
                     </when>
-
                     <when value="hic">
                         <expand macro="input_conditional" label="Binary Juicebox HiC data" format="hic,juicebox_hic" />
                         <expand macro="track_visibility" />
