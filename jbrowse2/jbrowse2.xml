@@ -624,7 +624,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             <param name="data_format_select" value="hic"/>
                             <conditional name="useuri">
                                 <param name="insource" value="uri"/>
-                                <param name="annouri" location="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"/>
+                                <param name="annouri" value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"/>
                                 <param name="annoname" value="humanhic"/>
                             </conditional>
                         </conditional>
