@@ -90,7 +90,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                   </metadata>
                   </genome>
                 #else if str($assembly.reference_genome.genome_type_select) == "indexed":
-                  <genome path="${assembly.reference_genome.genome.fields.path}" label="${assembly.reference_genome.genome.fields.name}" useuri="no">
+                  <genome path="${assembly.reference_genome.genome.fields.path}" label="${assembly.reference_genome.genome.fields.dbkey}" useuri="no">
                       <metadata>
                          <dataset
                           dname = "${assembly.reference_genome.genome.fields.name}" />
@@ -99,7 +99,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                 #else
                   <genome path="$assembly.reference_genome.genome" label="${assembly.reference_genome.genome.name}" useuri="no">
                     <metadata>
-                    #if $uglyTestingHack != "enabled":
+
                       <dataset id="${__app__.security.encode_id($assembly.reference_genome.genome.id)}"
                           hid="${assembly.reference_genome.genome.hid}"
                           size="${assembly.reference_genome.genome.get_size(nice_size=True)}"
@@ -135,7 +135,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                           tool_id="${assembly.reference_genome.genome.creating_job.tool_id}"
                           tool_version="${assembly.reference_genome.genome.creating_job.tool_version}"
                           />
-                    #end if
+
                     </metadata>
                   </genome>
                 #end if
@@ -162,7 +162,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
                                 <metadata>
-                                #if $uglyTestingHack != "enabled":
+
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
                                       size="${dataset.get_size(nice_size=True)}"
                                       edam_format="${dataset.datatype.edam_format}"
@@ -194,14 +194,12 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                       tool_id="${dataset.creating_job.tool_id}"
                                       tool_version="${dataset.creating_job.tool_version}"
                                       />
-                                #end if
                                 </metadata>
                               </trackFile>
                        #end for
                     </files>
                     #end if
                   #end if
-                  #if $uglyTestingHack != "enabled":
                   <options>
                     <style>
                         #if str($track.data_format.data_format_select) in ["gff", "bed", "maf", "blastxml"]:
@@ -299,7 +297,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         </sparql>
                     #end if
                     </options>
-                    #end if
                   </track>
             #end for
         #end for
