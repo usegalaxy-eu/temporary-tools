@@ -487,7 +487,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             <repeat name="assemblies">
                 <conditional name="reference_genome">
                     <param name="genome_type_select" value="history"/>
-                    <param name="genome" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Merlin.fa" />
+                    <param name="genome" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Merlin" />
                     <param name="genome.ext" value="fasta"/>
                 </conditional>
                 <repeat name="track_groups">
@@ -660,9 +660,9 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     <has_archive_member path="merlin.blastxml_7.blastxml.gz"/>
                     <has_archive_member path="dm3test.cool_8.cool.hic"/>
                     <has_archive_member path="peach-grape-map.paf_9.paf"/>
-                    <has_archive_member path="Merlin.fa.fa.gz.fai"/>
+                    <has_archive_member path="Merlin.fa.gz.fai"/>
                     <has_archive_member path="config.json">
-                        <has_json_property_with_text property="name" text="Merlin.fa" />
+                        <has_json_property_with_text property="name" text="Merlin" />
                     </has_archive_member>
 
                 </assert_contents>
@@ -1085,6 +1085,18 @@ or they will not display.
 
 Annotation Tracks
 -----------------
+
+MAF
+~~~
+
+For history references, the name of the reference genome dataset in your history is very important for MAF tracks,
+because it becomes the "dbkey" for that reference. So, it must be exactly the same as the genome name (dbkey) used
+when making the MAF, typically in the Lastz tool.
+
+If you used "hg38" as the reference in Lastz, that is exactly what the reference fasta should be named for any MAF track.
+Change it using the "pencil" icon on the reference data in your history. Any other name, such as "hg38.fasta"
+will cause the MAF track to show no data since there are no matches with that reference dbkey.
+
 
 GFF3/BED
 ~~~~~~~~
