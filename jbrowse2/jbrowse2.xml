@@ -145,18 +145,23 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
     <tracks>
         #for $tg in $assembly.track_groups:
             #for $track in $tg.data_tracks:
+                #set input_exists = "False"
                 #if $track.data_format.useuri.insource == "uri":
-                    <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
-                        <files>
-                             <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}"
-                                label="${track.data_format.useuri.annoname}" useuri="yes">
-                                <metadata>
-                                <dataset id = "${track.data_format.useuri.annouri}" />
-                                </metadata>
-                             </trackFile>
-                        </files>
+                        #if $track.data_format.useuri.annouri:
+                        #set input_exists = "True"
+                        <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
+                            <files>
+                                 <trackFile path="${track.data_format.useuri.annouri}" ext="${track.data_format.data_format_select}"
+                                    label="${track.data_format.useuri.annoname}" useuri="yes">
+                                    <metadata>
+                                    <dataset id = "${track.data_format.useuri.annouri}" />
+                                    </metadata>
+                                 </trackFile>
+                            </files>
+                        #end if
                 #else if $track.data_format.useuri.insource == "history":
                     #if $track.data_format.useuri.annotation:
+                        #set input_exists = "True"
                     <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
                     <files>
                         #for $dataset in $track.data_format.useuri.annotation:
@@ -196,108 +201,110 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                       />
                                 </metadata>
                               </trackFile>
-                       #end for
+                        #end for
                     </files>
                     #end if
-                  #end if
-                  <options>
-                    <style>
-                        #if str($track.data_format.data_format_select) in ["gff", "bed", "maf", "blastxml"]:
-                            <type>${track.data_format.jbstyle.display}</type>
-                            #if str($track.data_format.jbstyle.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
-                                <trackShowLabels>${track.data_format.jbstyle.show_labels}</trackShowLabels>
-                                <trackShowDescriptions>${track.data_format.jbstyle.show_descriptions}</trackShowDescriptions>
-                            #end if
-                        #else if str($track.data_format.data_format_select) == "vcf":
-                            <type>${track.data_format.jbstyle.track_style.display}</type>
-                            #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
-                                <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
-                                <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
-                            #end if
+                #end if
+                #if $input_exists == "True":
+                      <options>
+                        <style>
+                            #if str($track.data_format.data_format_select) in ["gff", "bed", "maf", "blastxml"]:
+                                <type>${track.data_format.jbstyle.display}</type>
+                                #if str($track.data_format.jbstyle.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                    <trackShowLabels>${track.data_format.jbstyle.show_labels}</trackShowLabels>
+                                    <trackShowDescriptions>${track.data_format.jbstyle.show_descriptions}</trackShowDescriptions>
+                                #end if
+                            #else if str($track.data_format.data_format_select) == "vcf":
+                                <type>${track.data_format.jbstyle.track_style.display}</type>
+                                #if str($track.data_format.jbstyle.track_style.display) in ["LinearBasicDisplay", "LinearVariantDisplay"]:
+                                    <trackShowLabels>${track.data_format.jbstyle.track_style.show_labels}</trackShowLabels>
+                                    <trackShowDescriptions>${track.data_format.jbstyle.track_style.show_descriptions}</trackShowDescriptions>
+                                #end if
 
-                        #end if
-                        #if str($track.data_format.data_format_select) in ["bam", "cram"]:
-                            <type>LinearAlignmentsDisplay</type>
-                        #end if
-                        #if str($track.data_format.data_format_select) in ["hic", "cool", "mcool", "scool"]:
-                            <type>LinearHicDisplay</type>
-                        #end if
-                    </style>
-                    #if str($track.data_format.data_format_select) == "bam":
-                        <bam>
-                        <bam_index>
-                            #for $dataset in $track.data_format.useuri.annotation:
-                                ${dataset.name},${dataset.metadata.bam_index}
-                            #end for
-                        </bam_index>
-                        </bam>
-                    #else if str($track.data_format.data_format_select) == "cram":
-                        <cram>
-                        <cram_index>
-                            #for $dataset in $track.data_format.useuri.annotation:
-                                ${dataset.name},${dataset.metadata.cram_index}
-                            #end for
-                        </cram_index>
-                        </cram>
-                    #else if str($track.data_format.data_format_select) == "blastxml":
-                        <blast>
-                          #if str($track.data_format.blast_parent) != "":
-                            <parent>${track.data_format.blast_parent}</parent>
-                          #end if
-                            <protein>${track.data_format.is_protein}</protein>
-                            <min_gap>${track.data_format.min_gap}</min_gap>
-                        </blast>
-                    #else if str($track.data_format.data_format_select) == "gff":
-                        <gff>
-                          #if $track.data_format.match_part.match_part_select == "true":
-                            <match>${track.data_format.match_part.name}</match>
-                          #end if
-                        </gff>
-                    #else if str($track.data_format.data_format_select) == "paf":
-                        <paf>
-                            #if $track.data_format.pafuseuri.insource == "history":
-                            <genome>
-                                #for $anno in $track.data_format.pafuseuri.annotation:
-                                    ${anno},
-                                #end for
-                            </genome>
-                            <genome_label>
-                                #for $anno in $track.data_format.pafuseuri.annotation:
-                                        ${anno.name},
-                                #end for
-                            </genome_label>
-                            #else:
-                            <genome>
-                                #for $refgenome in $track.data_format.pafuseuri.refuri:
-                                    $refgenome.annotation,
-                                #end for
-                            </genome>
-                            <genome_label>
-                                #for $refgenome in $track.data_format.pafuseuri.refuri:
-                                    ${refgenome.annoname},
-                                #end for
-                            </genome_label>
                             #end if
-                        </paf>
-                    #else if str($track.data_format.data_format_select) == "hic":
-                        <hic>
-                        </hic>
-                    #else if str($track.data_format.data_format_select) == "cool":
-                        <cool>
-                        </cool>
-                    #else if str($track.data_format.data_format_select) == "bed":
-                        <bed>
-                        </bed>
-                    #else if str($track.data_format.data_format_select) == "sparql":
-                        <label>${track.data_format.label}</label>
-                        <sparql>
-                            <url>${track.data_format.url}</url>
-                            <query>${track.data_format.query}</query>
-                            <query_refnames>${track.data_format.query_refnames}</query_refnames>
-                        </sparql>
-                    #end if
-                    </options>
+                            #if str($track.data_format.data_format_select) in ["bam", "cram"]:
+                                <type>LinearAlignmentsDisplay</type>
+                            #end if
+                            #if str($track.data_format.data_format_select) in ["hic", "cool", "mcool", "scool"]:
+                                <type>LinearHicDisplay</type>
+                            #end if
+                        </style>
+                        #if str($track.data_format.data_format_select) == "bam":
+                            <bam>
+                            <bam_index>
+                                #for $dataset in $track.data_format.useuri.annotation:
+                                    ${dataset.name},${dataset.metadata.bam_index}
+                                #end for
+                            </bam_index>
+                            </bam>
+                        #else if str($track.data_format.data_format_select) == "cram":
+                            <cram>
+                            <cram_index>
+                                #for $dataset in $track.data_format.useuri.annotation:
+                                    ${dataset.name},${dataset.metadata.cram_index}
+                                #end for
+                            </cram_index>
+                            </cram>
+                        #else if str($track.data_format.data_format_select) == "blastxml":
+                            <blast>
+                              #if str($track.data_format.blast_parent) != "":
+                                <parent>${track.data_format.blast_parent}</parent>
+                              #end if
+                                <protein>${track.data_format.is_protein}</protein>
+                                <min_gap>${track.data_format.min_gap}</min_gap>
+                            </blast>
+                        #else if str($track.data_format.data_format_select) == "gff":
+                            <gff>
+                              #if $track.data_format.match_part.match_part_select == "true":
+                                <match>${track.data_format.match_part.name}</match>
+                              #end if
+                            </gff>
+                        #else if str($track.data_format.data_format_select) == "paf":
+                            <paf>
+                                #if $track.data_format.pafuseuri.insource == "history":
+                                <genome>
+                                    #for $anno in $track.data_format.pafuseuri.annotation:
+                                        ${anno},
+                                    #end for
+                                </genome>
+                                <genome_label>
+                                    #for $anno in $track.data_format.pafuseuri.annotation:
+                                            ${anno.name},
+                                    #end for
+                                </genome_label>
+                                #else:
+                                <genome>
+                                    #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                        $refgenome.annotation,
+                                    #end for
+                                </genome>
+                                <genome_label>
+                                    #for $refgenome in $track.data_format.pafuseuri.refuri:
+                                        ${refgenome.annoname},
+                                    #end for
+                                </genome_label>
+                                #end if
+                            </paf>
+                        #else if str($track.data_format.data_format_select) == "hic":
+                            <hic>
+                            </hic>
+                        #else if str($track.data_format.data_format_select) == "cool":
+                            <cool>
+                            </cool>
+                        #else if str($track.data_format.data_format_select) == "bed":
+                            <bed>
+                            </bed>
+                        #else if str($track.data_format.data_format_select) == "sparql":
+                            <label>${track.data_format.label}</label>
+                            <sparql>
+                                <url>${track.data_format.url}</url>
+                                <query>${track.data_format.query}</query>
+                                <query_refnames>${track.data_format.query_refnames}</query_refnames>
+                            </sparql>
+                        #end if
+                        </options>
                   </track>
+                  #end if
             #end for
         #end for
     </tracks>
