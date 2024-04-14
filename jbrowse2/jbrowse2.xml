@@ -140,7 +140,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                   </genome>
                 #end if
             </genomes>
-
     </metadata>
     <tracks>
         #for $tg in $assembly.track_groups:
@@ -566,6 +565,15 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </conditional>
                         </conditional>
                     </repeat>
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="bam"/>
+                            <conditional name="useuri">
+                                <param name="insource" value="history"/>
+                                <param name="annotation" value=""/>
+                            </conditional>
+                        </conditional>
+                    </repeat>
                 </repeat>
             </repeat>
             <repeat name="assemblies">
@@ -660,8 +668,8 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     <has_archive_member path="merlin-sample.bam_5.bam"/>
                     <has_archive_member path="merlinlastz.maf_6.maf.sorted.bed.gz.tbi"/>
                     <has_archive_member path="merlin.blastxml_7.blastxml.gz"/>
-                    <has_archive_member path="dm3test.cool_8.cool.hic"/>
-                    <has_archive_member path="peach-grape-map.paf_9.paf"/>
+                    <has_archive_member path="dm3test.cool_9.cool.hic"/>
+                    <has_archive_member path="peach-grape-map.paf_10.paf"/>
                     <has_archive_member path="Merlin.fa.gz.fai"/>
                     <has_archive_member path="config.json">
                         <has_json_property_with_text property="name" text="Merlin" />
