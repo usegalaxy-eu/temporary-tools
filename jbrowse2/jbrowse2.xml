@@ -477,7 +477,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
         <param type="hidden" name="uglyTestingHack" value="" />
     </inputs>
     <outputs>
-        <data format="html" name="output" label="JBrowse2">
+        <data format="html" name="output" label="JBrowse2: ${jbgen.session_name}">
             <change_format>
                 <when input="zipOut" value="true" format="zip" />
             </change_format>
