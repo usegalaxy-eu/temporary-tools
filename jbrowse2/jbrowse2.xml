@@ -263,25 +263,15 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 #if $track.data_format.pafuseuri.insource == "history":
                                 <genome>
                                     #for $anno in $track.data_format.pafuseuri.annotation:
-                                        ${anno},
+                                        ${anno}:${anno.name},
                                     #end for
                                 </genome>
-                                <genome_label>
-                                    #for $anno in $track.data_format.pafuseuri.annotation:
-                                            ${anno.name},
-                                    #end for
-                                </genome_label>
                                 #else:
                                 <genome>
                                     #for $refgenome in $track.data_format.pafuseuri.refuri:
-                                        $refgenome.annotation,
+                                        ${refgenome.annotation}:${refgenome.annoname},
                                     #end for
                                 </genome>
-                                <genome_label>
-                                    #for $refgenome in $track.data_format.pafuseuri.refuri:
-                                        ${refgenome.annoname},
-                                    #end for
-                                </genome_label>
                                 #end if
                             </paf>
                         #else if str($track.data_format.data_format_select) == "hic":
@@ -643,6 +633,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             </repeat>
             <section name="jbgen">
                 <param name="zipOut" value="true" />
+                <param name="session_name" value="New test session"/>
             </section>
             <output name="output" file="jbrowse2_result02.zip" ftype="zip" compare="sim_size">
                 <assert_contents>
@@ -656,25 +647,24 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     <has_archive_member path="galaxy.xml">
                         <is_valid_xml />
                         <xml_element path="./metadata/general/session_name" n="1">
-                            <has_text_matching expression="New session"/>
+                            <has_text_matching expression="New test session"/>
                             <not_has_text text="Newton"/>
                         </xml_element>
                     </has_archive_member>
-                    <has_archive_member path="merlin.gff3_0.gff3.gz"/>
-                    <has_archive_member path="merlin.bw_1.bigwig"/>
-                    <has_archive_member path="test-6.bed_2.bed.gz"/>
-                    <has_archive_member path="merlin.vcf_3.vcf.tbi"/>
-                    <has_archive_member path="merlin.cram_4.cram"/>
-                    <has_archive_member path="merlin-sample.bam_5.bam"/>
-                    <has_archive_member path="merlinlastz.maf_6.maf.sorted.bed.gz.tbi"/>
-                    <has_archive_member path="merlin.blastxml_7.blastxml.gz"/>
-                    <has_archive_member path="dm3test.cool_9.cool.hic"/>
-                    <has_archive_member path="peach-grape-map.paf_10.paf"/>
+                    <has_archive_member path="merlin.gff3_0.gz"/>
+                    <has_archive_member path="merlin.bw_1"/>
+                    <has_archive_member path="test-6.bed_2.gz"/>
+                    <has_archive_member path="merlin.vcf_3.tbi"/>
+                    <has_archive_member path="merlin.cram_4"/>
+                    <has_archive_member path="merlin-sample.bam_5"/>
+                    <has_archive_member path="merlinlastz.maf_6.sorted.bed.gz.tbi"/>
+                    <has_archive_member path="merlin.blastxml_7.gz"/>
+                    <has_archive_member path="dm3test.cool_9.hic"/>
+                    <has_archive_member path="peach-grape-map.paf_10"/>
                     <has_archive_member path="Merlin.fa.gz.fai"/>
                     <has_archive_member path="config.json">
                         <has_json_property_with_text property="name" text="Merlin" />
                     </has_archive_member>
-
                 </assert_contents>
             </output>
         </test>
