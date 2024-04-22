@@ -845,9 +845,9 @@ class JbrowseConnector(object):
             bindex = fname + ".bai"
             bi = bam_indexes.split(",")
             bam_index = [
-                x.split(":")[1].strip()
+                x.split(" ~ ")[1].strip()
                 for x in bi
-                if ":" in x and x.split(":")[0].strip() == realFName
+                if " ~ " in x and x.split(" ~ ")[0].strip() == realFName
             ]
             logging.debug(
                 "===realFName=%s got %s as bam_indexes %s as bi, %s for bam_index"
@@ -907,9 +907,9 @@ class JbrowseConnector(object):
             self.subprocess_check_call(["cp", data, dest])
             ci = cram_indexes.split(",")
             cram_index = [
-                x.split(":")[1].strip()
+                x.split(" ~ ")[1].strip()
                 for x in ci
-                if ":" in x and x.split(":")[0].strip() == realFName
+                if " ~ " in x and x.split(" ~ ")[0].strip() == realFName
             ]
             logging.debug(
                 "===realFName=%s got %s as cram_indexes %s as ci, %s for cram_index"

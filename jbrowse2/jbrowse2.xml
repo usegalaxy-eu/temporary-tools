@@ -232,7 +232,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             <bam>
                             <bam_index>
                                 #for $dataset in $track.data_format.useuri.annotation:
-                                    ${dataset}:${dataset.metadata.bam_index},
+                                    ${dataset} ~ ${dataset.metadata.bam_index},
                                 #end for
                             </bam_index>
                             </bam>
@@ -240,7 +240,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             <cram>
                             <cram_index>
                                 #for $dataset in $track.data_format.useuri.annotation:
-                                    ${dataset}:${dataset.metadata.cram_index},
+                                    ${dataset} ~ ${dataset.metadata.cram_index},
                                 #end for
                             </cram_index>
                             </cram>
