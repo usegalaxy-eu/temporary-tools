@@ -531,32 +531,7 @@ class JbrowseConnector(object):
                     this_genome["genome_sequence_adapter"] = assem["sequence"][
                         "adapter"
                     ]
-                    this_genome["genome_firstcontig"] = None
-                    if not useuri:
-                        fl = open(fapath, "r").readline()
-                        fls = fl.strip().split(">")
-                        if len(fls) > 1:
-                            fl = fls[1]
-                            if len(fl.split()) > 1:
-                                this_genome["genome_firstcontig"] = fl.split()[
-                                    0
-                                ].strip()
-                            else:
-                                this_genome["genome_firstcontig"] = fl
-                    else:
-                        try:
-                            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
-                            scontext.verify_mode = ssl.VerifyMode.CERT_NONE
-                            with urllib.request.urlopen(
-                                url=fapath + ".fai", context=scontext
-                            ) as f:
-                                fl = f.readline()
-                        except Exception:
-                            fl = None
-                        if fl:  # is first row of the text fai so the first contig name
-                            this_genome["genome_firstcontig"] = (
-                                fl.decode("utf8").strip().split()[0]
-                            )
+                    this_genome["genome_firstcontig"] = first_contig
                 assmeta.append(this_genome)
         self.assemblies += assembly
         self.assmeta[primaryGenome] = assmeta
@@ -569,12 +544,6 @@ class JbrowseConnector(object):
         """
         if useuri:
             faname = fapath
-            adapter = {
-                "type": "BgzipFastaAdapter",
-                "fastaLocation": {"uri": faname, "locationType": "UriLocation"},
-                "faiLocation": {"uri": faname + ".fai", "locationType": "UriLocation"},
-                "gziLocation": {"uri": faname + ".gzi", "locationType": "UriLocation"},
-            }
             scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
             scontext.verify_mode = ssl.VerifyMode.CERT_NONE
             with urllib.request.urlopen(url=faname + ".fai", context=scontext) as f:
@@ -591,20 +560,19 @@ class JbrowseConnector(object):
                 fadest,
             )
             self.subprocess_popen(cmd)
-
-            adapter = {
-                "type": "BgzipFastaAdapter",
-                "fastaLocation": {
-                    "uri": faname,
-                },
-                "faiLocation": {
-                    "uri": faname + ".fai",
-                },
-                "gziLocation": {
-                    "uri": faname + ".gzi",
-                },
-            }
             contig = open(fadest + ".fai", "r").readline().strip()
+        adapter = {
+            "type": "BgzipFastaAdapter",
+            "fastaLocation": {
+                "uri": faname,
+            },
+            "faiLocation": {
+                "uri": faname + ".fai",
+            },
+            "gziLocation": {
+                "uri": faname + ".gzi",
+            },
+        }
         first_contig = contig.split()[:2]
         first_contig.insert(0, gname)
         trackDict = {
@@ -864,7 +832,7 @@ class JbrowseConnector(object):
 
     def add_bam(self, data, trackData, bam_indexes=None, **kwargs):
         tId = trackData["label"]
-        realFName = trackData["key"]
+        realFName = trackData["path"]
         useuri = trackData["useuri"].lower() == "yes"
         categ = trackData["category"]
         if useuri:
@@ -872,36 +840,24 @@ class JbrowseConnector(object):
         else:
             fname = tId
             dest = "%s/%s" % (self.outdir, fname)
+            self.subprocess_check_call(["cp", data, dest])
             url = fname
             bindex = fname + ".bai"
-            self.subprocess_check_call(["cp", data, dest])
-            bi = bam_indexes.split()
+            bi = bam_indexes.split(",")
             bam_index = [
-                x.split(",")[1].strip()
+                x.split(" ~ ")[1].strip()
                 for x in bi
-                if "," in x and x.split(",")[0].strip() == realFName
+                if " ~ " in x and x.split(" ~ ")[0].strip() == realFName
             ]
-            if len(bam_index) > 0:
-                bam_index = bam_index[0]
-            else:
-                bam_index = None
             logging.debug(
-                "===realFName=%s got %s as bi, %s for bam_index"
-                % (realFName, bi, bam_index)
+                "===realFName=%s got %s as bam_indexes %s as bi, %s for bam_index"
+                % (realFName, bam_indexes, bi, bam_index)
             )
-            if bam_index is not None and os.path.exists(bam_index):
-                if not os.path.exists(bindex):
-                    # bai most probably made by galaxy and stored in galaxy dirs, need to copy it to dest
-                    self.subprocess_check_call(["cp", bam_index, bindex])
-                else:
-                    # Can happen in exotic condition
-                    # e.g. if bam imported as symlink with datatype=unsorted.bam, then datatype changed to bam
-                    #      => no index generated by galaxy, but there might be one next to the symlink target
-                    #      this trick allows to skip the bam sorting made by galaxy if already done outside
-                    if os.path.exists(os.path.realpath(data) + ".bai"):
-                        self.symlink_or_copy(os.path.realpath(data) + ".bai", bindex)
-                    else:
-                        log.warn("Could not find a bam index (.bai file) for %s", data)
+            if len(bam_index) > 0 and os.path.exists(os.path.realpath(bam_index[0])):
+                self.subprocess_check_call(["cp", bam_index[0], bindex])
+            else:
+                cmd = ["samtools", "index", "-b", "-o", bindex, data]
+                self.subprocess_check_call(cmd)
         trackDict = {
             "type": "AlignmentsTrack",
             "trackId": tId,
@@ -933,7 +889,7 @@ class JbrowseConnector(object):
 
     def add_cram(self, data, trackData, cram_indexes=None, **kwargs):
         tId = trackData["label"]
-        realFName = trackData["key"]
+        realFName = trackData["path"]
         categ = trackData["category"]
         useuri = trackData["useuri"].lower() == "yes"
         gsa = self.assmeta.get(trackData["assemblyNames"], None)
@@ -949,25 +905,21 @@ class JbrowseConnector(object):
             dest = os.path.join(self.outdir, fname)
             url = fname
             self.subprocess_check_call(["cp", data, dest])
-            ci = cram_indexes.split()
+            ci = cram_indexes.split(",")
             cram_index = [
-                x.split(",")[1].strip()
+                x.split(" ~ ")[1].strip()
                 for x in ci
-                if "," in x and x.split(",")[0] == realFName
+                if " ~ " in x and x.split(" ~ ")[0].strip() == realFName
             ]
-            if len(cram_index) > 0:
-                cram_index = cram_index[0]
-            else:
-                cram_index = None
             logging.debug(
-                "=== for %s got %s as cram_indexes, %s for cram_index"
-                % (realFName, cram_indexes, cram_index)
+                "===realFName=%s got %s as cram_indexes %s as ci, %s for cram_index"
+                % (realFName, cram_indexes, ci, cram_index)
             )
-            if cram_index and os.path.exists(cram_index):
+            if len(cram_index) > 0 and os.path.exists(cram_index[0]):
                 if not os.path.exists(dest + ".crai"):
                     # most probably made by galaxy and stored in galaxy dirs, need to copy it to dest
                     self.subprocess_check_call(
-                        ["cp", os.path.realpath(cram_index), dest + ".crai"]
+                        ["cp", os.path.realpath(cram_index[0]), dest + ".crai"]
                     )
             else:
                 cpath = os.path.realpath(dest) + ".crai"
@@ -1182,7 +1134,8 @@ class JbrowseConnector(object):
         categ = trackData["category"]
         pg = pafOpts["genome"].split(",")
         pgc = [x.strip() for x in pg if x.strip() > ""]
-        gnomes = [x.split(":") for x in pgc]
+        gnomes = [x.split(" ~ ") for x in pgc]
+        logging.debug("pg=%s, gnomes=%s" % (pg, gnomes))
         passnames = [trackData["assemblyNames"]]  # always first
         for i, (gpath, gname) in enumerate(gnomes):
             # may have been forgotten by user for uri
@@ -1194,7 +1147,7 @@ class JbrowseConnector(object):
                 gname = gname.split()[0]
             if gname not in passnames:
                 passnames.append(gname)
-            useuri = gpath.startswith("http://") or gpath.startswith("https://")
+            useuri = pafOpts["useuri"] == "true"
             if gname not in self.genome_names:
                 # ignore if already there - eg for duplicates among pafs.
                 asstrack, first_contig = self.make_assembly(gpath, gname, useuri)
@@ -1632,7 +1585,7 @@ if __name__ == "__main__":
         genomes = [
             {
                 "path": x.attrib["path"],
-                "label": x.attrib["label"],
+                "label": x.attrib["label"].split(" ")[0].replace(",", ""),
                 "useuri": x.attrib["useuri"],
                 "meta": metadata_from_node(x.find("metadata")),
             }
@@ -1666,7 +1619,10 @@ if __name__ == "__main__":
             trackfiles = track.findall("files/trackFile")
             if trackfiles:
                 for x in trackfiles:
-                    track_conf["label"] = "%s_%d" % (x.attrib["label"], trackI)
+                    track_conf["label"] = "%s_%d" % (
+                        x.attrib["label"].replace(" ", "_").replace(",", ""),
+                        trackI,
+                    )
                     trackI += 1
                     track_conf["useuri"] = x.attrib["useuri"]
                     if is_multi_bigwig:
