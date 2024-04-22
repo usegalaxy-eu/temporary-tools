@@ -631,6 +631,20 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 </repeat>
                             </conditional> 
                         </conditional>
+                    </repeat>                   
+                    <repeat name="data_tracks">
+                        <conditional name="data_format">
+                            <param name="data_format_select" value="paf"/>
+                            <conditional name="useuri">
+                                <param name="insource" value="history"/>
+                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/arabgrapepeach.paf"/>
+                            </conditional>
+                            <conditional name="pafuseuri">
+                                <param name="insource" value="history"/>
+                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/arabidopsis.fa"/>
+                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera1.fa"/>
+                            </conditional> 
+                        </conditional>
                     </repeat>
                 </repeat>
             </repeat>
