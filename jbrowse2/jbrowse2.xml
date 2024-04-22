@@ -260,18 +260,24 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                             </gff>
                         #else if str($track.data_format.data_format_select) == "paf":
                             <paf>
-                                #if $track.data_format.pafuseuri.insource == "history":
+                                #if str($track.data_format.pafuseuri.insource) == "history":
                                 <genome>
                                     #for $anno in $track.data_format.pafuseuri.annotation:
-                                        ${anno}:${anno.name},
+                                        ${anno} ~ ${anno.name},
                                     #end for
                                 </genome>
+                                <useuri>
+                                    false
+                                </useuri>
                                 #else:
                                 <genome>
                                     #for $refgenome in $track.data_format.pafuseuri.refuri:
-                                        ${refgenome.annotation}:${refgenome.annoname},
+                                        ${refgenome.annotation} ~ ${refgenome.annoname},
                                     #end for
                                 </genome>
+                                <useuri>
+                                    true
+                                </useuri>
                                 #end if
                             </paf>
                         #else if str($track.data_format.data_format_select) == "hic":
@@ -600,10 +606,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 <param name="insource" value="history"/>
                                 <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/peach-grape-map.paf"/>
                             </conditional>
-                        </conditional>
-
-                        <conditional name="pafsuseuri">
-                            <conditional name="useuri">
+                            <conditional name="pafuseuri">
                                 <param name="insource" value="history"/>
                                 <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera1.fa"/>
                             </conditional>
@@ -616,19 +619,17 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                 <param name="insource" value="history"/>
                                 <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/arabgrapepeach.paf"/>
                             </conditional>
-                        </conditional>
-
-                        <conditional name="pafsuseuri">
-                            <conditional name="useuri">
-                                <param name="insource" value="history"/>
-                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/arabidopsis.fa"/>
-                            </conditional>
-                        </conditional>
-                        <conditional name="pafsuseuri">
-                            <conditional name="useuri">
-                                <param name="insource" value="history"/>
-                                <param name="annotation" location="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera1.fa"/>
-                            </conditional>
+                            <conditional name="pafuseuri">
+                                <param name="insource" value="uri"/>
+                                <repeat name="refuri">
+                                    <param name="annotation" value="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/arabidopsis.fa.gz"/>
+                                    <param name="annoname" value="arabidopsis.URI"/>
+                                </repeat>
+                                <repeat name="refuri">
+                                    <param name="annotation" value="https://galaxy.genomicsvl-students.cloud.edu.au/jbrowse/merlin/Vvinifera1.fa.gz"/>
+                                    <param name="annoname" value="Vvinifera1.URI"/>
+                                </repeat>
+                            </conditional> 
                         </conditional>
                     </repeat>
                 </repeat>
@@ -674,11 +675,15 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         </xml_element>
                     </has_archive_member>
                     <has_archive_member path="merlin.gff3_0.gz"/>
+                    <has_archive_member path="merlin.gff3_0.gz.tbi"/>
                     <has_archive_member path="merlin.bw_1"/>
                     <has_archive_member path="test-6.bed_2.gz"/>
+                    <has_archive_member path="merlin.vcf_3"/>
                     <has_archive_member path="merlin.vcf_3.tbi"/>
                     <has_archive_member path="merlin.cram_4"/>
+                    <has_archive_member path="merlin.cram_4.crai"/>
                     <has_archive_member path="merlin-sample.bam_5"/>
+                    <has_archive_member path="merlin-sample.bam_5.bai"/>
                     <has_archive_member path="merlinlastz.maf_6.sorted.bed.gz.tbi"/>
                     <has_archive_member path="merlin.blastxml_7.gz"/>
                     <has_archive_member path="dm3test.cool_9.hic"/>
@@ -686,7 +691,12 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     <has_archive_member path="arabgrapepeach.paf_11"/>
                     <has_archive_member path="Merlin.fa.gz.fai"/>
                     <has_archive_member path="dm3.fa.fa.gz.fai"/>
+                    <has_archive_member path="Ppersica1.fa.fa.gz"/>
                     <has_archive_member path="Ppersica1.fa.fa.gz.fai"/>
+                    <has_archive_member path="Ppersica1.fa.fa.gz.gzi"/>
+                    <has_archive_member path="Vvinifera1.fa.fa.gz.fai"/>
+                    <has_archive_member path="Vvinifera1.fa.fa.gz"/>
+                    <has_archive_member path="Vvinifera1.fa.fa.gz.gzi"/>
                     <has_archive_member path="config.json">
                         <has_json_property_with_text property="name" text="Merlin" />
                     </has_archive_member>

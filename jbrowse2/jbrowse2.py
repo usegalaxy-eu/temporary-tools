@@ -531,32 +531,7 @@ class JbrowseConnector(object):
                     this_genome["genome_sequence_adapter"] = assem["sequence"][
                         "adapter"
                     ]
-                    this_genome["genome_firstcontig"] = None
-                    if not useuri:
-                        fl = open(fapath, "r").readline()
-                        fls = fl.strip().split(">")
-                        if len(fls) > 1:
-                            fl = fls[1]
-                            if len(fl.split()) > 1:
-                                this_genome["genome_firstcontig"] = fl.split()[
-                                    0
-                                ].strip()
-                            else:
-                                this_genome["genome_firstcontig"] = fl
-                    else:
-                        try:
-                            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
-                            scontext.verify_mode = ssl.VerifyMode.CERT_NONE
-                            with urllib.request.urlopen(
-                                url=fapath + ".fai", context=scontext
-                            ) as f:
-                                fl = f.readline()
-                        except Exception:
-                            fl = None
-                        if fl:  # is first row of the text fai so the first contig name
-                            this_genome["genome_firstcontig"] = (
-                                fl.decode("utf8").strip().split()[0]
-                            )
+                    this_genome["genome_firstcontig"] = first_contig
                 assmeta.append(this_genome)
         self.assemblies += assembly
         self.assmeta[primaryGenome] = assmeta
@@ -569,12 +544,6 @@ class JbrowseConnector(object):
         """
         if useuri:
             faname = fapath
-            adapter = {
-                "type": "BgzipFastaAdapter",
-                "fastaLocation": {"uri": faname, "locationType": "UriLocation"},
-                "faiLocation": {"uri": faname + ".fai", "locationType": "UriLocation"},
-                "gziLocation": {"uri": faname + ".gzi", "locationType": "UriLocation"},
-            }
             scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
             scontext.verify_mode = ssl.VerifyMode.CERT_NONE
             with urllib.request.urlopen(url=faname + ".fai", context=scontext) as f:
@@ -591,20 +560,19 @@ class JbrowseConnector(object):
                 fadest,
             )
             self.subprocess_popen(cmd)
-
-            adapter = {
-                "type": "BgzipFastaAdapter",
-                "fastaLocation": {
-                    "uri": faname,
-                },
-                "faiLocation": {
-                    "uri": faname + ".fai",
-                },
-                "gziLocation": {
-                    "uri": faname + ".gzi",
-                },
-            }
             contig = open(fadest + ".fai", "r").readline().strip()
+        adapter = {
+            "type": "BgzipFastaAdapter",
+            "fastaLocation": {
+                "uri": faname,
+            },
+            "faiLocation": {
+                "uri": faname + ".fai",
+            },
+            "gziLocation": {
+                "uri": faname + ".gzi",
+            },
+        }
         first_contig = contig.split()[:2]
         first_contig.insert(0, gname)
         trackDict = {
@@ -1166,7 +1134,8 @@ class JbrowseConnector(object):
         categ = trackData["category"]
         pg = pafOpts["genome"].split(",")
         pgc = [x.strip() for x in pg if x.strip() > ""]
-        gnomes = [x.split(":") for x in pgc]
+        gnomes = [x.split(" ~ ") for x in pgc]
+        logging.debug("pg=%s, gnomes=%s" % (pg, gnomes))
         passnames = [trackData["assemblyNames"]]  # always first
         for i, (gpath, gname) in enumerate(gnomes):
             # may have been forgotten by user for uri
@@ -1178,7 +1147,7 @@ class JbrowseConnector(object):
                 gname = gname.split()[0]
             if gname not in passnames:
                 passnames.append(gname)
-            useuri = gpath.startswith("http://") or gpath.startswith("https://")
+            useuri = pafOpts["useuri"] == "true"
             if gname not in self.genome_names:
                 # ignore if already there - eg for duplicates among pafs.
                 asstrack, first_contig = self.make_assembly(gpath, gname, useuri)
@@ -1616,7 +1585,7 @@ if __name__ == "__main__":
         genomes = [
             {
                 "path": x.attrib["path"],
-                "label": x.attrib["label"],
+                "label": x.attrib["label"].split(" ")[0].replace(",", ""),
                 "useuri": x.attrib["useuri"],
                 "meta": metadata_from_node(x.find("metadata")),
             }
@@ -1650,7 +1619,10 @@ if __name__ == "__main__":
             trackfiles = track.findall("files/trackFile")
             if trackfiles:
                 for x in trackfiles:
-                    track_conf["label"] = "%s_%d" % (x.attrib["label"], trackI)
+                    track_conf["label"] = "%s_%d" % (
+                        x.attrib["label"].replace(" ", "_").replace(",", ""),
+                        trackI,
+                    )
                     trackI += 1
                     track_conf["useuri"] = x.attrib["useuri"]
                     if is_multi_bigwig:
