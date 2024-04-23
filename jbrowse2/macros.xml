@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <macros>
-    <token name="@TOOL_VERSION@">2.10.1</token>
+    <token name="@TOOL_VERSION@">2.11.0</token>
     <xml name = "edamInc">
         <edam_topics>
             <edam_topic>topic_3307</edam_topic>
@@ -539,51 +539,51 @@ maintained by Ross Lazarus and Bjoern Gruening until the IUC complete their own.
 
     <xml name="input_conditional" token_label="Track Data" token_format="data">
         <conditional name="useuri">
-                <param name="insource" type="select" label="Define track data as a history file or an internet URI"
-                    help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
-                    <option value="history" selected="true">Track data from a history file</option>
-                    <option value="uri" >Tabix data URI - index files must be available at corresponding URI</option>
+            <param name="insource" type="select" label="Define track data as a history file or an internet URI"
+                help="A public URI implies that all the associated tabix files are also in place. They are created for history files">
+                <option value="history" selected="true">Track data from a history file</option>
+                <option value="uri" >Tabix data URI - index files must be available at corresponding URI</option>
+            </param>
+            <when value="history">
+                <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
+            </when>
+            <when value="uri">
+                <param label="@LABEL@" name="annouri"  type="text" />
+                <param label="Short name for track display" name="annoname" type="text" >
+                    <sanitizer invalid_char="_">
+                    <valid initial="string.printable" >
+                        <remove value="'" />
+                    </valid>
+                    </sanitizer>
                 </param>
-                <when value="history">
-                       <param label="@LABEL@" format="@FORMAT@" name="annotation" multiple="True" optional="true" type="data" />
-                </when>
-                <when value="uri">
-                       <param label="@LABEL@" name="annouri"  type="text" />
-                       <param label="Short name for track display" name="annoname" type="text" >
-                             <sanitizer invalid_char="_">
-                                <valid initial="string.printable" >
-                                    <remove value="'" />
-                                </valid>
-                              </sanitizer>
-                        </param>
-                </when>
-            </conditional>
-     </xml>
+            </when>
+        </conditional>
+    </xml>
     <xml name="pafref_conditional" token_label="Track Data" token_format="data">
         <conditional name="pafuseuri">
-                <param name="insource" type="select" label="PAF reference data from a history file or an internet URI?"
-                    help="Multiple references can be used for mashmap PAF. A URI source requires all the associated tabix index files to be in place.">
-                    <option value="history" selected="true">PAF reference comparison genome from a history file</option>
-                    <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
-                </param>
-                <when value="history">
-                       <param label="@LABEL@" format="@FORMAT@" name="annotation"  type="data"
-                          help="Add all PAF reference comparison genomes used to make the PAF" multiple="true" />
-                </when>
-                <when value="uri">
-                    <repeat name="refuri" title="PAF reference comparison genome URI" min="1">
-                       <param label="@LABEL@" name="annotation"  type="text" />
-                       <param label="Short name for this reference" name="annoname" type="text" help="Short names take less track space">
-                             <sanitizer invalid_char="_">
+            <param name="insource" type="select" label="PAF reference data from a history file or an internet URI?"
+                help="Multiple references can be used for mashmap PAF. A URI source requires all the associated tabix index files to be in place.">
+                <option value="history" selected="true">PAF reference comparison genome from a history file</option>
+                <option value="uri">PAF reference comparison genome tabix .gz URI with index files at the corresponding URIs</option>
+            </param>
+            <when value="history">
+                    <param label="@LABEL@" format="@FORMAT@" name="annotation"  type="data"
+                        help="Add all PAF reference comparison genomes used to make the PAF" multiple="true" />
+            </when>
+            <when value="uri">
+                <repeat name="refuri" title="PAF reference comparison genome URI" min="1">
+                    <param label="@LABEL@" name="annotation"  type="text" />
+                    <param label="Short name for this reference" name="annoname" type="text" help="Short names take less track space">
+                            <sanitizer invalid_char="_">
                                 <valid initial="string.printable" >
                                     <remove value="'" />
                                 </valid>
-                              </sanitizer>
-                        </param>
-                    </repeat>
-                </when>
-            </conditional>
-     </xml>
+                            </sanitizer>
+                    </param>
+                </repeat>
+            </when>
+        </conditional>
+    </xml>
     <xml name="citations">
         <citations>
         <citation type="doi">10.1186/s13059-016-0924-1</citation>

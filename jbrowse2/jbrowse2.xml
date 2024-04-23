@@ -717,7 +717,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             </section>
             <output name="output" file="jbrowse2_result02.zip" ftype="zip" compare="sim_size">
                 <assert_contents>
-                    <has_archive_member path=".*" n="616" delta="10" />
+                    <has_archive_member path=".*" n="637" delta="10" />
                     <has_archive_member path="index.html" />
                     <has_archive_member
                         path="static/media/roboto-latin-400-normal.3f2b9a42f643e62a49b7.woff" />
@@ -776,7 +776,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             </section>
             <output name="output" file="jbrowse2_result01.zip" ftype="zip" compare="sim_size">
                 <assert_contents>
-                    <has_archive_member path=".*" n="600" delta="10" />
+                    <has_archive_member path=".*" n="611" delta="10" />
                     <has_archive_member path="index.html" />
                     <has_archive_member
                         path="static/media/roboto-latin-400-normal.3f2b9a42f643e62a49b7.woff" />
