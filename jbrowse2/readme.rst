@@ -40,7 +40,7 @@ Added Feb 3: cool/mcool -> hic
 
 .. image:: dm4_in_jb2.png
 
-Other tracks
+Other samples
 
 .. image:: jb2_samplerMay5.png
 
