@@ -31,7 +31,7 @@ Added Feb 3: cool/mcool -> hic
 
 Other tracks
 
-.. image:: jb210demotracks.png
+.. image:: jb2_samplerMay5.png
 
 JBrowse2 is a fast, embeddable genome browser built completely with
 JavaScript and HTML5
