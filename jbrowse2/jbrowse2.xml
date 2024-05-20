@@ -1091,7 +1091,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2 &&
                     <has_archive_member path="galaxy.xml">
                         <is_valid_xml/>
                         <has_n_elements_with_path path="./metadata/general/session_name" n="1"/>
-                        <element_text_is path="./metadata/general/session_name" text="New session"/>
+                        <element_text_is path="./metadata/general/session_name" text="New JBrowse2 session"/>
                     </has_archive_member>
                 </assert_contents>
             </output>
