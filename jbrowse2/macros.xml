@@ -21,6 +21,7 @@
             <requirement type="package" version="1.11">tabix</requirement>
             <requirement type="package" version="4.6.0">findutils</requirement>
             <requirement type="package" version="0.0.12-0">hictk</requirement>
+            <requirement type="package" version="3.0">zip</requirement>
             <yield/>
         </requirements>
     </xml>
