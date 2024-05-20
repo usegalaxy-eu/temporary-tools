@@ -6,23 +6,23 @@
     <expand macro="edamInc"/>
     <xrefs>
         <xref type="bio.tools">jbrowse2</xref>
-    </xrefs>        
+    </xrefs>
     <expand macro="requirements"/>
-    <version_command>python '${__tool_directory__}/jbrowse2.py' --version</version_command>
     <required_files>
-        <include path="autogenJB2.py" />
-        <include path="blastxml_to_gapped_gff3.py" />
-        <include path="convertMAF.sh" />
-        <include path="gff3_rebase.py" />
-        <include path="jb2_urlconf.py" />
-        <include path="jb2_webserver.py" />
-        <include path="jbrowse2.py" />
-        <include path="maf2bed.py" />
+        <include path="autogenJB2.py"/>
+        <include path="blastxml_to_gapped_gff3.py"/>
+        <include path="convertMAF.sh"/>
+        <include path="gff3_rebase.py"/>
+        <include path="jb2_urlconf.py"/>
+        <include path="jb2_webserver.py"/>
+        <include path="jbrowse2.py"/>
+        <include path="maf2bed.py"/>
     </required_files>
+    <version_command>python '${__tool_directory__}/jbrowse2.py' --version</version_command>
     <command detect_errors="aggressive"><![CDATA[
 mkdir -p '$output.files_path' &&
 cp '$trackxml' '$output.files_path/galaxy.xml' &&
-export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
+export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2 &&
 #if $jbgen.ucol.formcoll=="collect":
     python '$__tool_directory__/autogenJB2.py'
     #for $key in $autoCollection.keys():
@@ -30,27 +30,28 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             #set subCol=$autoCollection[$key]
             #set pafs=[($subCol[x],$subcol[x].ext,x) for x in $subCol.keys() if $subCol[x].ext == 'paf']
             #if len($pafs) > 0:
-                 --pafmeta '$pafs[0]'
+                --pafmeta '$pafs[0]'
                 #set refs = [($pafs[0][2],$subCol[x],x) for x in $subCol.keys() if $subCol[x].ext == 'fasta']
                 #for $ref in $refs:
-                 --pafreferencemeta '$ref'
+                    --pafreferencemeta '$ref'
                 #end for
             #end if
         #else if $autoCollection[$key].ext == 'fasta':
-          --referencemeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
+            --referencemeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
         #else if $autoCollection[$key].ext in ['bed', 'bigwig', 'cool', 'gff', 'gff3', 'hic', 'maf', 'mcool', 'scool', 'vcf']
-          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
+            --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key'
         #else if $autoCollection[$key].ext in ['bam',]
-          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.bam_index'
-         #else if $autoCollection[$key].ext in ['cram',]
-          --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.cram_index'
+            --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.bam_index'
+        #else if $autoCollection[$key].ext in ['cram',]
+            --trackmeta '$autoCollection[$key],$autoCollection[$key].ext,$key,$autoCollection[$key].metadata.cram_index'
         #end if
     #end for
     --outdir '$output.files_path'
     --jbrowse2path \${JBROWSE2_PATH}
     --sessName "Autogen JBrowse" &&
     #if $jbgen.zipOut == "true":
-        (cd '$output.files_path' && zip -r - . ) > '$output'
+        cd '$output.files_path' &&
+        zip -r - . > '$output'
     #else
       cp '$output.files_path/index.html' '$output'
     #end if
@@ -60,13 +61,14 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
     --outdir '$output.files_path'
     --xml '$trackxml' &&
     #if $jbgen.zipOut == "true":
-        (cd '$output.files_path' && zip -r - . ) > '$output'
+        cd '$output.files_path' &&
+        zip -r - . > '$output'
     #else
-      cp '$output.files_path/index.html' '$output'
+        cp '$output.files_path/index.html' '$output'
     #end if
     ## Ugly testing hack since I cannot get <extra_files> to test the files I want to test. Hmph.
     #if str($uglyTestingHack) == "enabled":
-       &&   cp '$trackxml' '$output'
+       && cp '$trackxml' '$output'
     #end if
 #end if
   ]]></command>
@@ -145,7 +147,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                           tool_id="${assembly.reference_genome.genome.creating_job.tool_id}"
                           tool_version="${assembly.reference_genome.genome.creating_job.tool_version}"
                           />
-
                     </metadata>
                   </genome>
                 #end if
@@ -156,7 +157,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
             #for $track in $tg.data_tracks:
                 #set input_exists = "False"
                 #if $track.data_format.useuri.insource == "uri":
-                        #if $track.data_format.useuri.annouri:
+                    #if $track.data_format.useuri.annouri:
                         #set input_exists = "True"
                         <track cat="${tg.category}" format="${track.data_format.data_format_select}" visibility="${track.data_format.track_visibility}">
                             <files>
@@ -167,7 +168,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                     </metadata>
                                  </trackFile>
                             </files>
-                        #end if
+                    #end if
                 #else if $track.data_format.useuri.insource == "history":
                     #if $track.data_format.useuri.annotation:
                         #set input_exists = "True"
@@ -176,7 +177,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                         #for $dataset in $track.data_format.useuri.annotation:
                               <trackFile path="${dataset}" ext="${dataset.ext}" label="${dataset.name}" useuri="no">
                                 <metadata>
-
                                   <dataset id="${__app__.security.encode_id($dataset.id)}" hid="${dataset.hid}"
                                       size="${dataset.get_size(nice_size=True)}"
                                       edam_format="${dataset.datatype.edam_format}"
@@ -191,7 +191,6 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                       user_id="-1"
                                       display_name="Unnamed History"/>
                                       #end if
-
                                   <metadata
                                     #for (key, value) in $dataset.get_metadata().items():
                                     #if "_types" not in $key and $value is not None and len(str($value)) < 5000:
@@ -210,7 +209,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                       />
                                 </metadata>
                               </trackFile>
-                        #end for
+                       #end for
                     </files>
                     #end if
                 #end if
@@ -332,47 +331,38 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                     <param name="genome" type="select" optional="true" label="Select a built in reference genome or custom genome" help="If not listed, add a custom genome, use a history genome or a remote URI tabix genome">
                         <options from_data_table="all_fasta">
                             <filter column="2" type="sort_by"/>
-                            <validator message="No genomes are available for the selected input dataset" type="no_options">
-                            </validator>
+                            <validator message="No genomes are available for the selected input dataset" type="no_options"/>
                         </options>
                     </param>
                 </when>
                 <when value="history">
-                    <param name="genome" type="data" format="fasta" optional="true" label="Select the reference genome">
-                    </param>
+                    <param name="genome" type="data" format="fasta" optional="true" label="Select the reference genome"/>
                 </when>
                 <when value="uri">
-                    <param name="uri" type="text" label="URI pointing to tabix compressed fasta">
-                    </param>
-                    <param name="refname" type="text" label="Reference dbkey for tracks with this genome, such as hg38 or SacCer4">
-                    </param>
+                    <param name="uri" type="text" label="URI pointing to tabix compressed fasta"/>
+                    <param name="refname" type="text" label="Reference dbkey for tracks with this genome, such as hg38 or SacCer4"/>
                 </when>
             </conditional>
             <repeat name="track_groups" title="Track Group">
-                <param name="category" type="text" value="Default" optional="False" label="Track Category" help="Organise your tracks into Categories for a nicer end-user experience. You can use #date# and it will be replaced with the current date in 'yyyy-mm-dd' format,                 which is very useful for repeatedly updating a JBrowse instance when member databases / underlying tool versions are updated."/>
+                <param name="category" type="text" value="Default" optional="False" label="Track Category" help="Organise your tracks into Categories for a nicer end-user experience. You can use #date# and it will be replaced with the current date in 'yyyy-mm-dd' format, which is very useful for repeatedly updating a JBrowse instance when member databases / underlying tool versions are updated."/>
                 <repeat name="data_tracks" title="Annotation Track">
                     <conditional name="data_format" label="Track Data Selection Options">
                         <param name="data_format_select" type="select" label="Track Type">
-                            <option value="bam">BAM track. Recommend convert to faster BED unless
-                                mapping annotation needed</option>
+                            <option value="bam">BAM track. Recommend convert to faster BED unless mapping annotation needed</option>
                             <option value="bed">BED track</option>
                             <option value="bigwig">BigWig track</option>
                             <option value="blastxml">Blast XML track (as GFF3)</option>
-                            <option value="cram">CRAM track. Currently not advantageous over BAM in
-                                Galaxy. Convert to BED like BAM.</option>
+                            <option value="cram">CRAM track, we recomment to convert to BED like for BAM</option>
                             <option value="gff">GFF/GFF3 track</option>
                             <option value="cool">HiC as cool/mcool/scool format files</option>
-                            <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix
-                                will NOT work.</option>
-                            <option value="maf">Multiple alignment format. Reference name must match
-                                the MAF name exactly to work correctly</option>
-                            <option value="paf">PAF - approximate mapping positions between two set
-                                of sequences</option>
+                            <option value="hic">HiC as juicebox_hic format file. Tabular hic_matrix will NOT work.</option>
+                            <option value="maf">Multiple alignment format. Reference name must match the MAF name exactly to work correctly</option>
+                            <option value="paf">PAF - approximate mapping positions between two set of sequences</option>
                             <option value="vcf">VCF SNP track</option>
                         </param>
                         <when value="blastxml">
                             <expand macro="input_conditional" label="BlastXML Track Data" format="blastxml"/>
-                            <param name="blast_parent" type="data" format="gff3" optional="true" label="Features used in Blast Search" help="in GFF3. This is used  so we know where to map features. E.g. where results of which CDS Protein32 match up to. The query IDs in your blast results should MATCH some feature                             IDs in your GFF3 file. This is an optional field and is most useful if using JBrowse to display protein blast results on a DNA genome. blastn results don't need this,                             blastp results on a protein sequence don't need this."/>
+                            <param name="blast_parent" type="data" format="gff3" optional="true" label="Features used in Blast Search" help="in GFF3. This is used  so we know where to map features. E.g. where results of which CDS Protein32 match up to. The query IDs in your blast results should MATCH some feature IDs in your GFF3 file. This is an optional field and is most useful if using JBrowse to display protein blast results on a DNA genome. blastn results don't need this, blastp results on a protein sequence don't need this."/>
                             <param name="min_gap" type="integer" min="2" value="10" label="Minimum Gap Size" help="before a new match_part feature is created"/>
                             <param name="is_protein" type="boolean" truevalue="true" falsevalue="false" label="Is this a protein blast search?"/>
                             <expand macro="track_styling_vgp"/>
@@ -391,7 +381,7 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
                                     <option value="true">Match/match part data</option>
                                 </param>
                                 <when value="true">
-                                    <param name="name" type="text" value="match" optional="True" label="Match Part Feature Type" help="Match_parts have options for the parent feature type, such as cDNA_match, match, translated_nucleotide_match, etc.                                     Please select the appropriate one here. You can leave empty to try autodetection (only works with CanvasFeatures track type)."/>
+                                    <param name="name" type="text" value="match" optional="True" label="Match Part Feature Type" help="Match_parts have options for the parent feature type, such as cDNA_match, match, translated_nucleotide_match, etc. Please select the appropriate one here. You can leave empty to try autodetection (only works with CanvasFeatures track type)."/>
                                 </when>
                                 <when value="false"/>
                             </conditional>
@@ -1088,12 +1078,10 @@ export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
 JBrowse2-in-Galaxy
 ==================
 
-JBrowse2-in-Galaxy offers a highly configurable, workflow-compatible
-alternative to JBrowse1-in-Galaxy and Trackster.
+JBrowse2-in-Galaxy offers a highly configurable, workflow-compatible Genome viewer.
 
 Compared to JBrowse1-in-Galaxy, there is no support for alternative codons for unusual genomes,
-and detailed track styling is not yet implemented. Send code.
-JBrowse1 development has now ceased in favour of JBrowse2.
+and detailed track styling is not yet implemented. Please contact us if you are missing features.
 
 Use and local viewing
 =====================
