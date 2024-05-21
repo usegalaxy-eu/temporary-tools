@@ -13,7 +13,7 @@
     <xml name="requirements">
         <requirements>
             <requirement type="package" version="@TOOL_VERSION@">jbrowse2</requirement>
-            <requirement type="package" version="1.81">biopython</requirement>
+            <requirement type="package" version="1.82">biopython</requirement>
             <requirement type="package" version="0.7.1">bcbio-gff</requirement>
             <requirement type="package" version="1.19">samtools</requirement>
             <requirement type="package" version="6.0.1">pyyaml</requirement>
@@ -28,8 +28,8 @@
     <token name="@WRAPPER_VERSION@">galaxy2</token>
     <xml name="creators">
         <creator>
+            <person givenName="Helena" familyName="Rasche" url="https://github.com/hexylena"/>
             <person givenName="Anthony" familyName="Bretaudeau" url="https://github.com/abretaud"/>
-            <person givenName="Helena" familyName="Rasche" url="https://github.com/hexylena/"/>
             <person givenName="Ross" familyName="Lazarus" url="https://github.com/fubar2/"/>
         </creator>
     </xml>
@@ -103,12 +103,11 @@
                 <when value="collect">
                     <param name="autoCollection" type="data_collection" label="Collection of bed, bam and other track files"/>
                 </when>
-                <when value="form">
-                </when>
+                <when value="form"/>
             </conditional>
-            <param name="zipOut" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Create a zip archive for downloading rather than viewing " help="Default is to make an interactive browser appear when the 'eye' icon is activated"/>
+            <param name="zipOut" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Create a zip archive for downloading rather than viewing" help="Default is to make an interactive browser appear when the 'eye' icon is activated"/>
             <param name="defaultLocation" type="text" value="" label="Subset to display to new users" help="Initial subset to be shown for users who have never visited the browser before. Example: 'ctgA:1234..5678"/>
-            <param name="session_name" type="text" value="New JB2 session" label="Session name" help="Displayed at the top of the window"/>
+            <param name="session_name" type="text" value="New JBrowse2 session" label="Session name" help="Displayed at the top of the window"/>
             <param name="enableAnalytics" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Enable analytics" help="Will send usage data to Google Analytics, see https://github.com/GMOD/jbrowse-components/issues/1166"/>
             <param name="primary_color" type="color" value="#0D233F" label="Primary color">
                 <sanitizer>

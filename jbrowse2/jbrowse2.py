@@ -5,6 +5,7 @@ import binascii
 import datetime
 import json
 import logging
+import hashlib
 import os
 import re
 import shutil
@@ -20,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("jbrowse")
 
 JB2VER = "v2.11.0"
-# version pinned if cloning - but not cloning now
+# version pinned if cloning - but not used until now
 logCommands = True
 # useful for seeing what's being written but not for production setups
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -424,7 +425,6 @@ class JbrowseConnector(object):
             return self.outdir
         else:
             return subprocess.check_output(["pwd"]).decode("utf-8").strip()
-            # return None
 
     def subprocess_check_call(self, command, output=None, cwd=True):
         if output:
@@ -455,7 +455,7 @@ class JbrowseConnector(object):
             log.error(command)
             log.error(output)
             log.error(err)
-            raise RuntimeError("Command failed with exit code %s" % (retcode))
+            raise RuntimeError(f"Command ( {command} ) failed with exit code {retcode}")
 
     def subprocess_check_output(self, command):
         if logCommands:
@@ -491,14 +491,15 @@ class JbrowseConnector(object):
             nrow = len(fl)
         else:
             try:
-                scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                scontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                scontext.check_hostname = False
                 scontext.verify_mode = ssl.VerifyMode.CERT_NONE
                 with urllib.request.urlopen(url, context=scontext) as f:
                     fl = f.readlines()
                 nrow = len(fl)
             except Exception:
                 nrow = 0
-        logging.debug("### getNrow %s returning %d" % (url, nrow))
+        logging.debug("getNrow %s returning %d" % (url, nrow))
         return nrow
 
     def process_genomes(self, genomes):
@@ -539,12 +540,10 @@ class JbrowseConnector(object):
         return primaryGenome
 
     def make_assembly(self, fapath, gname, useuri):
-        """added code to grab the first contig name and length for broken default session from Anthony and Helena's code
-        that poor Bjoern is trying to figure out.
-        """
         if useuri:
             faname = fapath
-            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
+            scontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            scontext.check_hostname = False
             scontext.verify_mode = ssl.VerifyMode.CERT_NONE
             with urllib.request.urlopen(url=faname + ".fai", context=scontext) as f:
                 fl = f.readline()
@@ -699,8 +698,8 @@ class JbrowseConnector(object):
             ]
         }
         categ = trackData["category"]
-        fname = tId
-        dest = "%s/%s" % (self.outdir, fname)
+        fname = f"{tId}"
+        dest = os.path.join(self.outdir, fname)
         gname = trackData["assemblyNames"]
 
         cmd = [
@@ -897,7 +896,7 @@ class JbrowseConnector(object):
             genseqad = gsa[0]["genome_sequence_adapter"]
         else:
             genseqad = "Not found"
-            logging.warn("No adapter found for cram %s in gsa=%s" % (tId, gsa))
+            logging.warning("No adapter found for cram %s in gsa=%s" % (tId, gsa))
         if useuri:
             url = data
         else:
@@ -955,17 +954,13 @@ class JbrowseConnector(object):
 
     def add_vcf(self, data, trackData):
         tId = trackData["label"]
-        # url = "%s/api/datasets/%s/display" % (
-        # self.giURL,
-        # trackData["metadata"]["dataset_id"],
-        # )
         categ = trackData["category"]
         useuri = trackData["useuri"].lower() == "yes"
         if useuri:
             url = data
         else:
             url = tId
-            dest = "%s/%s" % (self.outdir, url)
+            dest = os.path.join(self.outdir, url)
             cmd = "bgzip -c %s  > %s" % (data, dest)
             self.subprocess_popen(cmd)
             cmd = ["tabix", "-f", "-p", "vcf", dest]
@@ -1032,7 +1027,7 @@ class JbrowseConnector(object):
             url = trackData["path"]
         else:
             url = tId + ".gz"
-            dest = "%s/%s" % (self.outdir, url)
+            dest = os.path.join(self.outdir, url)
             self._sort_gff(data, dest)
         categ = trackData["category"]
         trackDict = {
@@ -1078,7 +1073,7 @@ class JbrowseConnector(object):
             url = data
         else:
             url = tId + ".gz"
-            dest = "%s/%s" % (self.outdir, url)
+            dest = os.path.join(self.outdir, url)
             self._sort_bed(data, dest)
         trackDict = {
             "type": "FeatureTrack",
@@ -1125,7 +1120,7 @@ class JbrowseConnector(object):
         url = tId
         useuri = data.startswith("http://") or data.startswith("https://")
         if not useuri:
-            dest = "%s/%s" % (self.outdir, url)
+            dest = os.path.join(self.outdir, url)
             self.symlink_or_copy(os.path.realpath(data), dest)
             nrow = self.getNrow(dest)
         else:
@@ -1219,14 +1214,29 @@ class JbrowseConnector(object):
                 "category": category,
                 "style": {},
             }
+
+            hashData = [
+                str(dataset_path),
+                track_human_label,
+                track["category"],
+            ]
+            hashData = "|".join(hashData).encode("utf-8")
+            hash_string = hashlib.md5(hashData).hexdigest()
+
             outputTrackConfig["assemblyNames"] = track["assemblyNames"]
             outputTrackConfig["key"] = track_human_label
             outputTrackConfig["useuri"] = useuri
             outputTrackConfig["path"] = dataset_path
             outputTrackConfig["ext"] = dataset_ext
-
             outputTrackConfig["trackset"] = track.get("trackset", {})
             outputTrackConfig["label"] = track["label"]
+            #outputTrackConfig["label"] = "%s_%i_%s_%s" % (
+            #    dataset_ext,
+            #    trackIndex,
+            #    track_human_label,
+            #    hash_string,
+            #)
+
             outputTrackConfig["metadata"] = extra_metadata
             outputTrackConfig["name"] = track_human_label
             if track["label"] in self.trackIdlist:
@@ -1261,10 +1271,6 @@ class JbrowseConnector(object):
                         hic_path,
                     ]
                 )
-                logging.debug(
-                    "### ext=cool: wasCool=%s, hic_path=%s"
-                    % (outputTrackConfig["wasCool"], hic_path)
-                )
                 self.add_hic(
                     hic_path,
                     outputTrackConfig,
@@ -1287,7 +1293,6 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext == "bam":
                 real_indexes = track["conf"]["options"]["bam"]["bam_index"]
-                logging.debug("**** add bam got %s for indexes" % real_indexes)
                 self.add_bam(
                     dataset_path,
                     outputTrackConfig,
@@ -1295,7 +1300,6 @@ class JbrowseConnector(object):
                 )
             elif dataset_ext == "cram":
                 real_indexes = track["conf"]["options"]["cram"]["cram_index"]
-                logging.debug("**** add cram got %s for indexes" % real_indexes)
                 self.add_cram(
                     dataset_path,
                     outputTrackConfig,
@@ -1316,7 +1320,7 @@ class JbrowseConnector(object):
                     track["conf"]["options"]["paf"],
                 )
             else:
-                logging.warn("Do not know how to handle %s", dataset_ext)
+                logging.warning("Do not know how to handle %s", dataset_ext)
             # Return non-human label for use in other fields
             yield outputTrackConfig["label"]
 
@@ -1420,6 +1424,7 @@ class JbrowseConnector(object):
             session_json["views"] = session_views
         else:
             session_json["views"] += session_views
+
         pp = json.dumps(session_views, indent=2)
         config_json["defaultSession"] = session_json
         self.config_json.update(config_json)
@@ -1429,14 +1434,7 @@ class JbrowseConnector(object):
 
     def add_defsess_to_index(self, data):
         """
-        PROBABLY NOW BROKEN by changes since this was deprecated temporarily as at April 18
-
-        Included on request of the new codeowner, from Anthony's IUC PR.
-        Had to be fixed to keep each assembly with the associated tracks for a default view.
-        Originally used only the first assembly, putting all tracks there and so breaking some
-        when tested with 2 or more.
-
-         ----------------------------------------------------------
+        ----------------------------------------------------------
         Add some default session settings: set some assemblies/tracks on/off
 
         This allows to select a default view:
@@ -1526,8 +1524,13 @@ class JbrowseConnector(object):
             json.dump(self.config_json, config_file, indent=2)
 
     def clone_jbrowse(self, realclone=False):
-        """Clone a JBrowse directory into a destination directory. This also works in Biocontainer testing now
-        Leave as True between version updates on temporary tools - requires manual conda trigger :(
+        """
+            Clone a JBrowse directory into a destination directory.
+
+            `realclone=true` will use the `jbrowse create` command.
+            To allow running on internet-less compute and for reproducibility
+            use frozen code with `realclone=false
+
         """
         dest = self.outdir
         if realclone:
@@ -1544,10 +1547,15 @@ class JbrowseConnector(object):
             "version.txt",
             "test_data",
         ]:
-            cmd = ["rm", "-rf", os.path.join(dest, fn)]
-            self.subprocess_check_call(cmd)
-        cmd = ["cp", os.path.join(INSTALLED_TO, "jb2_webserver.py"), dest]
-        self.subprocess_check_call(cmd)
+            try:
+                path = os.path.join(dest, fn)
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except OSError as e:
+                log.error("Error: %s - %s." % (e.filename, e.strerror))
+        shutil.copyfile(os.path.join(INSTALLED_TO, "jb2_webserver.py"), os.path.join(dest, "jb2_webserver.py"))
 
 
 def parse_style_conf(item):
@@ -1561,7 +1569,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="", epilog="")
     parser.add_argument("--xml", help="Track Configuration")
     parser.add_argument(
-        "--jbrowse2path", help="Path to JBrowse2 directory in biocontainer or Conda"
+        "--jbrowse2path", help="Path to JBrowse2 directory in BioContainer or Conda"
     )
     parser.add_argument("--outdir", help="Output directory", default="out")
     parser.add_argument("--version", "-V", action="version", version=JB2VER)

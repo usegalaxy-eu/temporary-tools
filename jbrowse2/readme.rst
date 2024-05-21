@@ -1,6 +1,8 @@
 JBrowse2 in Galaxy
 ==================
 
+    JBrowse2 is a fast, embeddable genome browser built completely with
+    JavaScript and HTML5
 
 Added April 2024:
 Multiple independent assembly/track sets in the same browser now working
@@ -14,7 +16,6 @@ vcf, cram, bam, bed, gff, bigwig, hic, cool, blastxml, maf, paf tracks.
 Added Mar 26:
 Testing history added with tests of the 8 simple formats
 hic and paf need small tests but work with big ones...
-
 
 Added Mar 8:
  - URI as data source for tracks
@@ -40,7 +41,7 @@ Added Feb 3: cool/mcool -> hic
 
 .. image:: dm4_in_jb2.png
 
-Other samples
+Other tracks
 
 .. image:: jb2_samplerMay5.png
 
@@ -80,17 +81,17 @@ History
 
 - 2.10.0+galaxy2
 
-- UPDATED existing JBrowse1.16.11 code to JBrowse 2.10.0
-- was working well enough for VGP when previous PR discovered
-   - too late to backport all the fixes
-   - working default session and some other ideas copied instead.
-- seems to work well with defaults.
-- need to document and implement track settings by running the browser locally.
-- works well enough to be useful in workflows such as TreeValGal.
-- JB2 seems to set defaults wisely.
-- not yet ideal for users who need fine grained track control.
-- synteny (paf + reference) now working
-- rehomed at https://github.com/usegalaxy-eu/temporary-tools/tree/master/jbrowse2 while IUC reviews are slowly sorted out.
+    - UPDATED existing JBrowse1.16.11 code to JBrowse 2.10.0
+    - was working well enough for VGP when previous PR discovered
+        - too late to backport all the fixes
+        - working default session and some other ideas copied instead.
+    - seems to work well with defaults.
+    - need to document and implement track settings by running the browser locally.
+    - works well enough to be useful in workflows such as TreeValGal.
+    - JB2 seems to set defaults wisely.
+    - not yet ideal for users who need fine grained track control.
+    - synteny (paf + reference) now working
+    - rehomed at https://github.com/usegalaxy-eu/temporary-tools/tree/master/jbrowse2 while IUC reviews are slowly sorted out.
 
 
 Wrapper License (MIT/BSD Style)
