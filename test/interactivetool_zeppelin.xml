@@ -1,0 +1,38 @@
+<tool id="interactive_zeppelin_notebook" tool_type="interactive" name="zeppelin" version="1.0.0">
+    <description>Zeppelin Notebook</description>
+    <requirements>
+        <container type="docker">apache/zeppelin:0.10.1</container>
+    </requirements>
+    <entry_points>
+        <entry_point name="Zeppelin Notebook" requires_domain="True">
+            <port>8080</port>
+            <url>/</url>
+        </entry_point>
+    </entry_points>
+    <command><![CDATA[
+        /opt/zeppelin/bin/zeppelin.sh 
+    ]]>
+    </command>
+    <inputs>
+    </inputs>
+    <outputs>
+        <data name="file_output" format="txt" />
+    </outputs>
+    <tests>
+    </tests>
+    <help>
+<![CDATA[
+
+]]>
+    </help>
+    <citations>
+       <citation type="bibtex">
+       @misc{
+            author       = {Mike Thang - m.thang@qcif.edu.au },
+            title        = {{Zeppelin-Notebook -  Zeppelin Notebook }},
+            publisher    = {MT},
+            url          = {}
+        }
+    }</citation>
+    </citations>
+</tool>
