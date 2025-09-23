@@ -1,7 +1,7 @@
 <tool id="3dtrees_tile_merge" name="3D Trees Tile and Merge" version="1.0.0">
     <description>Tile and merge 3D point cloud data for tree segmentation</description>
     <requirements>
-        <container type="docker">3dtrees-tool-tile_merge:latest</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees_tile_merge:latest</container>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
         python -u /src/run.py 
