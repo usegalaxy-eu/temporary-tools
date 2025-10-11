@@ -1,0 +1,105 @@
+<tool id="3dtrees_sat" name="SegmentAnyTree" version="1.0.0" profile="24.2">
+    <description>Deep learning-based tree segmentation from LiDAR point clouds</description>
+    <requirements>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees_sat:1.0</container>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        export NUMBA_CACHE_DIR=\$TMPDIR &&
+        ln -s '$input' input.zip &&
+        python3.8 -u /src/run.py 
+        --dataset-path input.zip 
+        --output-dir .
+        ]]>
+    </command>
+    <inputs>
+        <param name="input" type="data" format="zip" label="Input Dataset (ZIP)" help="ZIP file containing point cloud data with required folder structure (02_input_SAT directory with LAZ/LAS files)"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="zip" label="Processed Files" from_work_dir="processed_files.zip"/>
+    </outputs>
+    <tests>
+        <test>
+            <param name="input" value="prepared_files.zip"/>
+            <output name="output" file="processed_files.zip" compare="sim_size" delta="50000"/>
+        </test>
+    </tests>
+    <help><![CDATA[
+**What it does**
+
+This tool performs **deep learning-based tree segmentation** on LiDAR point clouds using the **SegmentAnyTree** algorithm (Wielgosz et al., 2024). It is sensor- and platform-agnostic, working across airborne (ALS/ULS), terrestrial (TLS), and mobile (MLS) laser scanning data.
+
+The tool automatically handles **subsampling, tiling, segmentation, and merging** to produce a **segmented point cloud at the original resolution**.
+
+-----
+
+**Features**
+
+- **Platform agnostic** – works with ALS, TLS, ULS, MLS datasets
+- **Voxel-based subsampling** at 100 pts/m²
+- **Automatic tiling** for large point clouds (>3 GB)
+- **Deep learning segmentation** using SegmentAnyTree
+- **Merging** results back into the original resolution point cloud
+- **Output**: Segmented point cloud with tree instance IDs
+
+-----
+
+**Input**
+
+The input must be a **ZIP file** containing the following directory structure::
+
+  02_input_SAT/
+      file1.laz
+      file2.laz
+      ...
+
+The tool will process all LAZ/LAS files in the 02_input_SAT directory.
+
+-----
+
+**Output**
+
+A **ZIP file** containing the complete processed folder structure::
+
+  00_original/          (Original point clouds)
+  01_subsampled/        (Subsampled point clouds at 100 pts/m²)
+  02_input_SAT/         (Input files)
+  03_output_SAT/        (Segmented point clouds with tree instance IDs)
+
+The main result is in the 03_output_SAT directory, containing segmented LAZ files with tree instance IDs assigned to each point.
+
+-----
+
+**Workflow**
+
+1. **Data Preparation**: Voxel-based subsampling to 10 cm resolution (100 pts/m²) and automatic tiling for large datasets
+2. **Tree Segmentation**: Deep learning inference using SegmentAnyTree model for instance segmentation
+3. **Quality Control**: Whole tree filtering - trees extending into buffer zones are excluded
+4. **Resolution Recovery**: KDTree-based reassignment of subsampled results to original resolution
+5. **Output Generation**: Segmented point cloud (.laz format) with tree instance IDs and quality metrics
+
+-----
+
+**Citation**
+
+When using this tool, please cite:
+
+Wielgosz, M., Puliti, S., Wilkes, P., Berie, H.T., Astrup, R., 2024. 
+SegmentAnyTree: A sensor and platform agnostic deep learning model for tree segmentation using laser scanning data. 
+Remote Sensing of Environment 314, 114367. https://doi.org/10.1016/j.rse.2024.114367
+
+    ]]></help>
+    <citations>
+        <citation type="doi">10.1016/j.rse.2024.114367</citation>
+        <citation type="bibtex">
+@article{wielgosz2024segmentanytree,
+  title = {SegmentAnyTree: A sensor and platform agnostic deep learning model for tree segmentation using laser scanning data},
+  author = {Wielgosz, Maciej and Puliti, Stefano and Wilkes, Phil and Berie, Hailu Tamire and Astrup, Rasmus},
+  journal = {Remote Sensing of Environment},
+  volume = {314},
+  pages = {114367},
+  year = {2024},
+  doi = {10.1016/j.rse.2024.114367}
+}
+        </citation>
+    </citations>
+</tool>
