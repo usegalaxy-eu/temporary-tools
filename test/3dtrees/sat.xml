@@ -1,7 +1,7 @@
 <tool id="3dtrees_sat" name="SegmentAnyTree" version="1.0.0" profile="24.2">
     <description>Deep learning-based tree segmentation from LiDAR point clouds</description>
     <requirements>
-        <container type="docker">docker pull ghcr.io/3dtrees-earth/3dtrees_sat:1.0</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees_sat:1.0</container>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
         export NUMBA_CACHE_DIR=\$TMPDIR &&
