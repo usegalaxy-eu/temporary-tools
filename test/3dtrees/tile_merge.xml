@@ -1,4 +1,4 @@
-<tool id="3dtrees_tile_merge" name="3Dtrees: Tile and Merge" version="1.0.0">
+<tool id="3dtrees_tile_merge" name="3Dtrees: Tile and Merge" version="1.0.0" profile="24.2">
     <description>Subsample, tile and merge 3D point cloud data for tree segmentation. 
     </description>
     <requirements>
