@@ -3,8 +3,10 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_CORPUS@
 
@@ -40,10 +42,8 @@
 
         @ZIP_OUTPUT@
     ]]></command>
-
     <inputs>
-        <expand macro="input_corpus" />
-
+        <expand macro="input_corpus"/>
         <conditional name="tokenizer_type">
             <param name="source" type="select" label="Tokenizer Source">
                 <option value="builtin" selected="true">Use a built-in MFA Tokenizer</option>
@@ -60,10 +60,9 @@
                 </param>
             </when>
             <when value="history">
-                <param name="tokenizer_file" type="data" format="mfa_tokenizer_model.zip" label="Tokenizer Model File" />
+                <param name="tokenizer_file" type="data" format="mfa_tokenizer_model.zip" label="Tokenizer Model File"/>
             </when>
         </conditional>
-
         <conditional name="dictionary_type">
             <param name="use_dictionary" type="select" label="Use a Dictionary?" help="Using a dictionary can improve accuracy by checking if tokenized words are valid.">
                 <option value="no" selected="true">No, use tokenizer only</option>
@@ -87,36 +86,39 @@
                         </param>
                     </when>
                     <when value="history">
-                        <param name="dictionary_file" type="data" format="mfa.dict" label="Dictionary File" />
+                        <param name="dictionary_file" type="data" format="mfa.dict" label="Dictionary File"/>
                     </when>
                 </conditional>
             </when>
         </conditional>
-
     </inputs>
-
     <outputs>
-        <data name="output_archive" format="mfa_corpus_model.zip" label="${tool.name} on ${on_string}: Tokenized Corpus" />
+        <data name="output_archive" format="mfa_corpus_model.zip" label="${tool.name} on ${on_string}: Tokenized Corpus"/>
     </outputs>
-
     <tests>
         <test expect_num_outputs="1">
-            <param name="corpus_source" value="test_corpus_raw.zip" ftype="mfa_corpus_model.zip" />
+            <conditional name="corpus_input">
+                <param name="source" value="archive"/>
+                <param name="corpus_archive" value="test_corpus_raw.zip" ftype="mfa_corpus_model.zip"/>
+            </conditional>
             <conditional name="tokenizer_type">
-                <param name="source" value="history" />
-                <param name="tokenizer_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/tokenizer-japanese_mfa-v2.2.1/japanese_mfa.zip" ftype="mfa_tokenizer_model.zip" />
+                <param name="source" value="history"/>
+                <param name="tokenizer_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/tokenizer-japanese_mfa-v2.2.1/japanese_mfa.zip" ftype="mfa_tokenizer_model.zip"/>
             </conditional>
             <conditional name="dictionary_type">
-                <param name="use_dictionary" value="no" />
+                <param name="use_dictionary" value="no"/>
             </conditional>
+            <assert_stdout>
+                <has_text text="Found 1 speaker"/>
+                <has_text text="Done!"/>
+            </assert_stdout>
             <output name="output_archive">
                 <assert_contents>
-                    <has_size value="550" delta="200" />
+                    <has_archive_member path=".*\.lab" min="1"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: Tokenize**
 
@@ -137,6 +139,5 @@ MFA (and Kaldi) requires words to be whitespace-separated to look them up in a d
 * A new Zip archive containing the modified transcripts, ready for alignment.
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

@@ -3,15 +3,17 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_CORPUS@
         @PREPARE_DICTIONARY@
 
         ## 3. Prepare Config (Optional)
-        #if $config_file:
-            ln -s '$config_file' config.yaml &&
+        #if $advanced.config_file:
+            ln -s '$advanced.config_file' config.yaml &&
         #end if
 
         ## 4. Prepare G2P for OOVs (Optional)
@@ -31,23 +33,21 @@
             $dict_arg
             ./output_model.zip
             --job_name 'mfa_train_job'
-            #if $config_file:
-                --config_path config.yaml
+            #if $advanced.config_file:
+                --config_path config.yaml &&
             #end if
             #if $g2p_section.use_g2p == 'yes':
-                --g2p_model_path $g2p_arg
+                --g2p_model_path $g2p_arg &&
             #end if
-            #if $speaker_characters:
-                --speaker_characters '$speaker_characters'
+            #if str($speaker_characters):
+                --speaker_characters '$speaker_characters' &&
             #end if
-            $phone_set_type
+            --phone_set_type $advanced.phone_set_type
 
     ]]></command>
-
     <inputs>
-        <expand macro="input_corpus" />
-        <expand macro="input_dictionary" />
-
+        <expand macro="input_corpus"/>
+        <expand macro="input_dictionary"/>
         <conditional name="g2p_section">
             <param name="use_g2p" type="select" label="Use G2P for Out-of-Vocabulary words?" help="If provided, MFA will automatically generate pronunciations for words missing from the dictionary during training.">
                 <option value="no" selected="true">No</option>
@@ -71,50 +71,52 @@
                         </param>
                     </when>
                     <when value="history">
-                        <param name="g2p_file" type="data" format="mfa_g2p_model.zip" label="G2P Model File" />
+                        <param name="g2p_file" type="data" format="mfa_g2p_model.zip" label="G2P Model File"/>
                     </when>
                 </conditional>
             </when>
         </conditional>
-
-        <param name="config_file" type="data" format="yaml" optional="true" label="Configuration File (YAML)" help="Optional. Advanced users can upload a YAML file to customize training parameters (e.g., hidden states, gaussian counts)." />
-        
-        <param name="phone_set_type" type="select" label="Phone Set Type" help="Specifies the phone set used in the dictionary. 'AUTO' usually works best.">
-            <option value="" selected="true">Auto-detect</option>
-            <option value="--phone_set_type IPA">IPA</option>
-            <option value="--phone_set_type ARPA">ARPA</option>
-            <option value="--phone_set_type PINYIN">PINYIN</option>
-        </param>
-
-        <expand macro="common_inputs" />
-        
+        <section name="advanced" title="Advanced options" expanded="false">
+            <param name="config_file" type="data" format="yaml" optional="true" label="Configuration File (YAML)" help="Optional. Advanced users can upload a YAML file to customize training parameters (e.g., hidden states, gaussian counts)."/>
+            <param argument="--phone_set_type" type="select" label="Phone Set Type" help="Specifies the phone set used in the dictionary. 'AUTO' usually works best.">
+                <option value="AUTO" selected="true">Auto-detect</option>
+                <option value="IPA">IPA</option>
+                <option value="ARPA">ARPA</option>
+                <option value="PINYIN">PINYIN</option>
+            </param>
+        </section>
+        <expand macro="common_inputs"/>
     </inputs>
-
     <outputs>
-        <data name="output_model" format="mfa_acoustic_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Trained Acoustic Model" />
+        <data name="output_model" format="mfa_acoustic_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Trained Acoustic Model"/>
     </outputs>
-
     <tests>
         <test expect_num_outputs="1">
-            <param name="corpus_source" value="test_corpus.zip" ftype="mfa_corpus_model.zip" />
-            
+            <conditional name="corpus_input">
+                <param name="source" value="archive"/>
+                <param name="corpus_archive" value="test_corpus.zip" ftype="mfa_corpus_model.zip"/>
+            </conditional>
             <conditional name="dictionary_type">
-                <param name="source" value="history" />
-                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict" />
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
             </conditional>
-            
             <conditional name="g2p_section">
-                <param name="use_g2p" value="no" />
+                <param name="use_g2p" value="no"/>
             </conditional>
-            
+            <section name="advanced">
+                <param name="phone_set_type" value="ARPA"/>
+            </section>
+            <assert_stdout>
+                <has_text text="Found 5 speakers"/>
+                <has_text text="Done!"/>
+            </assert_stdout>
             <output name="output_model">
                 <assert_contents>
-                    <has_size value="200" delta="200" />
+                    <has_archive_member path=".*meta\.json"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: Train**
 
@@ -138,6 +140,5 @@ If your corpus contains words not in the dictionary, you can provide a **G2P Mod
 * A `.zip` file containing the new Acoustic Model. You can use this output in the **MFA Align** tool.
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

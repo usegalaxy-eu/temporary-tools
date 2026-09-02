@@ -3,8 +3,10 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_CORPUS@
         @PREPARE_DICTIONARY@
@@ -18,44 +20,44 @@
             $ac_arg
             ./output_model.zip
             --job_name 'mfa_adapt_job'
-            #if $speaker_characters:
+            #if str($speaker_characters):
                 --speaker_characters '$speaker_characters'
             #end if
     ]]></command>
-
     <inputs>
-        <expand macro="input_corpus" />
-        <expand macro="input_dictionary" />
-        <expand macro="input_acoustic" />
-        <expand macro="common_inputs" />
+        <expand macro="input_corpus"/>
+        <expand macro="input_dictionary"/>
+        <expand macro="input_acoustic"/>
+        <expand macro="common_inputs"/>
     </inputs>
-
     <outputs>
-        <data name="output_model" format="mfa_acoustic_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Adapted Acoustic Model" />
+        <data name="output_model" format="mfa_acoustic_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Adapted Acoustic Model"/>
     </outputs>
-
     <tests>
         <test expect_num_outputs="1">
-            <param name="corpus_source" value="test_corpus.zip" ftype="mfa_corpus_model.zip" />
-            
+            <conditional name="corpus_input">
+                <param name="source" value="archive"/>
+                <param name="corpus_archive" value="test_corpus.zip" ftype="mfa_corpus_model.zip"/>
+            </conditional>
             <conditional name="dictionary_type">
-                <param name="source" value="history" />
-                <param name="dictionary_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/dictionary-english_us_arpa-v3.0.0/english_us_arpa.dict" ftype="mfa.dict" />
+                <param name="source" value="history"/>
+                <param name="dictionary_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/dictionary-english_us_arpa-v3.0.0/english_us_arpa.dict" ftype="mfa.dict"/>
             </conditional>
-            
             <conditional name="acoustic_type">
-                <param name="source" value="history" />
-                <param name="acoustic_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-english_us_arpa-v3.0.0/english_us_arpa.zip" ftype="mfa_acoustic_model.zip" />
+                <param name="source" value="history"/>
+                <param name="acoustic_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-english_us_arpa-v3.0.0/english_us_arpa.zip" ftype="mfa_acoustic_model.zip"/>
             </conditional>
-            
+            <assert_stdout>
+                <has_text text="Found 5 speakers"/>
+                <has_text text="Done!"/>
+            </assert_stdout>
             <output name="output_model">
                 <assert_contents>
-                    <has_size value="500" delta="500" />
+                    <has_archive_member path=".*meta\.json"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: Adapt**
 
@@ -83,6 +85,5 @@ Running `Adapt` will create a **new** acoustic model specifically tailored to yo
 * **Adapted Acoustic Model:** A `.zip` file containing the new model.
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

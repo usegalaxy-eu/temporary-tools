@@ -3,8 +3,10 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_CORPUS@
 
@@ -38,10 +40,8 @@
             --order $order
 
     ]]></command>
-
     <inputs>
-        <expand macro="input_corpus" />
-
+        <expand macro="input_corpus"/>
         <conditional name="dictionary_type">
             <param name="use_dictionary" type="select" label="Use a Dictionary?" help="If provided, the LM will be restricted to words found in this dictionary.">
                 <option value="yes" selected="true">Yes, filter with dictionary</option>
@@ -64,42 +64,43 @@
                         </param>
                     </when>
                     <when value="history">
-                        <param name="dictionary_file" type="data" format="mfa.dict" label="Dictionary File" />
+                        <param name="dictionary_file" type="data" format="mfa.dict" label="Dictionary File"/>
                     </when>
                 </conditional>
             </when>
             <when value="no"/>
         </conditional>
-
-        <param name="order" type="integer" value="3" min="1" max="5" label="N-gram Order" help="The 'N' in N-gram. 3 (Trigram) is standard. Higher numbers require larger text corpora." />
-        
-        <param name="config_file" type="data" format="yaml" optional="true" label="Configuration File" help="Optional. Customize pruning parameters and methods." />
-
+        <param argument="--order" type="integer" value="3" min="1" max="5" label="N-gram Order" help="The 'N' in N-gram. 3 (Trigram) is standard. Higher numbers require larger text corpora."/>
+        <param argument="--config_path" name="config_file" type="data" format="yaml" optional="true" label="Configuration File" help="Optional. Customize pruning parameters and methods."/>
     </inputs>
-
     <outputs>
-        <data name="output_model" format="mfa_language_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Language Model" />
+        <data name="output_model" format="mfa_language_model.zip" from_work_dir="output_model.zip" label="${tool.name} on ${on_string}: Language Model"/>
     </outputs>
-
     <tests>
         <test expect_num_outputs="1">
-            <param name="corpus_source" value="test_corpus.zip" ftype="mfa_corpus_model.zip" />
+            <conditional name="corpus_input">
+                <param name="source" value="archive"/>
+                <param name="corpus_archive" value="test_corpus.zip" ftype="mfa_corpus_model.zip"/>
+            </conditional>
             <conditional name="dictionary_type">
-                <param name="use_dictionary" value="yes" />
+                <param name="use_dictionary" value="yes"/>
                 <conditional name="dict_source">
-                    <param name="source" value="history" />
-                    <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict" />
+                    <param name="source" value="history"/>
+                    <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
                 </conditional>
             </conditional>
-            <param name="order" value="2" />
+            <param name="order" value="2"/>
+            <assert_stdout>
+                <has_text text="Found 5 speakers"/>
+                <has_text text="Done!"/>
+            </assert_stdout>
             <output name="output_model">
                 <assert_contents>
-                    <has_size value="200" delta="200" />
+                    <has_archive_member path=".*\.arpa"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: Train Language Model**
 
@@ -120,6 +121,5 @@ This is required if you want to use the **MFA Transcribe** tool. The transcriber
 * A `.zip` file containing the trained Language Model (ARPA format inside).
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

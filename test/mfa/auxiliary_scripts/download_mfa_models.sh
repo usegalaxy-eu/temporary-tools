@@ -13,7 +13,7 @@
 #
 # =============================================================================
 
-TARGET_DIR="/data/db/mfa"
+TARGET_DIR="/tmp/mfa"
 export MFA_ROOT_DIR="$TARGET_DIR"
 
 # 1. Check for Token

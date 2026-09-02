@@ -3,8 +3,10 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
 
         ## 1. Prepare Input (Word List or Corpus)
@@ -32,12 +34,11 @@
             ./output.dict
             --job_name 'mfa_g2p_job'
             --num_pronunciations $num_pronunciations
-            #if $include_bracketed:
+            #if str($include_bracketed) == "true":
                 --include_bracketed
             #end if
 
     ]]></command>
-
     <inputs>
         <conditional name="input_type">
             <param name="source_type" type="select" label="Input Mode" help="You can generate pronunciations for a simple list of words (e.g., from 'Find OOVs') or for every word in a full corpus.">
@@ -45,42 +46,38 @@
                 <option value="corpus">Corpus Archive (Zip/Tar)</option>
             </param>
             <when value="word_list">
-                <param name="word_list" type="data" format="txt,tabular" label="Word List" help="A text file with one word per line (e.g., the 'oovs_found.txt' from MFA Find OOVs)." />
+                <param name="word_list" type="data" format="txt,tabular" label="Word List" help="A text file with one word per line (e.g., the 'oovs_found.txt' from MFA Find OOVs)."/>
             </when>
             <when value="corpus">
-                <param name="corpus_source" type="data" format="mfa_corpus_model.zip" label="Corpus Archive" />
+                <param name="corpus_source" type="data" format="mfa_corpus_model.zip" label="Corpus Archive"/>
             </when>
         </conditional>
-
-        <expand macro="input_g2p" />
-        <param name="num_pronunciations" type="integer" value="1" min="1" max="10" label="Number of Pronunciations" help="How many variants to generate per word (e.g., 2 might generate 'tomato' as both /t ə m eɪ t oʊ/ and /t ə m ɑ t oʊ/)." />
-        <param name="include_bracketed" type="boolean" truevalue="--include_bracketed" falsevalue="" checked="false" label="Include Bracketed Words" help="If checked, generate pronunciations for words like [applause] or {cough}. Usually, you want to keep this unchecked." />
-
+        <expand macro="input_g2p"/>
+        <param argument="--num_pronunciations" type="integer" value="1" min="1" max="10" label="Number of Pronunciations" help="How many variants to generate per word (e.g., 2 might generate 'tomato' as both /t ə m eɪ t oʊ/ and /t ə m ɑ t oʊ/)."/>
+        <param argument="--include_bracketed" type="boolean" truevalue="--include_bracketed" falsevalue="" checked="false" label="Include Bracketed Words" help="If checked, generate pronunciations for words like [applause] or {cough}. Usually, you want to keep this unchecked."/>
     </inputs>
-
     <outputs>
-        <data name="output_dictionary" format="mfa.dict" from_work_dir="output.dict" label="${tool.name} on ${on_string}: Generated Dictionary" />
+        <data name="output_dictionary" format="mfa.dict" from_work_dir="output.dict" label="${tool.name} on ${on_string}: Generated Dictionary"/>
     </outputs>
-
     <tests>
         <test expect_num_outputs="1">
             <conditional name="input_type">
-                <param name="source_type" value="word_list" />
-                <param name="word_list" value="test_words.txt" ftype="txt" />
+                <param name="source_type" value="word_list"/>
+                <param name="word_list" value="test_words.txt" ftype="txt"/>
             </conditional>
             <conditional name="g2p_model_type">
-                <param name="source" value="history" />
-                <param name="g2p_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/g2p-english_us_arpa-v2.0.0a/english_us_arpa.zip" ftype="mfa_g2p_model.zip" />
+                <param name="source" value="history"/>
+                <param name="g2p_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/g2p-english_us_arpa-v2.0.0a/english_us_arpa.zip" ftype="mfa_g2p_model.zip"/>
             </conditional>
             <output name="output_dictionary">
                 <assert_contents>
-                    <has_text text="test" />
-                    <has_text_matching expression="test\s+[A-Z]+" /> 
+                    <has_text text="test"/>
+                    <has_text_matching expression="test\s+[A-Z]+"/>
+                    <has_n_lines min="1"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: G2P (Generate to Phonemes)**
 
@@ -104,6 +101,5 @@ This tool uses a machine learning model to guess the pronunciation of words.
 * A Dictionary file (Text format: `Word  PH ON E M ES`).
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

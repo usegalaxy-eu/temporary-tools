@@ -3,54 +3,58 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_DICTIONARY@
 
-        cp '$dict_arg' final_dict.dict
+        cp '$dict_arg' final_dict.dict &&
 
         #for $other in $other_dicts:
-            && ln -sf '$other.dictionary_file' other_dict.dict
-            && mfa model add_words final_dict.dict other_dict.dict
+            ln -sf '$other.dictionary_file' other_dict.dict &&
+            mfa model add_words final_dict.dict other_dict.dict &&
         #end for
+
+        true
     ]]></command>
     <inputs>
-        <expand macro="input_dictionary" />
+        <expand macro="input_dictionary"/>
         <repeat name="other_dicts" title="Dictionary to add">
-            <param name="dictionary_file" type="data" format="mfa.dict" label="MFA dictionary" />
+            <param name="dictionary_file" type="data" format="mfa.dict" label="MFA dictionary"/>
         </repeat>
     </inputs>
     <outputs>
-        <data name="merged_dict" format="mfa.dict" from_work_dir="final_dict.dict" />
+        <data name="merged_dict" format="mfa.dict" from_work_dir="final_dict.dict"/>
     </outputs>
     <tests>
         <test expect_num_outputs="1">
             <conditional name="dictionary_type">
-                <param name="source" value="history" />
-                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict" />
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
             </conditional>
-            <output name="merged_dict" ftype="mfa.dict" file="test_dict.txt" />
+            <output name="merged_dict" ftype="mfa.dict" file="test_dict.txt"/>
         </test>
         <test expect_num_outputs="1">
             <conditional name="dictionary_type">
-                <param name="source" value="builtin" />
-                <param name="builtin_dictionary" value="test_dict" />
+                <param name="source" value="builtin"/>
+                <param name="builtin_dictionary" value="test_dict"/>
             </conditional>
-            <output name="merged_dict" ftype="mfa.dict" file="test_dict.txt" />
+            <output name="merged_dict" ftype="mfa.dict" file="test_dict.txt"/>
         </test>
         <test expect_num_outputs="1">
             <conditional name="dictionary_type">
-                <param name="source" value="history" />
-                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict" />
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
             </conditional>
             <repeat name="other_dicts">
-                <param name="dictionary_file" value="to_merge_dict.txt" ftype="mfa.dict" />
+                <param name="dictionary_file" value="to_merge_dict.txt" ftype="mfa.dict"/>
             </repeat>
             <output name="merged_dict">
                 <assert_contents>
-                    <has_n_lines n="5" />
-                    <has_text text="word" />
+                    <has_n_lines n="5"/>
+                    <has_text text="word"/>
                 </assert_contents>
             </output>
         </test>
@@ -78,6 +82,5 @@ The tool is built on the `mfa model add_words` command and shares its limitation
   In other words, the first pronunciation of a word that is seen will win.
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>

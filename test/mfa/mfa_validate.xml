@@ -3,8 +3,10 @@
     <macros>
         <import>macros.xml</import>
     </macros>
-    <expand macro="requirements" />
-    <command detect_errors="exit_code"><![CDATA[
+    <expand macro="creators"/>
+    <expand macro="requirements"/>
+    <expand macro="version_command"/>
+    <command detect_errors="aggressive"><![CDATA[
         @PREPARE_ENV@
         @PREPARE_CORPUS@
         @PREPARE_DICTIONARY@
@@ -26,23 +28,19 @@
             corpus_dir
             $dict_arg
             $ac_arg
-            ./validation_archive.zip
+            output_dir
             --job_name 'mfa_validate_job'
-            #if $speaker_characters:
+            #if str($speaker_characters):
                 --speaker_characters '$speaker_characters'
             #end if
-            #if $single_speaker:
+            #if str($single_speaker) == "true":
                 --single_speaker
             #end if
-            ## FIX: Capture stderr (logs) into the output file
             > '$log' 2>&1
-
     ]]></command>
-
     <inputs>
-        <expand macro="input_corpus" />
-        <expand macro="input_dictionary" />
-
+        <expand macro="input_corpus"/>
+        <expand macro="input_dictionary"/>
         <conditional name="acoustic_type">
             <param name="use_acoustic" type="select" label="Validate with Acoustic Model?" help="If provided, MFA will also check alignability using this model.">
                 <option value="no" selected="true">No, validate corpus/dictionary only</option>
@@ -66,39 +64,85 @@
                         </param>
                     </when>
                     <when value="history">
-                        <param name="acoustic_file" type="data" format="mfa_acoustic_model.zip" label="Acoustic Model File" />
+                        <param name="acoustic_file" type="data" format="mfa_acoustic_model.zip" label="Acoustic Model File"/>
                     </when>
                 </conditional>
             </when>
         </conditional>
-
-        <expand macro="common_inputs" />
-        
-        <param name="single_speaker" type="boolean" truevalue="--single_speaker" falsevalue="" checked="false" label="Single Speaker" help="Assume single speaker per file if no speaker info is present." />
-        
+        <expand macro="common_inputs"/>
+        <param argument="--single_speaker" type="boolean" truevalue="--single_speaker" falsevalue="" checked="false" label="Single Speaker" help="Assume single speaker per file if no speaker info is present."/>
     </inputs>
-
     <outputs>
-        <data name="validation_archive" format="mfa_validate.zip" from_work_dir="validation_archive.zip" label="${tool.name} on ${on_string}: Output Directory" />
-        <data name="log" format="txt" label="${tool.name} on ${on_string}: Log" />
+        <data name="log" format="txt" label="${tool.name} on ${on_string}: Validation Report"/>
     </outputs>
-
     <tests>
-        <test expect_num_outputs="2">
-            <param name="corpus_source" value="test_corpus.zip" ftype="mfa_corpus_model.zip" />
+        <test expect_num_outputs="1">
+            <conditional name="corpus_input">
+                <param name="source" value="archive"/>
+                <param name="corpus_archive" value="test_corpus.zip" ftype="mfa_corpus_model.zip"/>
+            </conditional>
             <conditional name="dictionary_type">
-                <param name="source" value="history" />
-                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict" />
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
             </conditional>
             <output name="log">
                 <assert_contents>
-                    <has_text text="Setting up corpus information" />
-                    <has_text text="Corpus" />
+                    <has_text text="Setting up corpus information"/>
+                    <has_text text="Found 5 speakers"/>
+                    <has_text text="There were no missing words from the dictionary"/>
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="1">
+            <conditional name="corpus_input">
+                <param name="source" value="collection"/>
+                <param name="corpus_collection">
+                    <collection type="list:paired">
+                        <element name="s1_1">
+                            <collection type="paired">
+                                <element name="forward" value="s1_1.wav" ftype="wav"/>
+                                <element name="reverse" value="s1_1.lab" ftype="txt"/>
+                            </collection>
+                        </element>
+                        <element name="s1_2">
+                            <collection type="paired">
+                                <element name="forward" value="s1_2.wav" ftype="wav"/>
+                                <element name="reverse" value="s1_2.lab" ftype="txt"/>
+                            </collection>
+                        </element>
+                    </collection>
+                </param>
+            </conditional>
+            <conditional name="dictionary_type">
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
+            </conditional>
+            <param name="speaker_characters" value="2"/>
+            <output name="log">
+                <assert_contents>
+                    <has_text text="Setting up corpus information"/>
+                    <has_text text="Found 1 speaker"/>
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="1">
+            <conditional name="corpus_input">
+                <param name="source" value="single"/>
+                <param name="audio_file" value="s1_1.wav" ftype="wav"/>
+                <param name="transcript_file" value="s1_1.lab" ftype="txt"/>
+            </conditional>
+            <conditional name="dictionary_type">
+                <param name="source" value="history"/>
+                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
+            </conditional>
+            <output name="log">
+                <assert_contents>
+                    <has_text text="Setting up corpus information"/>
+                    <has_text text="Found 1 speaker"/>
                 </assert_contents>
             </output>
         </test>
     </tests>
-
     <help><![CDATA[
 **Montreal Forced Aligner: Validate**
 
@@ -111,10 +155,8 @@ This tool performs validation on a corpus and a dictionary (and optionally an ac
 
 **Output**
 
-* **Output Directory:** Contains raw validation data.
-* **Log:** The readable validation report confirming if the corpus is valid.
+* **Validation Report:** A text log confirming if the corpus is valid, listing any issues found (missing words, file format errors, OOV rates).
 
     ]]></help>
-    <expand macro="creators" />
-    <expand macro="citations" />
+    <expand macro="citations"/>
 </tool>
