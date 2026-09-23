@@ -39,7 +39,7 @@
             #if $g2p_section.use_g2p == 'yes':
                 --g2p_model_path $g2p_arg &&
             #end if
-            #if str($speaker_characters):
+            #if $speaker_characters > 0:
                 --speaker_characters '$speaker_characters' &&
             #end if
             --phone_set_type $advanced.phone_set_type

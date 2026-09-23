@@ -20,7 +20,7 @@
             $ac_arg
             ./output_model.zip
             --job_name 'mfa_adapt_job'
-            #if str($speaker_characters):
+            #if $speaker_characters > 0:
                 --speaker_characters '$speaker_characters'
             #end if
     ]]></command>

@@ -21,6 +21,5 @@ suite:
     This suite includes wrappers for:
     * **Alignment:** mfa_align
     * **Validation:** mfa_validate, mfa_validate_dictionary, mfa_find_oovs
-    * **Transcription:** mfa_transcribe
     * **Training:** mfa_train, mfa_train_dictionary, mfa_train_g2p, mfa_train_lm, mfa_train_tokenizer, mfa_adapt
-    * **Utilities:** mfa_g2p, mfa_tokenize, mfa_remap_alignments
+    * **Utilities:** mfa_g2p, mfa_tokenize, mfa_remap_alignments, mfa_merge

@@ -19,7 +19,7 @@
             $ac_arg
             output_dir
             --job_name 'mfa_align_job'
-            #if str($speaker_characters):
+            #if $speaker_characters > 0:
                 --speaker_characters '$speaker_characters'
             #end if
             --output_format long_textgrid
@@ -33,7 +33,7 @@
         <expand macro="common_inputs"/>
     </inputs>
     <outputs>
-        <data name="output_archive" format="zip" label="${tool.name} on ${on_string}: Aligned TextGrids"/>
+        <data name="output_archive" format="mfa_textgrids.zip" label="${tool.name} on ${on_string}: Aligned TextGrids"/>
     </outputs>
     <tests>
         <test expect_num_outputs="1">

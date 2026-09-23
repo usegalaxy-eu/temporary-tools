@@ -11,16 +11,33 @@
         @PREPARE_CORPUS@
         @PREPARE_DICTIONARY@
 
-        ## 3. Run Find OOVs
+        ## 3. Prepare Output Directory
+        mkdir -p output_dir &&
+
+        ## 4. Run Find OOVs
         ## Syntax: mfa find_oovs [OPTIONS] CORPUS_DIRECTORY DICTIONARY_PATH OUTPUT_DIRECTORY
         mfa find_oovs
             corpus_dir
             $dict_arg
             output_dir
             --job_name 'mfa_find_oovs_job'
-            #if str($speaker_characters):
+            #if $speaker_characters > 0:
                 --speaker_characters '$speaker_characters'
             #end if
+            &&
+            ## MFA names the OOV output files after the dictionary base name
+            ## (e.g. oovs_found_input_dictionary.txt), so rename them to the
+            ## names declared in <outputs>. When there are no OOVs, MFA does
+            ## not create these files at all, in which case the outputs are
+            ## left empty.
+            (
+                mv output_dir/oovs_found_*.txt output_dir/oovs_found.txt 2>/dev/null ||
+                true
+            ) &&
+            (
+                mv output_dir/oov_counts_*.txt output_dir/oov_counts.txt 2>/dev/null ||
+                true
+            )
     ]]></command>
     <inputs>
         <expand macro="input_corpus"/>
@@ -40,7 +57,8 @@
             </conditional>
             <conditional name="dictionary_type">
                 <param name="source" value="history"/>
-                <param name="dictionary_file" value="test_dict.txt" ftype="mfa.dict"/>
+                <!-- Dictionary deliberately lacks "hello"/"world" so the corpus has OOVs -->
+                <param name="dictionary_file" value="to_merge_dict.txt" ftype="mfa.dict"/>
             </conditional>
             <output name="oovs_found">
                 <assert_contents>
