@@ -63,10 +63,10 @@
                 <param name="source" value="history"/>
                 <param name="tokenizer_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/tokenizer-japanese_mfa-v2.2.1/japanese_mfa.zip" ftype="mfa_tokenizer_model.zip"/>
             </conditional>
-            <assert_stdout>
+            <assert_stderr>
                 <has_text text="Found 1 speaker"/>
                 <has_text text="Done!"/>
-            </assert_stdout>
+            </assert_stderr>
             <output name="output_archive">
                 <assert_contents>
                     <has_archive_member path=".*\.lab" min="1"/>

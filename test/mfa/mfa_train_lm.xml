@@ -90,10 +90,10 @@
                 </conditional>
             </conditional>
             <param name="order" value="2"/>
-            <assert_stdout>
+            <assert_stderr>
                 <has_text text="Found 5 speakers"/>
                 <has_text text="Done!"/>
-            </assert_stdout>
+            </assert_stderr>
             <output name="output_model">
                 <assert_contents>
                     <has_archive_member path=".*\.arpa"/>

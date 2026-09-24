@@ -37,9 +37,9 @@
                 <param name="corpus_archive" value="test_corpus_aligned.zip" ftype="mfa_corpus_model.zip"/>
             </conditional>
             <param name="mapping_file" value="arpabet_to_ipa.yaml" ftype="yaml"/>
-            <assert_stdout>
+            <assert_stderr>
                 <has_text text="Done!"/>
-            </assert_stdout>
+            </assert_stderr>
             <output name="output_archive">
                 <assert_contents>
                     <has_archive_member path=".*\.TextGrid" min="1"/>

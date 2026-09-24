@@ -85,10 +85,10 @@
                 <param name="acoustic_file" location="https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-english_us_arpa-v3.0.0/english_us_arpa.zip" ftype="mfa_acoustic_model.zip"/>
             </conditional>
             <param name="speaker_characters" value="2"/>
-            <assert_stdout>
+            <assert_stderr>
                 <has_text text="Found 1 speaker"/>
                 <has_text text="Done!"/>
-            </assert_stdout>
+            </assert_stderr>
             <output name="output_archive">
                 <assert_contents>
                     <has_archive_member path=".*\.TextGrid" min="2"/>
