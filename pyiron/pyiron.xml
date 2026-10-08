@@ -1,8 +1,8 @@
-<tool id="pyiron_meta" name="PyIron" version="0.3.2">
+<tool id="pyiron_meta" name="PyIron" version="0.8.10">
     <description>meta tools</description>
     <requirements>
-        <requirement type="package" version="0.3.2">pyiron</requirement>
-        <requirement type="package" version="2020.03.03">lammps</requirement>
+        <requirement type="package" version="0.8.10">pyiron_atomistics</requirement>
+        <requirement type="package" version="2025.07.22">lammps</requirement>
     </requirements>
     <version_command></version_command>
     <command detect_errors="exit_code">
