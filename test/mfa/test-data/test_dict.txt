@@ -1,4 +1,0 @@
-hello	HH AH0 L OW1
-world	W ER1 L D
-yes	Y EH1 S
-no	N OW1
